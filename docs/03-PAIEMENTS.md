@@ -74,6 +74,11 @@ Job périodique qui :
       → logique isolée dans `lib/reconcile.ts`, **testée** dans
       `tests/reconcile.test.ts` (orphelin rattrapé, encore pending, montant
       rejeté, erreurs non bloquantes, rejeu idempotent).
+- [x] **Commission par tier** : le vendeur est crédité du NET (10 % standard /
+      6 % Elite, arrondis) ; la plateforme enregistre sa part dans
+      `platform_earnings`. Calcul **uniquement** dans `confirm_payment` (SQL = seul
+      calculateur d'argent ; `lib/commission.ts` = oracle/affichage).
+      → `tests/commission.test.ts` + `supabase/tests/...` (scénarios A et C).
 - [x] Aucune livraison/crédit sans confirmation serveur-à-serveur.
 - [x] Parcours navigateur (checkout → redirection MonCash, pages de résultat) :
       `e2e/money-path.spec.ts` (Playwright, exécuté en CI).

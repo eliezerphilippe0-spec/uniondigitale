@@ -10,6 +10,7 @@ Schéma, RLS et logique de paiement de la plateforme (Vague 1).
 | `migrations/0002_rls.sql` | Row Level Security : catalogue public, données privées par propriétaire. |
 | `migrations/0003_payment_functions.sql` | `confirm_payment()` — confirmation **idempotente** (EPIC 4). |
 | `migrations/0004_storage.sql` | Bucket privé `product-files` (fichiers livrables). |
+| `migrations/0005_commission.sql` | Tier vendeur + commission (net crédité, `platform_earnings`). Supersède `confirm_payment`. |
 
 ## Appliquer
 

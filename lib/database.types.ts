@@ -16,6 +16,7 @@ export type PaymentRail = "moncash"; // 'natcash' en Vague 2 (bloqué)
 export type PaymentStatus = "pending" | "confirmed" | "failed";
 export type WalletTxnType = "credit" | "debit" | "payout";
 export type PayoutStatus = "requested" | "processing" | "paid" | "rejected";
+export type CreatorTier = "standard" | "elite";
 
 export type Profile = {
   id: string;
@@ -24,6 +25,16 @@ export type Profile = {
   bio: string | null;
   avatar_url: string | null;
   zabelie1_user_id: string | null;
+  tier: CreatorTier;
+  created_at: string;
+};
+
+export type PlatformEarning = {
+  id: string;
+  order_id: string;
+  gross_htg: number;
+  commission_htg: number;
+  rate_bps: number;
   created_at: string;
 };
 
