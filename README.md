@@ -77,6 +77,7 @@ La plateforme est donc démontrable sans base.
 - `/tableau-de-bord` — créateur : solde wallet, ventes, produits, édition du profil.
 - `/createur/[id]` — profil public d'un créateur + ses produits.
 - `/mes-achats` — commandes payées + téléchargement (URL signée).
+- `/admin` — back-office (rôle `admin`) : modération produits + suivi paiements.
 
 ## Intégration continue
 

@@ -26,6 +26,14 @@ export async function SiteNav() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              {user.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="hidden text-sm text-mist transition hover:text-cloud sm:block"
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/tableau-de-bord"
                 className="hidden text-sm text-mist transition hover:text-cloud sm:block"
