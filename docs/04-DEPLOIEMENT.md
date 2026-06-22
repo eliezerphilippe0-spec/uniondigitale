@@ -1,0 +1,80 @@
+# Zabelie Talent — Guide de déploiement
+
+Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
+(rail de paiement) → **Vercel** (hébergement + cron réconciliateur).
+
+> Rappel dépendances bloquantes (`00-CONTEXTE.md §14`) : MonCash ✅ déployable ;
+> **NatCash ⛔** et **retraits BRH ⛔** restent différés.
+
+---
+
+## 1. Supabase
+
+1. Créer un projet sur https://supabase.com.
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`) :
+   - via CLI : `supabase link --project-ref <ref>` puis `supabase db push` ;
+   - ou manuellement : exécuter `0001 → 0002 → 0003 → 0004` dans le SQL Editor.
+3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
+4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
+   **Redirect URLs** : `https://<domaine>/auth/callback`.
+5. Récupérer dans *Project Settings → API* :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (secret — jamais côté client)
+
+### Test d'idempotence (recommandé avant prod)
+```bash
+psql "$DATABASE_URL" -f supabase/tests/payment_idempotency.test.sql
+# Doit afficher : OK — idempotence confirmée …
+```
+
+---
+
+## 2. MonCash (sandbox puis production)
+
+1. Compte business MonCash → obtenir `client_id` / `client_secret`.
+2. Configurer l'**URL de retour** vers `https://<domaine>/api/moncash/return`.
+3. Renseigner :
+   - `MONCASH_CLIENT_ID`, `MONCASH_CLIENT_SECRET`
+   - `MONCASH_MODE=sandbox` (puis `production` le moment venu)
+4. **Test « redirect coupé »** : lancer un paiement sandbox, **couper le réseau
+   avant le retour navigateur**, puis vérifier que `/api/reconcile` confirme la
+   commande (aucune double livraison, aucun paiement orphelin).
+
+---
+
+## 3. Vercel
+
+1. Importer le dépôt, brancher `claude/zabelie-talent-context-85ph4j` (ou `main`).
+2. **Environment Variables** : recopier tout `.env.example` (clés Supabase,
+   MonCash, `NEXT_PUBLIC_SITE_URL=https://<domaine>`, `RECONCILE_SECRET`,
+   `CRON_SECRET`).
+3. Le cron est défini dans `vercel.json` (`/api/reconcile`, toutes les 5 min).
+   Vercel injecte `Authorization: Bearer $CRON_SECRET` sur l'appel GET.
+   > ⚠️ Plan **Hobby** : crons limités à **1×/jour**. Pour toutes les 5 min,
+   > prévoir le plan **Pro**, ou un cron externe (cron-job.org) appelant
+   > `POST /api/reconcile` avec `RECONCILE_SECRET`.
+4. Déployer. Vérifier `https://<domaine>` puis un achat de bout en bout.
+
+---
+
+## 4. Checklist de mise en prod
+
+- [ ] Migrations `0001→0004` appliquées, bucket `product-files` privé.
+- [ ] Test SQL d'idempotence : OK.
+- [ ] Variables d'env Supabase (dont `SUPABASE_SERVICE_ROLE_KEY`) sur Vercel.
+- [ ] Auth : redirect URL `/auth/callback` configurée côté Supabase.
+- [ ] MonCash : identifiants + URL de retour `/api/moncash/return`.
+- [ ] `NEXT_PUBLIC_SITE_URL` = domaine de prod.
+- [ ] `RECONCILE_SECRET` et `CRON_SECRET` définis ; cron actif.
+- [ ] Test « redirect coupé » validé en sandbox.
+- [ ] Parcours complet : publier → uploader fichier → acheter → télécharger.
+- [ ] `npm run build` + `npm test` verts en CI.
+
+---
+
+## 5. Différé (Vague 2 — bloqué)
+
+- **NatCash** : ajouter `'natcash'` à l'enum `payment_rail` + un client dédié.
+- **Retraits BRH** : activer `payouts` selon les règles BRH (KYC, plafonds,
+  reporting). Voir `00-CONTEXTE.md §11`.

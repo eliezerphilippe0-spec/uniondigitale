@@ -1,0 +1,32 @@
+-- Bootstrap pour exécuter les migrations Zabelie Talent sur un Postgres nu
+-- (CI / local), sans Supabase. Stube le strict minimum référencé par les
+-- migrations : schéma auth (users + uid()) et storage (buckets).
+-- En production Supabase, ces objets existent déjà — ce fichier n'y est PAS appliqué.
+
+-- Rôles Supabase (référencés par les REVOKE des fonctions).
+do $$
+begin
+  if not exists (select from pg_roles where rolname = 'anon') then create role anon; end if;
+  if not exists (select from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
+  if not exists (select from pg_roles where rolname = 'service_role') then create role service_role; end if;
+end $$;
+
+create schema if not exists auth;
+create table if not exists auth.users (
+  id    uuid primary key,
+  email text
+);
+create or replace function auth.uid() returns uuid
+  language sql stable as $$ select null::uuid $$;
+
+create schema if not exists storage;
+create table if not exists storage.buckets (
+  id     text primary key,
+  name   text,
+  public boolean
+);
+create table if not exists storage.objects (
+  id        uuid primary key default gen_random_uuid(),
+  bucket_id text,
+  name      text
+);
