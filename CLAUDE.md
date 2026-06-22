@@ -30,3 +30,4 @@ Design : **Higgsfield** pour les visuels.
 - `docs/01-PRD.md` — exigences produit, EPICs.
 - `docs/02-DECISIONS.md` — décisions verrouillées + ouvertes.
 - `docs/03-PAIEMENTS.md` — architecture paiement (EPIC 4, critique).
+- `docs/04-DEPLOIEMENT.md` — guide de mise en prod (Supabase → MonCash → Vercel).

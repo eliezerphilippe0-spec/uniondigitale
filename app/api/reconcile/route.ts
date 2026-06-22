@@ -6,26 +6,32 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/reconcile  (protégé par RECONCILE_SECRET)
  * Réconciliateur : pour chaque paiement encore 'pending', interroge MonCash
  * (serveur-à-serveur) et applique confirm_payment() si le paiement a réussi.
- * C'est ce qui garantit qu'AUCUN paiement n'est orphelin et que le cas
- * « redirect coupé » est rattrapé.
+ * Garantit qu'AUCUN paiement n'est orphelin et rattrape le cas « redirect coupé ».
  *
- * À déclencher par un cron (ex. toutes les minutes).
+ * Déclenchement :
+ *   - GET  → cron Vercel (en-tête Authorization: Bearer $CRON_SECRET).
+ *   - POST → appel manuel (Authorization: Bearer $RECONCILE_SECRET ou
+ *            en-tête x-reconcile-secret).
  */
-export async function POST(req: Request) {
-  const secret = process.env.RECONCILE_SECRET;
-  const provided =
-    req.headers.get("authorization")?.replace("Bearer ", "") ??
-    req.headers.get("x-reconcile-secret");
-  if (!secret || provided !== secret) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
 
+function authorize(req: Request): boolean {
+  const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
+  const cronSecret = process.env.CRON_SECRET;
+  const reconcileSecret = process.env.RECONCILE_SECRET;
+
+  if (cronSecret && bearer === cronSecret) return true;
+  if (reconcileSecret) {
+    if (bearer === reconcileSecret) return true;
+    if (req.headers.get("x-reconcile-secret") === reconcileSecret) return true;
+  }
+  return false;
+}
+
+async function runReconcile() {
   const admin = createAdminClient();
 
-  // Paiements en attente (on borne le lot pour rester rapide).
   const { data: pendings, error } = await admin
     .from("payments")
     .select("idempotency_key, order_id")
@@ -67,4 +73,18 @@ export async function POST(req: Request) {
     stillPending,
     errors,
   });
+}
+
+export async function GET(req: Request) {
+  if (!authorize(req)) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+  return runReconcile();
+}
+
+export async function POST(req: Request) {
+  if (!authorize(req)) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+  return runReconcile();
 }
