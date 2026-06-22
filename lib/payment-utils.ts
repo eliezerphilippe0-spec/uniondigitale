@@ -30,3 +30,15 @@ export function paymentIdempotencyKey(orderId: string): string {
 export function walletCreditKey(orderId: string): string {
   return `order_credit:${orderId}`;
 }
+
+/**
+ * Le montant rapporté par l'opérateur correspond-il au montant de la commande ?
+ * Garde-fou contre un montant falsifié/incohérent (INVARIANT money-path).
+ * Le contrôle de vérité est aussi appliqué côté base dans confirm_payment.
+ */
+export function amountMatches(
+  orderAmountHTG: number,
+  operatorCost: number
+): boolean {
+  return Number.isFinite(operatorCost) && orderAmountHTG === Math.round(operatorCost);
+}

@@ -35,14 +35,20 @@ export async function GET(req: Request) {
   // payment.reference = notre order.id = idempotency_key du paiement.
   const orderId = payment.reference;
   const admin = createAdminClient();
-  const { error } = await admin.rpc("confirm_payment", {
+  const { data, error } = await admin.rpc("confirm_payment", {
     p_idempotency_key: orderId,
     p_provider_ref: payment.transactionId,
     p_raw: payment as unknown as Record<string, unknown>,
+    p_amount: Math.round(payment.cost),
   });
 
   if (error) {
+    // Erreur transitoire → le réconciliateur reprendra la main.
     return NextResponse.redirect(`${site}/paiement/en-attente`);
+  }
+  if (data?.status === "failed") {
+    // Montant incohérent : paiement rejeté, aucune livraison.
+    return NextResponse.redirect(`${site}/paiement/echec?raison=montant`);
   }
 
   return NextResponse.redirect(`${site}/paiement/succes?commande=${orderId}`);

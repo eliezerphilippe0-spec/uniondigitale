@@ -5,6 +5,7 @@ import {
   slugify,
   paymentIdempotencyKey,
   walletCreditKey,
+  amountMatches,
 } from "../lib/payment-utils";
 
 test("isSuccessful : true uniquement si statut 'successful'", () => {
@@ -30,6 +31,14 @@ test("paymentIdempotencyKey : stable = order.id", () => {
 test("walletCreditKey : format aligné sur confirm_payment (SQL)", () => {
   // confirm_payment utilise 'order_credit:' || order_id. Doit correspondre.
   assert.equal(walletCreditKey("xyz"), "order_credit:xyz");
+});
+
+test("amountMatches : rejette un montant falsifié (money-path)", () => {
+  assert.equal(amountMatches(2500, 2500), true);
+  assert.equal(amountMatches(2500, 2500.0), true);
+  assert.equal(amountMatches(2500, 2499), false); // montant minoré
+  assert.equal(amountMatches(2500, 5000), false); // montant majoré
+  assert.equal(amountMatches(2500, Number.NaN), false);
 });
 
 test("slugify : URL propre, accents retirés, borné", () => {

@@ -45,6 +45,7 @@ async function runReconcile() {
 
   let confirmed = 0;
   let stillPending = 0;
+  let rejected = 0;
   const errors: string[] = [];
 
   for (const p of pendings ?? []) {
@@ -52,12 +53,14 @@ async function runReconcile() {
       // idempotency_key === order.id === orderId envoyé à MonCash.
       const mc = await retrieveOrderPayment(p.idempotency_key);
       if (isSuccessful(mc) && mc) {
-        const { error: rpcErr } = await admin.rpc("confirm_payment", {
+        const { data, error: rpcErr } = await admin.rpc("confirm_payment", {
           p_idempotency_key: p.idempotency_key,
           p_provider_ref: mc.transactionId,
           p_raw: mc as unknown as Record<string, unknown>,
+          p_amount: Math.round(mc.cost),
         });
         if (rpcErr) errors.push(`${p.order_id}: ${rpcErr.message}`);
+        else if (data?.status === "failed") rejected++; // montant incohérent
         else confirmed++;
       } else {
         stillPending++;
@@ -71,6 +74,7 @@ async function runReconcile() {
     scanned: pendings?.length ?? 0,
     confirmed,
     stillPending,
+    rejected,
     errors,
   });
 }

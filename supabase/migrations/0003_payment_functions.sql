@@ -5,12 +5,15 @@
 -- confirm_payment : applique la confirmation d'un paiement de façon idempotente.
 --   - Verrouille la ligne payment (FOR UPDATE).
 --   - Si déjà 'confirmed' → no-op (rejeu sans effet de bord = INVARIANT 1).
+--   - Si p_amount est fourni et ≠ montant de la commande → REJET (payment→failed,
+--     aucun crédit). Protège contre un montant falsifié/incohérent.
 --   - Sinon : payment→confirmed, order→paid, crédit du wallet vendeur UNE SEULE
 --     fois (clé d'idempotence 'order_credit:<order_id>' sur wallet_transactions).
 create or replace function confirm_payment(
   p_idempotency_key text,
   p_provider_ref    text default null,
-  p_raw             jsonb default null
+  p_raw             jsonb default null,
+  p_amount          integer default null
 )
 returns payments
 language plpgsql
@@ -36,6 +39,20 @@ begin
 
   -- Rejeu : déjà confirmé → on renvoie l'état sans rien refaire.
   if v_payment.status = 'confirmed' then
+    return v_payment;
+  end if;
+
+  select * into v_order from orders where id = v_payment.order_id;
+
+  -- Garde-fou montant : si l'opérateur rapporte un montant différent de la
+  -- commande, on REJETTE (pas de crédit, pas de livraison). INVARIANT.
+  if p_amount is not null and p_amount <> v_order.amount_htg then
+    update payments
+       set status       = 'failed',
+           provider_ref = coalesce(p_provider_ref, provider_ref),
+           raw          = coalesce(p_raw, raw)
+     where id = v_payment.id
+     returning * into v_payment;
     return v_payment;
   end if;
 
@@ -94,5 +111,5 @@ begin
 end;
 $$;
 
-revoke all on function confirm_payment(text, text, jsonb) from public, anon, authenticated;
+revoke all on function confirm_payment(text, text, jsonb, integer) from public, anon, authenticated;
 -- Exécutable uniquement via service role (webhook / réconciliateur).

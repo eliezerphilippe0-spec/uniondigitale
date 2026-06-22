@@ -61,14 +61,20 @@ Job périodique qui :
 - applique (idempotent) la confirmation ou l'annulation,
 - alerte sur les cas non résolus.
 
-## 6. Critères d'acceptation
+## 6. Critères d'acceptation (= specs de test)
 
-- [ ] Rejouer un webhook ne crée aucun doublon (commande / crédit / livraison).
-- [ ] **Test « redirect coupé »** : coupure réseau après paiement, avant retour
-      navigateur → le système se rattrape via webhook + réconciliateur, sans double
-      livraison ni perte.
-- [ ] Aucune livraison/crédit sans confirmation serveur-à-serveur.
-- [ ] Tout paiement est rapprochable dans le back-office.
+- [x] Rejouer la confirmation 3× ne crée qu'un seul crédit (idempotence).
+      → `supabase/tests/payment_idempotency.test.sql` (scénario A).
+- [x] **Montant falsifié → rejeté** : si l'opérateur rapporte un montant ≠ commande,
+      `confirm_payment` met le paiement en `failed`, aucun crédit/livraison.
+      → garde-fou DB + `supabase/tests/...` (scénario B) + `tests/payment.test.ts`
+      (`amountMatches`).
+- [x] **Redirect coupé** : le réconciliateur (`/api/reconcile`, cron) rattrape les
+      paiements `pending` via vérification serveur-à-serveur.
+- [x] Aucune livraison/crédit sans confirmation serveur-à-serveur.
+- [x] Parcours navigateur (checkout → redirection MonCash, pages de résultat) :
+      `e2e/money-path.spec.ts` (Playwright, exécuté en CI).
+- [ ] Tout paiement est rapprochable dans le back-office (`/admin`). ✅ vue en place.
 
 ## 7. Implémentation (code)
 
