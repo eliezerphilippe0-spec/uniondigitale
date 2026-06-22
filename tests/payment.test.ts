@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isSuccessful, type MonCashPayment } from "../lib/moncash";
+import {
+  isSuccessful,
+  normalizePayment,
+  type MonCashPayment,
+} from "../lib/moncash";
 import {
   slugify,
   paymentIdempotencyKey,
@@ -22,6 +26,30 @@ test("isSuccessful : true uniquement si statut 'successful'", () => {
   assert.equal(isSuccessful({ ...base, status: "pending" }), false);
   assert.equal(isSuccessful({ ...base, status: "failed" }), false);
   assert.equal(isSuccessful(null), false);
+});
+
+test("normalizePayment : format réel MonCash (snake_case + succès par message)", () => {
+  // Réponse type MonCash : transaction_id, cost string, succès via message.
+  const p = normalizePayment({
+    reference: "order-1",
+    transaction_id: "TX-123",
+    cost: "2500",
+    message: "successful",
+    payer: "50937000000",
+  });
+  assert.equal(p?.transactionId, "TX-123");
+  assert.equal(p?.cost, 2500);
+  assert.equal(p?.status, "successful");
+  assert.equal(isSuccessful(p), true);
+
+  // Statut explicite alternatif (payment_status).
+  assert.equal(
+    isSuccessful(normalizePayment({ payment_status: "successful" })),
+    true
+  );
+  // Non abouti.
+  assert.equal(isSuccessful(normalizePayment({ message: "pending" })), false);
+  assert.equal(normalizePayment(null), null);
 });
 
 test("paymentIdempotencyKey : stable = order.id", () => {

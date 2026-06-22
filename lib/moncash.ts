@@ -111,6 +111,37 @@ export type MonCashPayment = {
   status: "successful" | "failed" | "pending" | string;
 };
 
+// Réponse brute MonCash : snake_case, et le succès est porté par `message`
+// ("successful"), pas toujours par un champ `status`. On normalise pour tolérer
+// les deux formats.
+type RawMonCashPayment = {
+  reference?: string;
+  transaction_id?: string;
+  transactionId?: string;
+  cost?: number | string;
+  message?: string;
+  payer?: string;
+  status?: string;
+  payment_status?: string;
+};
+
+export function normalizePayment(
+  raw: RawMonCashPayment | null | undefined
+): MonCashPayment | null {
+  if (!raw) return null;
+  const status = String(raw.status ?? raw.payment_status ?? raw.message ?? "")
+    .trim()
+    .toLowerCase();
+  return {
+    reference: raw.reference ?? "",
+    transactionId: raw.transaction_id ?? raw.transactionId ?? "",
+    cost: Number(raw.cost ?? 0),
+    message: raw.message ?? "",
+    payer: raw.payer ?? "",
+    status,
+  };
+}
+
 /**
  * Vérifie l'état réel d'un paiement côté MonCash, par notre orderId.
  * C'est l'appel de vérité (INVARIANT 2) utilisé au retour et par le réconciliateur.
@@ -139,8 +170,8 @@ export async function retrieveOrderPayment(
       `MonCash RetrieveOrderPayment: ${res.status} ${await res.text()}`
     );
   }
-  const data = (await res.json()) as { payment?: MonCashPayment };
-  return data.payment ?? null;
+  const data = (await res.json()) as { payment?: RawMonCashPayment };
+  return normalizePayment(data.payment);
 }
 
 /**
@@ -170,11 +201,11 @@ export async function retrieveTransactionPayment(
       `MonCash RetrieveTransactionPayment: ${res.status} ${await res.text()}`
     );
   }
-  const data = (await res.json()) as { payment?: MonCashPayment };
-  return data.payment ?? null;
+  const data = (await res.json()) as { payment?: RawMonCashPayment };
+  return normalizePayment(data.payment);
 }
 
-/** Statut MonCash → décision applicative. */
+/** Statut MonCash → décision applicative. Succès = message/statut "successful". */
 export function isSuccessful(p: MonCashPayment | null): boolean {
   return p?.status === "successful";
 }
