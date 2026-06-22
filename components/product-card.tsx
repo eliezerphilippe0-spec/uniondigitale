@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { formatHTG, type Product } from "@/lib/sample-data";
+import { formatHTG } from "@/lib/sample-data";
+import type { ProductView } from "@/lib/products";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: ProductView }) {
   return (
     <Link
       href={`/produit/${product.slug}`}
@@ -33,9 +34,11 @@ export function ProductCard({ product }: { product: Product }) {
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
           {product.kind === "service" ? "Service" : "Fichier"}
         </span>
-        <span className="absolute right-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
-          ★ {product.rating}
-        </span>
+        {product.sales > 0 && (
+          <span className="absolute right-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
+            {product.sales} ventes
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">

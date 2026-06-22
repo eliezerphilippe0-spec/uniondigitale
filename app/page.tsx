@@ -3,7 +3,9 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { HeroVisual } from "@/components/hero-visual";
-import { PRODUCTS } from "@/lib/sample-data";
+import { getPublishedProducts } from "@/lib/products";
+
+export const dynamic = "force-dynamic";
 
 const STEPS = [
   {
@@ -29,7 +31,8 @@ const STATS = [
   { value: "Instant", label: "livraison après paiement" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const products = await getPublishedProducts();
   return (
     <div className="bg-grain">
       <SiteNav />
@@ -110,7 +113,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.slice(0, 6).map((p) => (
+          {products.slice(0, 6).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </div>

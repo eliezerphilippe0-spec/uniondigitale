@@ -30,6 +30,7 @@ App sur http://localhost:3000
 | `npm run dev` | Serveur de développement |
 | `npm run build` | Build de production |
 | `npm run typecheck` | Vérification TypeScript |
+| `npm test` | Tests unitaires (logique paiement pure) |
 
 ## Structure
 
@@ -63,7 +64,28 @@ Voir aussi `CLAUDE.md` (résumé toujours en contexte).
 3. **Nommage** `zabely`/`zabelie` : coexistent, pas de grep-replace global.
 4. **Décisions ouvertes** (D-3 surtout) : ne pas trancher seul.
 
+## Catalogue : Supabase ou démo
+
+`lib/products.ts` lit le catalogue depuis Supabase **si** les variables d'env sont
+présentes ; sinon il **retombe sur les données d'exemple** (`lib/sample-data.ts`).
+La plateforme est donc démontrable sans base.
+
+## Auth & espaces
+
+- `/connexion` — inscription / connexion (Supabase Auth).
+- `/vendre` — espace créateur : publier un produit (`POST /api/products`).
+- `/mes-achats` — commandes payées + téléchargement (URL signée).
+
+## Tests
+
+- `npm test` — tests unitaires de la logique paiement pure (idempotence des clés,
+  statut MonCash, slugify).
+- `supabase/tests/payment_idempotency.test.sql` — test **en base** : `confirm_payment`
+  appelé deux fois ne crédite qu'une fois (scénario « redirect coupé »).
+
 ## État
 
-🚧 Scaffold Vague 1 (UI + fondations). Données d'exemple, pas encore branché sur
-Supabase ni MonCash.
+🚧 Vague 1 en place : UI, schéma, paiement MonCash (EPIC 4), auth & espaces.
+Catalogue branché sur Supabase avec repli démo. Reste à connecter un vrai projet
+Supabase + identifiants MonCash sandbox pour un parcours de bout en bout, et
+l'upload des fichiers livrables.

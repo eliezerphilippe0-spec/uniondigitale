@@ -2,12 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { PRODUCTS, getProduct, formatHTG } from "@/lib/sample-data";
+import { formatHTG } from "@/lib/sample-data";
+import { getProductView } from "@/lib/products";
 import { BuyButton } from "@/components/buy-button";
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function ProductPage({
   params,
@@ -15,7 +14,7 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProductView(slug);
   if (!product) notFound();
 
   return (
@@ -63,8 +62,7 @@ export default async function ProductPage({
 
           <div className="mt-4 flex items-center gap-4 text-sm text-mist">
             <span>par {product.creator}</span>
-            <span>★ {product.rating}</span>
-            <span>{product.sales} ventes</span>
+            {product.sales > 0 && <span>{product.sales} ventes</span>}
           </div>
 
           <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
@@ -73,7 +71,7 @@ export default async function ProductPage({
             </p>
             <div className="mt-5">
               <BuyButton
-                productId={product.slug}
+                productId={product.id}
                 priceLabel={formatHTG(product.priceHTG)}
               />
             </div>

@@ -1,7 +1,9 @@
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
-import { PRODUCTS } from "@/lib/sample-data";
+import { getPublishedProducts } from "@/lib/products";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Catalogue — Zabelie Talent",
@@ -17,7 +19,8 @@ const CATEGORIES = [
   "Marketing",
 ];
 
-export default function CataloguePage() {
+export default async function CataloguePage() {
+  const products = await getPublishedProducts();
   return (
     <div className="bg-grain min-h-screen">
       <SiteNav />
@@ -27,7 +30,7 @@ export default function CataloguePage() {
           Catalogue
         </h1>
         <p className="mt-2 text-sm text-mist">
-          {PRODUCTS.length} produits et talents disponibles.
+          {products.length} produits et talents disponibles.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
@@ -48,7 +51,7 @@ export default function CataloguePage() {
 
       <section className="mx-auto max-w-6xl px-5 pb-16">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.map((p) => (
+          {products.map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </div>
