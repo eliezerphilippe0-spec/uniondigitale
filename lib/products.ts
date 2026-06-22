@@ -91,18 +91,55 @@ function rowAsView(r: Row): ProductView {
 const SELECT =
   "id, slug, title, description, kind, category, price_htg, sales_count, seller_id, seller:profiles!products_seller_id_fkey(display_name)";
 
+export type ProductFilters = {
+  q?: string;
+  category?: string;
+};
+
+function filterSample(
+  items: ProductView[],
+  filters?: ProductFilters
+): ProductView[] {
+  let out = items;
+  const cat = filters?.category;
+  if (cat && cat !== "Tout") {
+    out = out.filter((p) => p.category === cat);
+  }
+  const q = filters?.q?.trim().toLowerCase();
+  if (q) {
+    out = out.filter((p) =>
+      [p.title, p.blurb, p.creator, p.category]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }
+  return out;
+}
+
 /** Catalogue des produits publiés. Repli sur les données d'exemple si pas de base. */
-export async function getPublishedProducts(): Promise<ProductView[]> {
-  if (!isSupabaseConfigured()) return sampleAsView();
+export async function getPublishedProducts(
+  filters?: ProductFilters
+): Promise<ProductView[]> {
+  if (!isSupabaseConfigured()) return filterSample(sampleAsView(), filters);
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("products")
     .select(SELECT)
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+    .eq("status", "published");
 
-  if (error || !data) return sampleAsView();
+  if (filters?.category && filters.category !== "Tout") {
+    query = query.eq("category", filters.category);
+  }
+  const q = filters?.q?.trim().replace(/[%,()]/g, " ");
+  if (q) {
+    query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
+
+  if (error || !data) return filterSample(sampleAsView(), filters);
   return (data as unknown as Row[]).map(rowAsView);
 }
 
