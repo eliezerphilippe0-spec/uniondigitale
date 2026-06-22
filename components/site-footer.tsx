@@ -1,18 +1,12 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-12 md:flex-row md:justify-between">
         <div className="max-w-xs">
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold to-violet text-sm font-black text-ink">
-              Z
-            </span>
-            <span className="text-sm font-semibold">
-              Zabelie <span className="text-mist">Talent</span>
-            </span>
-          </div>
+          <BrandLogo />
           <p className="mt-3 text-sm text-mist">
             La marketplace des produits digitaux et talents africains. Paiement
             mobile money, livraison instantanée.

@@ -1,17 +1,11 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function SiteNav() {
   return (
     <header className="sticky top-0 z-50">
       <div className="mx-auto mt-4 flex max-w-6xl items-center justify-between rounded-2xl glass px-5 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold to-violet text-sm font-black text-ink">
-            Z
-          </span>
-          <span className="text-sm font-semibold tracking-tight">
-            Zabelie <span className="text-mist">Talent</span>
-          </span>
-        </Link>
+        <BrandLogo />
 
         <nav className="hidden items-center gap-7 text-sm text-mist md:flex">
           <Link href="/catalogue" className="transition hover:text-cloud">

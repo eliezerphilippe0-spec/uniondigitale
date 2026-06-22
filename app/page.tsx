@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
+import { HeroVisual } from "@/components/hero-visual";
 import { PRODUCTS } from "@/lib/sample-data";
 
 const STEPS = [
@@ -34,38 +35,47 @@ export default function HomePage() {
       <SiteNav />
 
       {/* HERO */}
-      <section className="mx-auto max-w-6xl px-5 pb-16 pt-20 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-mist">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal" />
-          La marketplace digitale africaine
-        </span>
+      <section className="mx-auto max-w-6xl px-5 pb-16 pt-20">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="text-center lg:text-left">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-mist">
+              <span className="h-1.5 w-1.5 rounded-full bg-teal" />
+              La marketplace digitale africaine
+            </span>
 
-        <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
-          Vendez vos <span className="text-gradient">produits digitaux</span> et
-          vos <span className="text-gradient">talents</span>.
-        </h1>
+            <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
+              Vendez vos <span className="text-gradient">produits digitaux</span>{" "}
+              et vos <span className="text-gradient">talents</span>.
+            </h1>
 
-        <p className="mx-auto mt-5 max-w-xl text-base text-mist sm:text-lg">
-          Templates, formations, beats, mentorat… Publiez, encaissez via mobile
-          money et livrez instantanément. Pensé pour le contexte africain.
-        </p>
+            <p className="mx-auto mt-5 max-w-xl text-base text-mist sm:text-lg lg:mx-0">
+              Templates, formations, beats, mentorat… Publiez, encaissez via
+              mobile money et livrez instantanément. Pensé pour le contexte
+              africain.
+            </p>
 
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/vendre"
-            className="w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
-          >
-            Commencer à vendre
-          </Link>
-          <Link
-            href="/catalogue"
-            className="w-full rounded-xl border border-line bg-surface/60 px-6 py-3 text-sm font-semibold text-cloud transition hover:border-violet/50 sm:w-auto"
-          >
-            Explorer le catalogue
-          </Link>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+              <Link
+                href="/vendre"
+                className="w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
+              >
+                Commencer à vendre
+              </Link>
+              <Link
+                href="/catalogue"
+                className="w-full rounded-xl border border-line bg-surface/60 px-6 py-3 text-sm font-semibold text-cloud transition hover:border-violet/50 sm:w-auto"
+              >
+                Explorer le catalogue
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex justify-center lg:justify-end">
+            <HeroVisual />
+          </div>
         </div>
 
-        <div className="mx-auto mt-14 grid max-w-2xl grid-cols-3 gap-4">
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-4">
           {STATS.map((s) => (
             <div
               key={s.label}

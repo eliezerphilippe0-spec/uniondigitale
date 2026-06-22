@@ -10,6 +10,26 @@ export function ProductCard({ product }: { product: Product }) {
       <div
         className={`relative h-40 bg-gradient-to-br ${product.accent} opacity-90`}
       >
+        <svg
+          className="absolute inset-0 h-full w-full opacity-20"
+          aria-hidden="true"
+        >
+          <pattern
+            id={`chev-${product.slug}`}
+            width="18"
+            height="18"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <path
+              d="M0 9 L9 0 L18 9"
+              stroke="#0a0a0f"
+              strokeWidth="1.2"
+              fill="none"
+            />
+          </pattern>
+          <rect width="100%" height="100%" fill={`url(#chev-${product.slug})`} />
+        </svg>
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
           {product.kind === "service" ? "Service" : "Fichier"}
         </span>
