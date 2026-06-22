@@ -117,7 +117,9 @@ Entités principales `[INFÉRÉ — à raffiner]` :
 > ⚠️ L'idempotence des paiements est **garantie au niveau base de données** (contrainte
 > d'unicité sur la clé d'idempotence), pas seulement applicative. Voir §9–§10.
 
-La question du **partage du schéma users/wallet avec Zabelie 1** est **D-3** (ouverte).
+**D-3 tranchée (V-9)** : comptes/wallet **propres** à Zabelie Talent ; fusion
+future possible via `profiles.zabelie1_user_id` (nullable + unique). Schéma réel :
+`supabase/migrations/` (voir `supabase/README.md`).
 
 ---
 

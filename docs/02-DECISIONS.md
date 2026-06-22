@@ -17,6 +17,7 @@
 | V-6 | **Nommage** | `zabely` / `zabelie` coexistent. Aucun grep-replace global. |
 | V-7 | **Design** | Higgsfield pour les visuels ; objectif plateforme ultra-moderne. |
 | V-8 | **Distinction projets** | Zabelie Talent (digital) ≠ Zabelie (physique, projet 1). |
+| V-9 | **D-3 — Lien avec Zabelie 1** | **Séparé.** Comptes et wallet propres à Zabelie Talent. Schéma conçu pour une fusion ultérieure : champ `zabelie1_user_id` nullable + unique sur `profiles`, sans migration lourde le jour où on lie les deux. |
 
 ---
 
@@ -26,7 +27,7 @@
 |----|----------|--------|--------|
 | **D-1** | `[À CONFIRMER]` _(à préciser — issue de la synthèse)_ | — | Ouverte |
 | **D-2** | `[À CONFIRMER]` _(à préciser — issue de la synthèse)_ | — | Ouverte |
-| **D-3** | **Lien auth/wallet avec la marketplace physique Zabelie 1.** Compte et wallet partagés entre les deux plateformes, ou totalement séparés ? | **Schéma de données.** Seule décision ouverte qui touche réellement la structure de la base. À trancher avant de figer le modèle `users`/`wallets`. | Ouverte |
+| ~~**D-3**~~ | ~~Lien auth/wallet avec Zabelie 1~~ | **VERROUILLÉE → V-9.** Séparé, fusion possible plus tard. | ✅ Tranchée |
 
 > ⚠️ D-1 et D-2 étaient marquées `[À CONFIRMER]` dans la synthèse mais leur libellé
 > exact n'a pas été fourni. À renseigner par le porteur du projet.
