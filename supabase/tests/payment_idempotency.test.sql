@@ -98,8 +98,8 @@ begin
 
   assert v_b_pay_status = 'failed',
     format('B: payment attendu failed, obtenu %s', v_b_pay_status);
-  assert v_b_order_st = 'pending',
-    format('B: order doit rester pending, obtenu %s', v_b_order_st);
+  assert v_b_order_st = 'disputed',
+    format('B: order attendu disputed, obtenu %s', v_b_order_st);
   assert v_b_credits = 0,
     format('B: aucun crédit attendu, obtenu %s', v_b_credits);
   -- Le solde n'a pas bougé après le rejet B.

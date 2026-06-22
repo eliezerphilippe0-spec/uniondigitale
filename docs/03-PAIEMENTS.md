@@ -66,11 +66,14 @@ Job périodique qui :
 - [x] Rejouer la confirmation 3× ne crée qu'un seul crédit (idempotence).
       → `supabase/tests/payment_idempotency.test.sql` (scénario A).
 - [x] **Montant falsifié → rejeté** : si l'opérateur rapporte un montant ≠ commande,
-      `confirm_payment` met le paiement en `failed`, aucun crédit/livraison.
-      → garde-fou DB + `supabase/tests/...` (scénario B) + `tests/payment.test.ts`
-      (`amountMatches`).
+      `confirm_payment` met le paiement en `failed`, la commande en `disputed`,
+      aucun crédit/livraison. → garde-fou DB + `supabase/tests/...` (scénario B)
+      + `tests/payment.test.ts` (`amountMatches`).
 - [x] **Redirect coupé** : le réconciliateur (`/api/reconcile`, cron) rattrape les
-      paiements `pending` via vérification serveur-à-serveur.
+      paiements `pending` orphelins via vérification serveur-à-serveur.
+      → logique isolée dans `lib/reconcile.ts`, **testée** dans
+      `tests/reconcile.test.ts` (orphelin rattrapé, encore pending, montant
+      rejeté, erreurs non bloquantes, rejeu idempotent).
 - [x] Aucune livraison/crédit sans confirmation serveur-à-serveur.
 - [x] Parcours navigateur (checkout → redirection MonCash, pages de résultat) :
       `e2e/money-path.spec.ts` (Playwright, exécuté en CI).

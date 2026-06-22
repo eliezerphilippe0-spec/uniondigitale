@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { retrieveOrderPayment, isSuccessful } from "@/lib/moncash";
+import { retrieveOrderPayment } from "@/lib/moncash";
+import { reconcilePayments, type ReconcileDeps } from "@/lib/reconcile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic";
  *   - GET  → cron Vercel (en-tête Authorization: Bearer $CRON_SECRET).
  *   - POST → appel manuel (Authorization: Bearer $RECONCILE_SECRET ou
  *            en-tête x-reconcile-secret).
+ *
+ * La logique d'orchestration vit dans lib/reconcile.ts (testée unitairement).
  */
 
 function authorize(req: Request): boolean {
@@ -29,66 +32,47 @@ function authorize(req: Request): boolean {
   return false;
 }
 
-async function runReconcile() {
+function liveDeps(): ReconcileDeps {
   const admin = createAdminClient();
-
-  const { data: pendings, error } = await admin
-    .from("payments")
-    .select("idempotency_key, order_id")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(50);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  let confirmed = 0;
-  let stillPending = 0;
-  let rejected = 0;
-  const errors: string[] = [];
-
-  for (const p of pendings ?? []) {
-    try {
-      // idempotency_key === order.id === orderId envoyé à MonCash.
-      const mc = await retrieveOrderPayment(p.idempotency_key);
-      if (isSuccessful(mc) && mc) {
-        const { data, error: rpcErr } = await admin.rpc("confirm_payment", {
-          p_idempotency_key: p.idempotency_key,
-          p_provider_ref: mc.transactionId,
-          p_raw: mc as unknown as Record<string, unknown>,
-          p_amount: Math.round(mc.cost),
-        });
-        if (rpcErr) errors.push(`${p.order_id}: ${rpcErr.message}`);
-        else if (data?.status === "failed") rejected++; // montant incohérent
-        else confirmed++;
-      } else {
-        stillPending++;
-      }
-    } catch (e) {
-      errors.push(`${p.order_id}: ${e instanceof Error ? e.message : "err"}`);
-    }
-  }
-
-  return NextResponse.json({
-    scanned: pendings?.length ?? 0,
-    confirmed,
-    stillPending,
-    rejected,
-    errors,
-  });
+  return {
+    listPending: async () => {
+      const { data, error } = await admin
+        .from("payments")
+        .select("idempotency_key, order_id")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(50);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+    retrieve: (orderId) => retrieveOrderPayment(orderId),
+    confirm: async ({ idempotencyKey, providerRef, amount, raw }) => {
+      const { data, error } = await admin.rpc("confirm_payment", {
+        p_idempotency_key: idempotencyKey,
+        p_provider_ref: providerRef,
+        p_raw: raw as unknown as Record<string, unknown>,
+        p_amount: amount,
+      });
+      if (error) return { error: error.message };
+      return { status: data?.status };
+    },
+  };
 }
 
-export async function GET(req: Request) {
+async function handle(req: Request) {
   if (!authorize(req)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  return runReconcile();
+  try {
+    const result = await reconcilePayments(liveDeps());
+    return NextResponse.json(result);
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Erreur" },
+      { status: 500 }
+    );
+  }
 }
 
-export async function POST(req: Request) {
-  if (!authorize(req)) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
-  return runReconcile();
-}
+export const GET = handle;
+export const POST = handle;

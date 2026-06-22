@@ -14,7 +14,7 @@ create extension if not exists "pgcrypto"; -- gen_random_uuid()
 create type user_role       as enum ('buyer', 'creator', 'admin');
 create type product_kind    as enum ('fichier', 'service');
 create type product_status  as enum ('draft', 'published', 'archived');
-create type order_status     as enum ('pending', 'paid', 'delivered', 'cancelled', 'refunded');
+create type order_status     as enum ('pending', 'paid', 'delivered', 'cancelled', 'refunded', 'disputed');
 create type payment_rail     as enum ('moncash'); -- 'natcash' ajouté en Vague 2 (bloqué)
 create type payment_status   as enum ('pending', 'confirmed', 'failed');
 create type wallet_txn_type  as enum ('credit', 'debit', 'payout');

@@ -10,7 +10,8 @@ export type OrderStatus =
   | "paid"
   | "delivered"
   | "cancelled"
-  | "refunded";
+  | "refunded"
+  | "disputed";
 export type PaymentRail = "moncash"; // 'natcash' en Vague 2 (bloqué)
 export type PaymentStatus = "pending" | "confirmed" | "failed";
 export type WalletTxnType = "credit" | "debit" | "payout";

@@ -45,7 +45,8 @@ begin
   select * into v_order from orders where id = v_payment.order_id;
 
   -- Garde-fou montant : si l'opérateur rapporte un montant différent de la
-  -- commande, on REJETTE (pas de crédit, pas de livraison). INVARIANT.
+  -- commande, on REJETTE. Paiement → failed, commande → disputed (à examiner),
+  -- aucun crédit, aucune livraison (la livraison exige une commande 'paid').
   if p_amount is not null and p_amount <> v_order.amount_htg then
     update payments
        set status       = 'failed',
@@ -53,6 +54,7 @@ begin
            raw          = coalesce(p_raw, raw)
      where id = v_payment.id
      returning * into v_payment;
+    update orders set status = 'disputed' where id = v_payment.order_id;
     return v_payment;
   end if;
 
