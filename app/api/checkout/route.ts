@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/moncash";
+import { withinRailCap, railCap } from "@/lib/payment-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,18 @@ export async function POST(req: Request) {
 
   if (prodErr || !product) {
     return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
+  }
+
+  // Plafond du rail : on bloque AVANT de créer la commande (message clair plutôt
+  // qu'un échec brutal côté opérateur).
+  const rail = "moncash";
+  if (!withinRailCap(product.price_htg, rail)) {
+    return NextResponse.json(
+      {
+        error: `Montant supérieur au plafond MonCash (${railCap(rail)} HTG) par transaction.`,
+      },
+      { status: 422 }
+    );
   }
 
   // Commande (pending).

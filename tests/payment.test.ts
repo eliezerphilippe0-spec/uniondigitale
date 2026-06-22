@@ -6,6 +6,8 @@ import {
   paymentIdempotencyKey,
   walletCreditKey,
   amountMatches,
+  withinRailCap,
+  railCap,
 } from "../lib/payment-utils";
 
 test("isSuccessful : true uniquement si statut 'successful'", () => {
@@ -39,6 +41,18 @@ test("amountMatches : rejette un montant falsifié (money-path)", () => {
   assert.equal(amountMatches(2500, 2499), false); // montant minoré
   assert.equal(amountMatches(2500, 5000), false); // montant majoré
   assert.equal(amountMatches(2500, Number.NaN), false);
+});
+
+test("plafonds : MonCash 25k, NatCash 20k", () => {
+  assert.equal(railCap("moncash"), 25000);
+  assert.equal(railCap("natcash"), 20000);
+  assert.equal(railCap("inconnu"), null);
+
+  assert.equal(withinRailCap(25000, "moncash"), true); // pile au plafond = ok
+  assert.equal(withinRailCap(25001, "moncash"), false);
+  assert.equal(withinRailCap(20001, "natcash"), false);
+  // Rail inconnu → pas de plafond appliqué (true).
+  assert.equal(withinRailCap(999999, "inconnu"), true);
 });
 
 test("slugify : URL propre, accents retirés, borné", () => {

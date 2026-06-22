@@ -42,3 +42,23 @@ export function amountMatches(
 ): boolean {
   return Number.isFinite(operatorCost) && orderAmountHTG === Math.round(operatorCost);
 }
+
+/**
+ * Plafonds par transaction et par rail (HTG). Au-delà, l'opérateur refuse :
+ * on bloque AVANT de créer la commande, avec un message clair.
+ * NatCash défini pour plus tard (Vague 2, bloqué).
+ */
+export const RAIL_CAPS: Record<string, number> = {
+  moncash: 25000,
+  natcash: 20000,
+};
+
+export function railCap(rail: string): number | null {
+  return RAIL_CAPS[rail] ?? null;
+}
+
+/** Le montant respecte-t-il le plafond du rail ? (true si pas de plafond connu) */
+export function withinRailCap(amountHTG: number, rail: string): boolean {
+  const cap = railCap(rail);
+  return cap === null ? true : amountHTG <= cap;
+}

@@ -86,6 +86,8 @@ Job périodique qui :
       annule l'escrow `maturing` (pending réduit, jamais crédité en disponible),
       même après passage du job de maturation. Idempotent.
       → `supabase/tests/escrow_maturation.test.sql` + `tests/escrow.test.ts`.
+- [x] **Plafonds par rail** : montant > plafond (MonCash 25k / NatCash 20k)
+      bloqué au checkout (422) avant création de commande. → `tests/payment.test.ts`.
 - [x] Aucune livraison/crédit sans confirmation serveur-à-serveur.
 - [x] Parcours navigateur (checkout → redirection MonCash, pages de résultat) :
       `e2e/money-path.spec.ts` (Playwright, exécuté en CI).
