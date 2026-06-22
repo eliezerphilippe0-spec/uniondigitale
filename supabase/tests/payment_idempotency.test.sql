@@ -40,6 +40,7 @@ declare
   v_txn_count   int;
   v_order_status order_status;
   v_pay_status  payment_status;
+  v_sales       integer;
 begin
   select balance_htg into v_balance
     from wallets where owner_id = '00000000-0000-0000-0000-000000000001';
@@ -54,6 +55,11 @@ begin
   select status into v_pay_status
     from payments where idempotency_key = '00000000-0000-0000-0000-0000000000b1';
 
+  select sales_count into v_sales
+    from products where id = '00000000-0000-0000-0000-0000000000a1';
+
+  assert v_sales = 1,
+    format('Ventes attendues 1, obtenu %s (double comptage ?)', v_sales);
   assert v_balance = 2500,
     format('Solde attendu 2500, obtenu %s (double crédit ?)', v_balance);
   assert v_txn_count = 1,
@@ -63,8 +69,8 @@ begin
   assert v_pay_status = 'confirmed',
     format('Paiement attendu confirmed, obtenu %s', v_pay_status);
 
-  raise notice 'OK — idempotence confirmée : solde=%, txns=%, order=%, payment=%',
-    v_balance, v_txn_count, v_order_status, v_pay_status;
+  raise notice 'OK — idempotence confirmée : solde=%, txns=%, ventes=%, order=%, payment=%',
+    v_balance, v_txn_count, v_sales, v_order_status, v_pay_status;
 end $$;
 
 rollback;

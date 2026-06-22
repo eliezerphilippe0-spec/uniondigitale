@@ -22,6 +22,7 @@ declare
   v_order     orders;
   v_seller_id uuid;
   v_wallet_id uuid;
+  v_credited  integer;
 begin
   select * into v_payment
     from payments
@@ -78,6 +79,16 @@ begin
      set balance_htg = w.balance_htg + (select amount_htg from ins)
    where w.id = v_wallet_id
      and exists (select 1 from ins);
+
+  -- Nombre de lignes wallet mises à jour : 1 si crédit neuf, 0 si rejeu.
+  get diagnostics v_credited = row_count;
+
+  -- Compteur de ventes incrémenté UNE SEULE fois (même garde d'idempotence).
+  if v_credited > 0 then
+    update products p
+       set sales_count = p.sales_count + 1
+     where p.id = v_order.product_id;
+  end if;
 
   return v_payment;
 end;

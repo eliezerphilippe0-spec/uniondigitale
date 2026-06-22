@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Paiement en attente — Zabelie Talent" };
 
 export default function EnAttentePage() {

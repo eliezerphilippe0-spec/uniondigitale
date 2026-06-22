@@ -73,7 +73,8 @@ La plateforme est donc démontrable sans base.
 ## Auth & espaces
 
 - `/connexion` — inscription / connexion (Supabase Auth).
-- `/vendre` — espace créateur : publier un produit (`POST /api/products`).
+- `/vendre` — espace créateur : publier un produit + envoyer le fichier livrable.
+- `/tableau-de-bord` — créateur : solde wallet, ventes, performance produits.
 - `/mes-achats` — commandes payées + téléchargement (URL signée).
 
 ## Tests
