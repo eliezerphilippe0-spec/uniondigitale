@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { PRODUCTS, getProduct, formatHTG } from "@/lib/sample-data";
+import { BuyButton } from "@/components/buy-button";
 
 export function generateStaticParams() {
   return PRODUCTS.map((p) => ({ slug: p.slug }));
@@ -70,9 +71,12 @@ export default async function ProductPage({
             <p className="text-3xl font-black text-gradient">
               {formatHTG(product.priceHTG)}
             </p>
-            <button className="mt-5 w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90">
-              Payer avec MonCash
-            </button>
+            <div className="mt-5">
+              <BuyButton
+                productId={product.slug}
+                priceLabel={formatHTG(product.priceHTG)}
+              />
+            </div>
             <p className="mt-3 text-center text-xs text-mist">
               Livraison instantanée après confirmation du paiement.
             </p>

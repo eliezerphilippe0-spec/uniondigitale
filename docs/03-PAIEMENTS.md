@@ -70,7 +70,28 @@ Job périodique qui :
 - [ ] Aucune livraison/crédit sans confirmation serveur-à-serveur.
 - [ ] Tout paiement est rapprochable dans le back-office.
 
-## 7. Conformité BRH (différée)
+## 7. Implémentation (code)
+
+| Brique | Fichier |
+|--------|---------|
+| Client MonCash (OAuth, CreatePayment, Retrieve*) | `lib/moncash.ts` |
+| Client Supabase service role (serveur) | `lib/supabase/admin.ts` |
+| Checkout (order + payment pending → redirect) | `app/api/checkout/route.ts` |
+| Retour navigateur (vérif + confirm) | `app/api/moncash/return/route.ts` |
+| Réconciliateur (cron, rattrape les pending) | `app/api/reconcile/route.ts` |
+| Livraison (URL signée si payé) | `app/api/download/route.ts` |
+| Confirmation idempotente (DB) | `supabase/migrations/0003_payment_functions.sql` |
+
+Flux : `BuyButton` → `/api/checkout` → MonCash → retour `/api/moncash/return`
+(vérif serveur-à-serveur → `confirm_payment`). En cas de retour coupé,
+`/api/reconcile` (cron) interroge MonCash par `orderId` et confirme. La
+livraison passe par `/api/download` qui exige une commande `paid`.
+
+> ⚠️ Nécessite des identifiants MonCash (sandbox) et un projet Supabase lié pour
+> fonctionner de bout en bout. La logique d'idempotence est garantie en base
+> (cf. §4) indépendamment des identifiants.
+
+## 8. Conformité BRH (différée)
 
 Les **retraits** et l'intégration **NatCash** dépendent des règles BRH (KYC, plafonds,
 reporting). ⛔ Bloqué — voir `00-CONTEXTE.md §11` et `§14`.
