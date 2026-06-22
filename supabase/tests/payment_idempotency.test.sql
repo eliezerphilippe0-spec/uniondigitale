@@ -90,8 +90,9 @@ declare
   v_c_balance    bigint;
   v_c_commission bigint;
 begin
-  -- A : idempotence + commission standard 10 % (net 2250, commission 250)
-  select balance_htg into v_balance
+  -- A : idempotence + commission standard 10 % (net 2250, commission 250).
+  -- Depuis l'escrow (0006), le net va en ATTENTE (pending), pas en disponible.
+  select pending_htg into v_balance
     from wallets where owner_id = '00000000-0000-0000-0000-000000000001';
   select amount_htg, count(*) over () into v_txn_amount, v_txn_count
     from wallet_transactions
@@ -106,7 +107,7 @@ begin
     from products where id = '00000000-0000-0000-0000-0000000000a1';
 
   assert v_balance = 2250,
-    format('A: net attendu 2250, obtenu %s (commission non prélevée ou double crédit ?)', v_balance);
+    format('A: net en attente attendu 2250, obtenu %s (commission non prélevée ou double crédit ?)', v_balance);
   assert v_txn_amount = 2250, format('A: crédit net attendu 2250, obtenu %s', v_txn_amount);
   assert v_txn_count = 1, format('A: une seule transaction attendue, obtenu %s', v_txn_count);
   assert v_pe_count = 1, format('A: une seule ligne platform_earnings, obtenu %s', v_pe_count);
@@ -129,8 +130,8 @@ begin
   assert v_b_credits = 0, format('B: aucun crédit attendu, obtenu %s', v_b_credits);
   assert v_balance = 2250, 'B: le rejet ne doit pas créditer le wallet';
 
-  -- C : commission Elite 6 % (net 940, commission 60)
-  select balance_htg into v_c_balance
+  -- C : commission Elite 6 % (net 940 en attente, commission 60)
+  select pending_htg into v_c_balance
     from wallets where owner_id = '00000000-0000-0000-0000-000000000002';
   select max(commission_htg) into v_c_commission
     from platform_earnings where order_id = '00000000-0000-0000-0000-0000000000b3';

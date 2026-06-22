@@ -88,8 +88,10 @@ et pull request (Node 22).
 
 - `npm test` — tests unitaires de la logique paiement pure (idempotence des clés,
   statut MonCash, slugify).
-- `supabase/tests/payment_idempotency.test.sql` — test **en base** : `confirm_payment`
-  appelé deux fois ne crédite qu'une fois (scénario « redirect coupé »).
+- **Tests SQL money-path** (exécutés en CI sur un Postgres jetable) :
+  `DATABASE_URL=postgres://… bash supabase/tests/run.sh` — applique les migrations
+  puis vérifie idempotence (rejeu 3×), montant falsifié rejeté, commission par tier,
+  maturation J+7 et remboursement sans solde fantôme.
 
 ## État
 
