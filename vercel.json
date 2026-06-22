@@ -4,6 +4,10 @@
     {
       "path": "/api/reconcile",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/maturation",
+      "schedule": "0 * * * *"
     }
   ]
 }

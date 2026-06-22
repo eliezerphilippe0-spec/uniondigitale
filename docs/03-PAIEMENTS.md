@@ -79,6 +79,13 @@ Job périodique qui :
       `platform_earnings`. Calcul **uniquement** dans `confirm_payment` (SQL = seul
       calculateur d'argent ; `lib/commission.ts` = oracle/affichage).
       → `tests/commission.test.ts` + `supabase/tests/...` (scénarios A et C).
+- [x] **Maturation J+7** : le net est crédité **en attente** puis devient
+      **disponible** après 7 jours (`mature_wallets`, cron). Retrait possible
+      seulement sur le solde disponible.
+- [x] **Remboursement avant maturité = aucun solde fantôme** : `refund_order`
+      annule l'escrow `maturing` (pending réduit, jamais crédité en disponible),
+      même après passage du job de maturation. Idempotent.
+      → `supabase/tests/escrow_maturation.test.sql` + `tests/escrow.test.ts`.
 - [x] Aucune livraison/crédit sans confirmation serveur-à-serveur.
 - [x] Parcours navigateur (checkout → redirection MonCash, pages de résultat) :
       `e2e/money-path.spec.ts` (Playwright, exécuté en CI).

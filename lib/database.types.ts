@@ -86,7 +86,20 @@ export type Payment = {
 export type Wallet = {
   id: string;
   owner_id: string;
-  balance_htg: number;
+  balance_htg: number; // disponible (retirable)
+  pending_htg: number; // en attente de maturation (J+7)
+  created_at: string;
+};
+
+export type EscrowStatus = "maturing" | "matured" | "reversed";
+
+export type EscrowEntry = {
+  id: string;
+  order_id: string;
+  wallet_id: string;
+  amount_htg: number;
+  matures_at: string;
+  status: EscrowStatus;
   created_at: string;
 };
 

@@ -71,6 +71,7 @@ export default async function DashboardPage() {
   }
 
   let balance = 0;
+  let pending = 0;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
   let profile = { display_name: user.displayName, bio: "", avatar_url: "" };
@@ -80,10 +81,11 @@ export default async function DashboardPage() {
 
     const { data: wallet } = await admin
       .from("wallets")
-      .select("balance_htg")
+      .select("balance_htg, pending_htg")
       .eq("owner_id", user.id)
       .maybeSingle();
     balance = wallet?.balance_htg ?? 0;
+    pending = wallet?.pending_htg ?? 0;
 
     const { data: prof } = await admin
       .from("profiles")
@@ -130,14 +132,15 @@ export default async function DashboardPage() {
   const published = products.filter((p) => p.status === "published").length;
 
   const stats = [
-    { label: "Solde du wallet", value: formatHTG(balance) },
+    { label: "Disponible", value: formatHTG(balance) },
+    { label: "En attente (J+7)", value: formatHTG(pending) },
     { label: "Ventes totales", value: String(totalSales) },
     { label: "Produits publiés", value: String(published) },
   ];
 
   return (
     <Shell title={`Bonjour, ${user.displayName}`}>
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <div
             key={s.label}
@@ -150,8 +153,10 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-line bg-surface/40 p-5 text-sm text-mist">
-        Les retraits de gains arriveront avec la conformité BRH (Vague 2). En
-        attendant, ton solde s'accumule à chaque vente confirmée.
+        Chaque vente confirmée est créditée <strong>en attente</strong> et devient{" "}
+        <strong>disponible 7 jours plus tard</strong> (fenêtre anti-fraude /
+        remboursement). Les retraits du solde disponible arriveront avec la
+        conformité BRH (Vague 2).
       </div>
 
       {/* Ventes récentes */}
