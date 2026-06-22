@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { PublishForm } from "@/components/publish-form";
+import { UploadAsset } from "@/components/upload-asset";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/products";
 
@@ -58,11 +59,21 @@ export default async function VendrePage() {
     );
   }
 
-  const { data: mine } = await supabase
+  const { data: mineRaw } = await supabase
     .from("products")
-    .select("slug, title, status")
+    .select("id, slug, title, status, kind, product_assets(id)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false });
+
+  type MineRow = {
+    id: string;
+    slug: string;
+    title: string;
+    status: string;
+    kind: string;
+    product_assets: { id: string }[];
+  };
+  const mine = (mineRaw ?? []) as unknown as MineRow[];
 
   return (
     <Shell subtitle="Publie un produit digital ou une prestation.">
@@ -70,19 +81,32 @@ export default async function VendrePage() {
         <PublishForm />
       </div>
 
-      {mine && mine.length > 0 && (
+      {mine.length > 0 && (
         <div className="mt-10">
           <h2 className="text-sm font-semibold text-cloud">Mes produits</h2>
           <ul className="mt-3 space-y-2">
             {mine.map((p) => (
               <li
                 key={p.slug}
-                className="flex items-center justify-between rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
+                className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
               >
-                <Link href={`/produit/${p.slug}`} className="hover:text-cloud">
-                  {p.title}
-                </Link>
-                <span className="text-xs text-mist">{p.status}</span>
+                <div className="min-w-0">
+                  <Link
+                    href={`/produit/${p.slug}`}
+                    className="block truncate hover:text-cloud"
+                  >
+                    {p.title}
+                  </Link>
+                  <span className="text-xs text-mist">{p.status}</span>
+                </div>
+                {p.kind === "fichier" ? (
+                  <UploadAsset
+                    productId={p.id}
+                    hasAsset={p.product_assets.length > 0}
+                  />
+                ) : (
+                  <span className="shrink-0 text-xs text-mist">Service</span>
+                )}
               </li>
             ))}
           </ul>
