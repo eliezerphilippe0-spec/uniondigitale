@@ -11,6 +11,7 @@ export type ProductView = {
   slug: string;
   title: string;
   creator: string;
+  creatorId: string | null;
   kind: ProductKind;
   category: string;
   priceHTG: number;
@@ -48,6 +49,7 @@ const sampleAsView = (): ProductView[] =>
     slug: p.slug,
     title: p.title,
     creator: p.creator,
+    creatorId: null,
     kind: p.kind,
     category: p.category,
     priceHTG: p.priceHTG,
@@ -65,6 +67,7 @@ type Row = {
   category: string | null;
   price_htg: number;
   sales_count: number;
+  seller_id: string;
   seller: { display_name: string } | { display_name: string }[] | null;
 };
 
@@ -75,6 +78,7 @@ function rowAsView(r: Row): ProductView {
     slug: r.slug,
     title: r.title,
     creator: seller?.display_name ?? "Créateur",
+    creatorId: r.seller_id,
     kind: r.kind,
     category: r.category ?? "Divers",
     priceHTG: r.price_htg,
@@ -85,7 +89,7 @@ function rowAsView(r: Row): ProductView {
 }
 
 const SELECT =
-  "id, slug, title, description, kind, category, price_htg, sales_count, seller:profiles!products_seller_id_fkey(display_name)";
+  "id, slug, title, description, kind, category, price_htg, sales_count, seller_id, seller:profiles!products_seller_id_fkey(display_name)";
 
 /** Catalogue des produits publiés. Repli sur les données d'exemple si pas de base. */
 export async function getPublishedProducts(): Promise<ProductView[]> {
@@ -119,4 +123,22 @@ export async function getProductView(
 
   if (error || !data) return sampleAsView().find((p) => p.slug === slug);
   return rowAsView(data as unknown as Row);
+}
+
+/** Produits publiés d'un vendeur (pour la page profil créateur). */
+export async function getProductsBySeller(
+  sellerId: string
+): Promise<ProductView[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(SELECT)
+    .eq("seller_id", sellerId)
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return (data as unknown as Row[]).map(rowAsView);
 }

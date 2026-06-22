@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
+import { ProfileForm } from "@/components/profile-form";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord — Zabelie Talent" };
@@ -72,6 +73,7 @@ export default async function DashboardPage() {
   let balance = 0;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
+  let profile = { display_name: user.displayName, bio: "", avatar_url: "" };
 
   try {
     const admin = createAdminClient();
@@ -82,6 +84,19 @@ export default async function DashboardPage() {
       .eq("owner_id", user.id)
       .maybeSingle();
     balance = wallet?.balance_htg ?? 0;
+
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("display_name, bio, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (prof) {
+      profile = {
+        display_name: prof.display_name ?? user.displayName,
+        bio: prof.bio ?? "",
+        avatar_url: prof.avatar_url ?? "",
+      };
+    }
 
     const { data: prods } = await admin
       .from("products")
@@ -200,6 +215,22 @@ export default async function DashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Profil public */}
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Mon profil public</h2>
+          <Link
+            href={`/createur/${user.id}`}
+            className="text-sm text-mist transition hover:text-cloud"
+          >
+            Voir mon profil →
+          </Link>
+        </div>
+        <div className="mt-4 max-w-lg rounded-2xl border border-line bg-surface/60 p-5">
+          <ProfileForm initial={profile} />
+        </div>
       </section>
     </Shell>
   );

@@ -74,8 +74,14 @@ La plateforme est donc démontrable sans base.
 
 - `/connexion` — inscription / connexion (Supabase Auth).
 - `/vendre` — espace créateur : publier un produit + envoyer le fichier livrable.
-- `/tableau-de-bord` — créateur : solde wallet, ventes, performance produits.
+- `/tableau-de-bord` — créateur : solde wallet, ventes, produits, édition du profil.
+- `/createur/[id]` — profil public d'un créateur + ses produits.
 - `/mes-achats` — commandes payées + téléchargement (URL signée).
+
+## Intégration continue
+
+`.github/workflows/ci.yml` exécute `typecheck`, `test` et `build` à chaque push
+et pull request (Node 22).
 
 ## Tests
 

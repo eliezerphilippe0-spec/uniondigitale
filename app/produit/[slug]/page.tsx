@@ -61,7 +61,16 @@ export default async function ProductPage({
           <p className="mt-3 text-mist">{product.blurb}</p>
 
           <div className="mt-4 flex items-center gap-4 text-sm text-mist">
-            <span>par {product.creator}</span>
+            {product.creatorId ? (
+              <Link
+                href={`/createur/${product.creatorId}`}
+                className="hover:text-cloud"
+              >
+                par {product.creator}
+              </Link>
+            ) : (
+              <span>par {product.creator}</span>
+            )}
             {product.sales > 0 && <span>{product.sales} ventes</span>}
           </div>
 
