@@ -74,7 +74,7 @@ export function HeroVisual() {
 
       {/* Badge "paiement confirmé" */}
       <div className="glass absolute right-8 top-4 flex items-center gap-2 rounded-full px-3 py-1.5">
-        <span className="grid h-4 w-4 place-items-center rounded-full bg-teal text-[9px] text-ink">
+        <span className="grid h-4 w-4 place-items-center rounded-full bg-success text-[9px] text-ink">
           ✓
         </span>
         <span className="text-[10px] font-medium text-cloud">

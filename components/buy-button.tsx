@@ -55,7 +55,7 @@ export function BuyButton({
       >
         {loading ? "Redirection vers MonCash…" : `Payer ${priceLabel} avec MonCash`}
       </button>
-      {error && <p className="mt-2 text-center text-xs text-magenta">{error}</p>}
+      {error && <p className="mt-2 text-center text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

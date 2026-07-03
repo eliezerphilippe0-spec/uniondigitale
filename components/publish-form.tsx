@@ -94,7 +94,7 @@ export function PublishForm() {
       >
         {loading ? "Publication…" : "Publier le produit"}
       </button>
-      {error && <p className="text-center text-xs text-magenta">{error}</p>}
+      {error && <p className="text-center text-xs text-danger-text">{error}</p>}
       <p className="text-center text-xs text-mist">
         L'envoi du fichier livrable se fera depuis la fiche produit (étape
         suivante).

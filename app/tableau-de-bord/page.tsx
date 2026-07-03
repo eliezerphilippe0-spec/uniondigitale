@@ -121,7 +121,7 @@ export default async function DashboardPage() {
   } catch {
     return (
       <Shell title={`Bonjour, ${user.displayName}`}>
-        <p className="mt-4 text-sm text-magenta">
+        <p className="mt-4 text-sm text-danger-text">
           Données indisponibles (clé service role manquante côté serveur ?).
         </p>
       </Shell>

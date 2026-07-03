@@ -173,10 +173,10 @@ export default async function AdminPage() {
                 <span
                   className={
                     p.status === "confirmed"
-                      ? "text-teal"
+                      ? "text-success-text"
                       : p.status === "failed"
-                        ? "text-magenta"
-                        : "text-gold"
+                        ? "text-danger-text"
+                        : "text-warning-text"
                   }
                 >
                   {p.status}

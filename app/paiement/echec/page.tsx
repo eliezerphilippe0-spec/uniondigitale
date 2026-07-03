@@ -13,7 +13,7 @@ export default async function EchecPage({
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-md px-5 py-24 text-center">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-magenta text-2xl text-cloud">
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-danger text-2xl text-ink">
           ✕
         </span>
         <h1 className="mt-6 text-2xl font-black">Paiement non confirmé</h1>

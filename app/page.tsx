@@ -42,7 +42,7 @@ export default async function HomePage() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-mist">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal" />
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               La marketplace digitale africaine
             </span>
 
