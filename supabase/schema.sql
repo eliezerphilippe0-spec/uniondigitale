@@ -1,8 +1,7 @@
--- Zabelie Talent — schéma complet (concaténation 0001→0006).
+-- Zabelie Talent — schéma complet (concaténation 0001→0007).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
-
 
 -- ═══════════════════════════════════════════════════════════════════
 -- 0001_schema.sql
@@ -733,3 +732,14 @@ begin
 end;
 $$;
 revoke all on function refund_order(uuid) from public, anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0007_standalone.sql
+-- ═══════════════════════════════════════════════════════════════════
+-- Zabelie Talent — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
+-- Aucune fusion prévue avec Zabelie 1 ni aucun autre projet. On retire la
+-- passerelle dormante prévue « au cas où » par l'ancienne V-9.
+-- (Sur une base déjà déployée : exécuter cette migration ; sur une base neuve,
+--  schema.sql inclut créé-puis-supprimé, résultat identique.)
+
+alter table profiles drop column if exists zabelie1_user_id;

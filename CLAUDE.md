@@ -22,8 +22,10 @@ Design : **Higgsfield** pour les visuels.
    **BRH ⛔** en attente — ne pas coder un rail qui ne peut pas encore exister.
    → `docs/00-CONTEXTE.md §14`.
 3. **Nommage `zabely` / `zabelie`** : les deux coexistent. **Aucun grep-replace global.**
-4. **Décisions ouvertes `[À CONFIRMER]`** (surtout **D-3**, lien auth/wallet avec
-   Zabelie 1 — impacte le schéma) : ne pas trancher seul, demander.
+4. **Projet totalement indépendant** : Zabelie Talent ne fusionne avec **aucun**
+   autre projet (ni Zabelie 1, ni autre) — auth, wallet, schéma, code (D-3 durcie,
+   V-9). Ne jamais réintroduire de couplage. Décisions `[À CONFIRMER]` restantes
+   (D-1/D-2) : ne pas trancher seul, demander.
 
 ## Documents (chaîne : Contexte → PRD → Design)
 - `docs/00-CONTEXTE.md` — contexte complet (15 sections), source de vérité.

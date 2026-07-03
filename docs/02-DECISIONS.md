@@ -17,7 +17,7 @@
 | V-6 | **Nommage** | `zabely` / `zabelie` coexistent. Aucun grep-replace global. |
 | V-7 | **Design** | Higgsfield pour les visuels ; objectif plateforme ultra-moderne. |
 | V-8 | **Distinction projets** | Zabelie Talent (digital) ≠ Zabelie (physique, projet 1). |
-| V-9 | **D-3 — Lien avec Zabelie 1** | **Séparé.** Comptes et wallet propres à Zabelie Talent. Schéma conçu pour une fusion ultérieure : champ `zabelie1_user_id` nullable + unique sur `profiles`, sans migration lourde le jour où on lie les deux. |
+| V-9 | **D-3 — Lien avec Zabelie 1** | **INDÉPENDANCE TOTALE (durci).** Zabelie Talent est un projet à part : **aucune fusion** — comptes, wallet, schéma, code — avec Zabelie 1 ni aucun autre projet. La passerelle dormante `zabelie1_user_id` a été retirée (migration `0007_standalone.sql`). Ne pas réintroduire de couplage sans décision explicite du porteur. |
 
 ---
 

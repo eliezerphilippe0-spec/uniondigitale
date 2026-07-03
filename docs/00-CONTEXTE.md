@@ -46,10 +46,10 @@ communauté) adapté au contexte de paiement haïtien (MonCash/NatCash/BRH).**
 - **Zabelie** (projet 1) : marketplace de produits physiques.
 - **Zabelie Talent** (projet 2, ce projet) : produits **digitaux** + talents/services.
 
-Les deux marques partagent la racine « Zabelie ». Le lien éventuel entre les deux
-(auth partagée, wallet partagé) est une **décision ouverte** — voir **D-3** dans
-`02-DECISIONS.md`. C'est la seule décision ouverte qui touche réellement le schéma
-de données.
+Les deux marques partagent la racine « Zabelie », **mais Zabelie Talent est un
+projet totalement à part** : aucune fusion — auth, wallet, schéma ou code — avec
+Zabelie 1 ni aucun autre projet (décision ferme du porteur, voir **V-9** dans
+`02-DECISIONS.md`).
 
 ---
 
@@ -117,9 +117,11 @@ Entités principales `[INFÉRÉ — à raffiner]` :
 > ⚠️ L'idempotence des paiements est **garantie au niveau base de données** (contrainte
 > d'unicité sur la clé d'idempotence), pas seulement applicative. Voir §9–§10.
 
-**D-3 tranchée (V-9)** : comptes/wallet **propres** à Zabelie Talent ; fusion
-future possible via `profiles.zabelie1_user_id` (nullable + unique). Schéma réel :
-`supabase/migrations/` (voir `supabase/README.md`).
+**D-3 tranchée et durcie (V-9)** : Zabelie Talent est un **projet totalement
+indépendant** — aucune fusion (comptes, wallet, schéma, code) avec Zabelie 1 ni
+aucun autre projet. La passerelle dormante `zabelie1_user_id` a été retirée
+(`0007_standalone.sql`). Schéma réel : `supabase/migrations/`
+(voir `supabase/README.md`).
 
 ---
 

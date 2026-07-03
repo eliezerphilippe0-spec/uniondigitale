@@ -24,7 +24,6 @@ export type Profile = {
   display_name: string;
   bio: string | null;
   avatar_url: string | null;
-  zabelie1_user_id: string | null;
   tier: CreatorTier;
   created_at: string;
 };
