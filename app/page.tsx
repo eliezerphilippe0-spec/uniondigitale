@@ -60,7 +60,7 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/vendre"
-                className="w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
+                className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
               >
                 Commencer à vendre
               </Link>

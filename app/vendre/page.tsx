@@ -51,7 +51,7 @@ export default async function VendrePage() {
       <Shell subtitle="Connecte-toi pour publier un produit.">
         <Link
           href="/connexion"
-          className="inline-block rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink"
+          className="inline-block rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink"
         >
           Se connecter
         </Link>

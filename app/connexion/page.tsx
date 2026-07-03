@@ -115,7 +115,7 @@ export default function ConnexionPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
+              className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
             >
               {loading
                 ? "…"

@@ -62,7 +62,7 @@ export default async function DashboardPage() {
         <p className="mt-4 text-sm text-mist">Connecte-toi pour accéder à ton tableau de bord.</p>
         <Link
           href="/connexion"
-          className="mt-4 inline-block rounded-xl bg-gradient-to-r from-gold to-amber px-5 py-2.5 text-sm font-semibold text-ink"
+          className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-ink"
         >
           Se connecter
         </Link>
