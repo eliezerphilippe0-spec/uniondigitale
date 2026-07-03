@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:contrast": "node scripts/zabelie-contrast.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

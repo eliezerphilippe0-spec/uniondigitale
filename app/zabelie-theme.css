@@ -1,0 +1,76 @@
+/*
+ * Zabelie — thème « dashboard sombre chaud » — SOURCE UNIQUE des design tokens.
+ * Tailwind v4 : les tokens @theme génèrent les utilitaires
+ * (bg-surface-maroon, text-accent, text-danger-text, border-line, …).
+ * Référencer ces tokens partout ; aucune couleur en dur dans les composants.
+ *
+ * QC contraste : node scripts/zabelie-contrast.mjs (WCAG 4.5:1 / 3:1).
+ */
+
+@theme {
+  /* ── Fond — dégradé sombre chaud (haut → milieu → bas) ── */
+  --color-bg-1: #2b3050; /* indigo-navy */
+  --color-bg-2: #4a2731; /* wine / maroon */
+  --color-bg-3: #17123a; /* indigo profond */
+
+  /* ── Surfaces / cartes ── */
+  --color-surface-maroon: #3e262b;  /* cartes mises en avant */
+  --color-surface-neutral: #2e2126; /* cartes standard */
+  --color-surface-brown: #4a322f;   /* grands panneaux */
+
+  /* ── Accents — rampe orange → ambre ── */
+  --color-accent: #f5934f;        /* ⚠️ orange primaire (vérifié au rendu) */
+  --color-accent-strong: #fdb868; /* ambre (highlight, fin de dégradé) */
+  --color-accent-gold: #feb56c;   /* or clair */
+  --color-brand: #f26a21;         /* orange vif (CTA principal) */
+
+  /* ── Texte ── */
+  /* ⚠️ blanc chaud : #f4eee8, sans voile rosé */
+  /* --text-muted #b3a39b : mesuré 4.82:1 sur surface-brown → conservé tel quel */
+
+  /* ── États sémantiques (statuts commande, paiement MonCash, escrow J+7) ──
+     Base = pastilles/graphiques (seuil 3:1). Variantes -text = texte de badge
+     sur fond teinté 15 % (seuil 4.5:1, corrigées par scripts/zabelie-contrast). */
+  --color-success: #8fbf6f;      /* paiement confirmé, fichier livré */
+  --color-success-text: #9ac57d;
+  --color-warning: #e8b84b;      /* en attente, maturation J+7 en cours */
+  --color-warning-text: #e8b84b; /* passe 4.66:1 sans correction */
+  --color-danger: #e0645c;       /* paiement échoué, litige */
+  --color-danger-text: #ec9f9a;
+  --color-info: #7fa6c9;         /* notifications neutres */
+  --color-info-text: #99b8d4;
+
+  /* ── Compat : anciens noms remappés (aucune classe existante renommée) ──
+     Les usages existants correspondent 1:1 à la nouvelle sémantique :
+     teal = confirmations → success ; magenta = erreurs → danger ;
+     gold/amber = CTA/accents → rampe orange ; violet = focus/hover → accent. */
+  --color-ink: #17123a;      /* fond profond + texte sombre sur CTA orange */
+  --color-ink-soft: #2b3050;
+  --color-surface: #2e2126;  /* = surface-neutral */
+  --color-line: rgba(255, 255, 255, 0.06); /* = surface-border */
+  --color-mist: #b3a39b;     /* = text-muted (taupe chaud) */
+  --color-cloud: #f4eee8;    /* = text (blanc chaud) */
+  --color-gold: #feb56c;     /* = accent-gold */
+  --color-amber: #f5934f;    /* = accent */
+  --color-magenta: #e0645c;  /* = danger */
+  --color-violet: #f5934f;   /* = accent (focus/hover) */
+  --color-teal: #8fbf6f;     /* = success */
+
+  /* ── Typographie ── */
+  --font-sans: "General Sans", "Satoshi", "Inter", system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", monospace;
+
+  --radius-xl: 1.25rem;
+}
+
+:root {
+  /* Barres de progression (gradient : non exprimable en token couleur simple) */
+  --progress-done: #f4eee8; /* objectif atteint = barre crème */
+  --progress-fill: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-accent-strong)
+  );
+  --progress-track: rgba(255, 255, 255, 0.08);
+}

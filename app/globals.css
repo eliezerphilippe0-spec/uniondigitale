@@ -1,37 +1,19 @@
 @import "tailwindcss";
-
-@theme {
-  --color-ink: #0a0a0f;
-  --color-ink-soft: #12121a;
-  --color-surface: #16161f;
-  --color-line: #26262f;
-  --color-mist: #a1a1b5;
-  --color-cloud: #ededf2;
-
-  --color-gold: #f5b53d;
-  --color-amber: #ff8a3d;
-  --color-magenta: #e0408f;
-  --color-violet: #7c5cff;
-  --color-teal: #2dd4bf;
-
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-
-  --radius-xl: 1.25rem;
-}
+@import "./zabelie-theme.css"; /* SOURCE UNIQUE des design tokens */
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
-    background-color: var(--color-ink);
+    background-color: var(--color-bg-3);
     color: var(--color-cloud);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background-color: var(--color-violet);
-    color: white;
+    background-color: var(--color-brand);
+    color: var(--color-ink); /* texte sombre : 5.79:1 (blanc sur brand = 2.66:1) */
   }
 }
 
@@ -39,31 +21,44 @@
   .text-gradient {
     background-image: linear-gradient(
       100deg,
-      var(--color-gold),
-      var(--color-amber) 35%,
-      var(--color-magenta) 70%,
-      var(--color-violet)
+      var(--color-accent-gold),
+      var(--color-accent-strong) 40%,
+      var(--color-accent) 75%,
+      var(--color-brand)
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
+  /* Wrapper racine : dégradé chaud + halos. min-height 100dvh, et JAMAIS
+     background-attachment: fixed sur body (cassé sur iOS Safari). */
   .bg-grain {
+    min-height: 100dvh;
     background-image: radial-gradient(
         circle at 20% 10%,
-        rgba(124, 92, 255, 0.18),
+        color-mix(in srgb, var(--color-accent) 13%, transparent),
         transparent 45%
       ),
-      radial-gradient(circle at 85% 0%, rgba(224, 64, 143, 0.16), transparent 40%),
-      radial-gradient(circle at 50% 100%, rgba(245, 181, 61, 0.1), transparent 55%);
+      radial-gradient(
+        circle at 85% 0%,
+        color-mix(in srgb, var(--color-brand) 11%, transparent),
+        transparent 40%
+      ),
+      linear-gradient(
+        160deg,
+        var(--color-bg-1) 0%,
+        var(--color-bg-2) 45%,
+        var(--color-bg-3) 100%
+      );
   }
   .glass {
-    background: rgba(22, 22, 31, 0.6);
+    background: color-mix(in srgb, var(--color-surface-maroon) 72%, transparent);
     backdrop-filter: blur(14px);
     border: 1px solid var(--color-line);
   }
   .glow-ring {
-    box-shadow: 0 0 0 1px rgba(124, 92, 255, 0.4),
-      0 20px 60px -20px rgba(124, 92, 255, 0.5);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent),
+      0 20px 60px -20px color-mix(in srgb, var(--color-accent) 50%, transparent);
   }
 }
