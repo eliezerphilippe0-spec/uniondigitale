@@ -6,8 +6,9 @@
 export function HeroVisual() {
   return (
     <div className="relative aspect-square w-full max-w-md select-none">
-      {/* Halo de dégradés */}
-      <div className="absolute inset-0 rounded-[2rem] bg-grain blur-2xl" />
+      {/* Halo de dégradés (rampe accent → brand, scopé au visuel —
+          ne pas réutiliser .bg-grain ici : c'est le wrapper de page) */}
+      <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-accent/25 via-brand/10 to-transparent blur-2xl" />
 
       {/* Motif géométrique africain (chevrons) en filigrane */}
       <svg
