@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const title = "Zabelie Talent — Produits digitaux & talents africains";
+const title = "Zabelie Digi — Produits digitaux & talents africains";
 const description =
   "Vendez vos produits digitaux et vos talents. Paiement mobile money, livraison instantanée. La marketplace digitale africaine.";
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description,
     type: "website",
     locale: "fr_FR",
-    siteName: "Zabelie Talent",
+    siteName: "Zabelie Digi",
   },
   twitter: {
     card: "summary_large_image",

@@ -15,8 +15,8 @@ export async function generateMetadata({
   const creator = await getCreator(id);
   return {
     title: creator
-      ? `${creator.displayName} — Zabelie Talent`
-      : "Créateur — Zabelie Talent",
+      ? `${creator.displayName} — Zabelie Digi`
+      : "Créateur — Zabelie Digi",
   };
 }
 

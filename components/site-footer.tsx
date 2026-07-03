@@ -40,7 +40,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-line py-5 text-center text-xs text-mist">
-        © {new Date().getFullYear()} Zabelie Talent. Tous droits réservés.
+        © {new Date().getFullYear()} Zabelie Digi. Tous droits réservés.
       </div>
     </footer>
   );

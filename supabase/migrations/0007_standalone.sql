@@ -1,4 +1,4 @@
--- Zabelie Talent — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
+-- Zabelie Digi — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
 -- Aucune fusion prévue avec Zabelie 1 ni aucun autre projet. On retire la
 -- passerelle dormante prévue « au cas où » par l'ancienne V-9.
 -- (Sur une base déjà déployée : exécuter cette migration ; sur une base neuve,

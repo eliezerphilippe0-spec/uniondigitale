@@ -7,7 +7,7 @@ import { getPublishedProducts } from "@/lib/products";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Catalogue — Zabelie Talent",
+  title: "Catalogue — Zabelie Digi",
 };
 
 const CATEGORIES = [

@@ -1,4 +1,4 @@
-# Zabelie Talent — Document de contexte (15 sections)
+# Zabelie Digi — Document de contexte (15 sections)
 
 > **Statut :** reconstruction à partir de la synthèse fournie. À valider section par section.
 > Les passages marqués `[INFÉRÉ]` sont des hypothèses raisonnables, pas des décisions arrêtées.
@@ -11,7 +11,7 @@
 
 ## §1 — Thèse produit
 
-**Zabelie Talent** est une plateforme de **produits digitaux et de talents africains** :
+**Zabelie Digi** est une plateforme de **produits digitaux et de talents africains** :
 une marketplace où des créateurs (designers, formateurs, développeurs, musiciens,
 rédacteurs, consultants…) vendent des produits téléchargeables et des prestations,
 avec encaissement en **monnaie mobile haïtienne** (MonCash, puis NatCash) et un
@@ -33,7 +33,7 @@ l'instabilité réseau.**
   **dimension communautaire africaine**, la mise en avant des **services** autant que
   des fichiers.
 
-**Zabelie Talent = Chariow (produit digital + checkout) ∪ Talent gn (talents +
+**Zabelie Digi = Chariow (produit digital + checkout) ∪ Talent gn (talents +
 communauté) adapté au contexte de paiement haïtien (MonCash/NatCash/BRH).**
 
 ---
@@ -44,9 +44,13 @@ communauté) adapté au contexte de paiement haïtien (MonCash/NatCash/BRH).**
 **physiques** existante).
 
 - **Zabelie** (projet 1) : marketplace de produits physiques.
-- **Zabelie Talent** (projet 2, ce projet) : produits **digitaux** + talents/services.
+- **Zabelie Digi** (projet 2, ce projet) : produits **digitaux** + talents/services.
+  Nom officiel tranché — l'ex-nom de travail « Zabelie Talent » est retiré.
+  Le repo GitHub `uniondigitale` est une étiquette technique, à renommer
+  `zabelie-*` par le porteur (la branche git `claude/zabelie-talent-*` garde
+  son nom historique).
 
-Les deux marques partagent la racine « Zabelie », **mais Zabelie Talent est un
+Les deux marques partagent la racine « Zabelie », **mais Zabelie Digi est un
 projet totalement à part** : aucune fusion — auth, wallet, schéma ou code — avec
 Zabelie 1 ni aucun autre projet (décision ferme du porteur, voir **V-9** dans
 `02-DECISIONS.md`).
@@ -117,7 +121,7 @@ Entités principales `[INFÉRÉ — à raffiner]` :
 > ⚠️ L'idempotence des paiements est **garantie au niveau base de données** (contrainte
 > d'unicité sur la clé d'idempotence), pas seulement applicative. Voir §9–§10.
 
-**D-3 tranchée et durcie (V-9)** : Zabelie Talent est un **projet totalement
+**D-3 tranchée et durcie (V-9)** : Zabelie Digi est un **projet totalement
 indépendant** — aucune fusion (comptes, wallet, schéma, code) avec Zabelie 1 ni
 aucun autre projet. La passerelle dormante `zabelie1_user_id` a été retirée
 (`0007_standalone.sql`). Schéma réel : `supabase/migrations/`

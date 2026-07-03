@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 
-export const metadata = { title: "Paiement réussi — Zabelie Talent" };
+export const metadata = { title: "Paiement réussi — Zabelie Digi" };
 
 export default async function SuccesPage({
   searchParams,

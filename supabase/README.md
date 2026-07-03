@@ -1,4 +1,4 @@
-# Supabase — Zabelie Talent
+# Supabase — Zabelie Digi
 
 Schéma, RLS et logique de paiement de la plateforme (Vague 1).
 
@@ -36,7 +36,7 @@ Ou manuellement : exécuter chaque fichier `.sql` dans l'ordre via le SQL Editor
 
 ## Décision D-3 (V-9)
 
-Comptes/wallet **propres** à Zabelie Talent. Fusion future possible avec
+Comptes/wallet **propres** à Zabelie Digi. Fusion future possible avec
 Zabelie 1 via `profiles.zabelie1_user_id` (nullable + unique) — sans migration
 lourde.
 

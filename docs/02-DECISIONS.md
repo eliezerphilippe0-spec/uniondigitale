@@ -1,4 +1,4 @@
-# Zabelie Talent — Registre des décisions
+# Zabelie Digi — Registre des décisions
 
 > Suivi des décisions **verrouillées** (✅) et **ouvertes** (`[À CONFIRMER]`).
 > Référencé par `00-CONTEXTE.md §13`.
@@ -16,8 +16,8 @@
 | V-5 | **Réconciliation** | Réconciliateur + test « redirect coupé » dans les critères d'acceptation du module paiement. |
 | V-6 | **Nommage** | `zabely` / `zabelie` coexistent. Aucun grep-replace global. |
 | V-7 | **Design** | Higgsfield pour les visuels ; objectif plateforme ultra-moderne. |
-| V-8 | **Distinction projets** | Zabelie Talent (digital) ≠ Zabelie (physique, projet 1). |
-| V-9 | **D-3 — Lien avec Zabelie 1** | **INDÉPENDANCE TOTALE (durci).** Zabelie Talent est un projet à part : **aucune fusion** — comptes, wallet, schéma, code — avec Zabelie 1 ni aucun autre projet. La passerelle dormante `zabelie1_user_id` a été retirée (migration `0007_standalone.sql`). Ne pas réintroduire de couplage sans décision explicite du porteur. |
+| V-8 | **Distinction projets** | Zabelie Digi (digital) ≠ Zabelie (physique, projet 1). |
+| V-9 | **D-3 — Lien avec Zabelie 1** | **INDÉPENDANCE TOTALE (durci).** Zabelie Digi est un projet à part : **aucune fusion** — comptes, wallet, schéma, code — avec Zabelie 1 ni aucun autre projet. La passerelle dormante `zabelie1_user_id` a été retirée (migration `0007_standalone.sql`). Ne pas réintroduire de couplage sans décision explicite du porteur. |
 
 ---
 

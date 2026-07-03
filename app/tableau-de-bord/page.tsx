@@ -8,7 +8,7 @@ import { formatHTG } from "@/lib/sample-data";
 import { ProfileForm } from "@/components/profile-form";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Tableau de bord — Zabelie Talent" };
+export const metadata = { title: "Tableau de bord — Zabelie Digi" };
 
 function Shell({
   title,

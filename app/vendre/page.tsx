@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Vendre — Zabelie Talent" };
+export const metadata = { title: "Vendre — Zabelie Digi" };
 
 function Shell({
   children,
@@ -20,7 +20,7 @@ function Shell({
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-lg px-5 py-16">
-        <h1 className="text-3xl font-black tracking-tight">Vendre sur Zabelie Talent</h1>
+        <h1 className="text-3xl font-black tracking-tight">Vendre sur Zabelie Digi</h1>
         {subtitle && <p className="mt-2 text-sm text-mist">{subtitle}</p>}
         <div className="mt-8">{children}</div>
       </main>

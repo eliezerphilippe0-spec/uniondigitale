@@ -1,4 +1,4 @@
--- Bootstrap pour exécuter les migrations Zabelie Talent sur un Postgres nu
+-- Bootstrap pour exécuter les migrations Zabelie Digi sur un Postgres nu
 -- (CI / local), sans Supabase. Stube le strict minimum référencé par les
 -- migrations : schéma auth (users + uid()) et storage (buckets).
 -- En production Supabase, ces objets existent déjà — ce fichier n'y est PAS appliqué.

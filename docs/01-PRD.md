@@ -1,4 +1,4 @@
-# Zabelie Talent — PRD (Product Requirements Document)
+# Zabelie Digi — PRD (Product Requirements Document)
 
 > Découle de `00-CONTEXTE.md`. Alimente le Design EPIC 4.
 > Reconstruit à partir de la synthèse — `[INFÉRÉ]` = hypothèse à valider.

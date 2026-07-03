@@ -1,5 +1,5 @@
--- Zabelie Talent — Schéma initial (Vague 1)
--- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Talent, fusion future
+-- Zabelie Digi — Schéma initial (Vague 1)
+-- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Digi, fusion future
 -- possible via profiles.zabelie1_user_id (nullable + unique).
 --
 -- Invariants paiement (docs/03-PAIEMENTS.md) garantis EN BASE :

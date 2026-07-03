@@ -1,4 +1,4 @@
--- Zabelie Talent — schéma complet (concaténation 0001→0007).
+-- Zabelie Digi — schéma complet (concaténation 0001→0007).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
@@ -6,8 +6,8 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- 0001_schema.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Schéma initial (Vague 1)
--- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Talent, fusion future
+-- Zabelie Digi — Schéma initial (Vague 1)
+-- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Digi, fusion future
 -- possible via profiles.zabelie1_user_id (nullable + unique).
 --
 -- Invariants paiement (docs/03-PAIEMENTS.md) garantis EN BASE :
@@ -136,7 +136,7 @@ create index payouts_wallet_idx on payouts (wallet_id);
 -- ═══════════════════════════════════════════════════════════════════
 -- 0002_rls.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Row Level Security (Vague 1)
+-- Zabelie Digi — Row Level Security (Vague 1)
 -- Principe : lecture publique du catalogue ; chacun gère ses propres données ;
 -- les paiements/wallet ne sont JAMAIS écrits côté client (service role + RPC).
 
@@ -226,7 +226,7 @@ create policy "payouts_owner_read"
 -- ═══════════════════════════════════════════════════════════════════
 -- 0003_payment_functions.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Logique de paiement idempotente (EPIC 4)
+-- Zabelie Digi — Logique de paiement idempotente (EPIC 4)
 -- docs/03-PAIEMENTS.md. À appeler UNIQUEMENT côté serveur (webhook MonCash
 -- vérifié serveur-à-serveur, ou réconciliateur). Jamais depuis le navigateur.
 
@@ -347,7 +347,7 @@ revoke all on function confirm_payment(text, text, jsonb, integer) from public, 
 -- ═══════════════════════════════════════════════════════════════════
 -- 0004_storage.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Storage (Vague 1)
+-- Zabelie Digi — Storage (Vague 1)
 -- Bucket PRIVÉ pour les fichiers livrables. L'accès se fait exclusivement par
 -- URL signée délivrée côté serveur APRÈS paiement confirmé (app/api/download).
 -- Upload : via le service role (app/api/products/asset), donc pas de policy
@@ -360,7 +360,7 @@ on conflict (id) do nothing;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0005_commission.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Commission par tier (EPIC 4 / EPIC 5)
+-- Zabelie Digi — Commission par tier (EPIC 4 / EPIC 5)
 -- Le vendeur est crédité du NET ; la plateforme prélève une commission selon le
 -- tier. C'est le modèle économique : sans ça, le ledger est faux à chaque vente.
 --
@@ -515,7 +515,7 @@ revoke all on function confirm_payment(text, text, jsonb, integer) from public, 
 -- ═══════════════════════════════════════════════════════════════════
 -- 0006_escrow_maturation.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — Escrow & maturation J+7 + remboursements (EPIC 5)
+-- Zabelie Digi — Escrow & maturation J+7 + remboursements (EPIC 5)
 -- Fenêtre anti-fraude : le NET du vendeur est d'abord EN ATTENTE (pending), puis
 -- DISPONIBLE (available, retirable) après 7 jours. Un remboursement avant
 -- maturation annule l'escrow → aucun solde fantôme.
@@ -736,7 +736,7 @@ revoke all on function refund_order(uuid) from public, anon, authenticated;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0007_standalone.sql
 -- ═══════════════════════════════════════════════════════════════════
--- Zabelie Talent — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
+-- Zabelie Digi — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
 -- Aucune fusion prévue avec Zabelie 1 ni aucun autre projet. On retire la
 -- passerelle dormante prévue « au cas où » par l'ancienne V-9.
 -- (Sur une base déjà déployée : exécuter cette migration ; sur une base neuve,
