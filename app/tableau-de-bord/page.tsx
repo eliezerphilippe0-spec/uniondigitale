@@ -144,15 +144,15 @@ export default async function DashboardPage() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-line bg-surface/60 p-5"
+            className="rounded-2xl border border-line bg-surface-maroon/70 p-5"
           >
-            <p className="text-2xl font-black text-gradient">{s.value}</p>
+            <p className="metric text-2xl font-black text-gradient">{s.value}</p>
             <p className="mt-1 text-xs text-mist">{s.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-line bg-surface/40 p-5 text-sm text-mist">
+      <div className="mt-6 rounded-2xl border border-line bg-surface-brown/50 p-5 text-sm text-mist">
         Chaque vente confirmée est créditée <strong>en attente</strong> et devient{" "}
         <strong>disponible 7 jours plus tard</strong> (fenêtre anti-fraude /
         remboursement). Les retraits du solde disponible arriveront avec la

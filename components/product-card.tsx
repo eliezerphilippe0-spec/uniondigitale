@@ -50,7 +50,7 @@ export function ProductCard({ product }: { product: ProductView }) {
 
         <div className="mt-auto flex items-center justify-between pt-3">
           <span className="text-xs text-mist">par {product.creator}</span>
-          <span className="text-sm font-bold text-gradient">
+          <span className="numeric text-sm font-bold text-gradient">
             {formatHTG(product.priceHTG)}
           </span>
         </div>

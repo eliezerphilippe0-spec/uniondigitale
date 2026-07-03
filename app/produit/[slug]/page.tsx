@@ -75,7 +75,7 @@ export default async function ProductPage({
           </div>
 
           <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
-            <p className="text-3xl font-black text-gradient">
+            <p className="numeric text-3xl font-black text-gradient">
               {formatHTG(product.priceHTG)}
             </p>
             <div className="mt-5">
