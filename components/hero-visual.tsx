@@ -26,7 +26,7 @@ export function HeroVisual() {
           >
             <path
               d="M0 10 L10 0 L20 10 M0 20 L10 10 L20 20"
-              stroke="#f5b53d"
+              stroke="var(--color-accent-gold)"
               strokeWidth="1.5"
               fill="none"
             />

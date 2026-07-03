@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: ProductView }) {
           >
             <path
               d="M0 9 L9 0 L18 9"
-              stroke="#0a0a0f"
+              stroke="var(--color-ink)"
               strokeWidth="1.2"
               fill="none"
             />
