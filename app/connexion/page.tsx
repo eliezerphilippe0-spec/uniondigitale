@@ -61,7 +61,7 @@ export default function ConnexionPage() {
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <BrandMark size={36} />
           <span className="text-lg font-semibold">
-            Zabelie <span className="text-mist">Talent</span>
+            Zabelie <span className="text-mist">Digi</span>
           </span>
         </Link>
 

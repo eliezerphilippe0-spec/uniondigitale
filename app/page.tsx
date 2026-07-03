@@ -145,8 +145,8 @@ export default async function HomePage() {
             Votre talent mérite d'être <span className="text-gradient">payé</span>.
           </h2>
           <p className="mx-auto mt-4 max-w-md text-mist">
-            Rejoignez les créateurs qui monétisent leur savoir-faire sur Zabelie
-            Talent.
+            Rejoignez les créateurs qui monétisent leur savoir-faire sur
+            Zabelie Digi.
           </p>
           <Link
             href="/vendre"
