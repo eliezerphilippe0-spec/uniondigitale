@@ -108,6 +108,13 @@ const fr = {
   "share.wa": "Partager sur WhatsApp",
   "share.copy": "Copier le lien",
   "share.copied": "Lien copié ✓",
+
+  // Fondateur
+  "founder.title": "Le mot du fondateur",
+  "founder.quote":
+    "Zabelie Digi est né d'une conviction : le talent haïtien mérite des outils modernes pour être vendu, payé et respecté. Chaque créateur qui vit de son savoir-faire fait avancer tout le pays.",
+  "founder.name": "Éliezer Philippe",
+  "founder.role": "Fondateur, Zabelie Digi",
 } as const;
 
 export type I18nKey = keyof typeof fr;
@@ -203,6 +210,12 @@ const ht: Record<I18nKey, string> = {
   "share.wa": "Pataje sou WhatsApp",
   "share.copy": "Kopye lyen an",
   "share.copied": "Lyen kopye ✓",
+
+  "founder.title": "Pawòl fondatè a",
+  "founder.quote":
+    "Zabelie Digi fèt ak yon konviksyon : talan ayisyen merite zouti modèn pou li vann, pou li peye, pou li respekte. Chak kreyatè k ap viv ak konesans li fè tout peyi a vanse.",
+  "founder.name": "Éliezer Philippe",
+  "founder.role": "Fondatè, Zabelie Digi",
 };
 
 export const DICT: Record<Lang, Record<I18nKey, string>> = { fr, ht };

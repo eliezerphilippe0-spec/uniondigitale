@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
@@ -127,6 +128,39 @@ export default async function HomePage() {
               <p className="mt-2 text-sm text-mist">{step.body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* FONDATEUR */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <div className="glass mx-auto flex max-w-3xl flex-col items-center gap-8 rounded-3xl p-8 sm:flex-row sm:p-10">
+          <div className="relative shrink-0">
+            <Image
+              src="/brand/eliezer-portrait.jpg"
+              alt={t(lang, "founder.name")}
+              width={160}
+              height={160}
+              priority
+              className="h-40 w-40 rounded-2xl object-cover object-top ring-2 ring-accent/50"
+            />
+            <span className="absolute -bottom-2 -right-2 grid h-9 w-9 place-items-center rounded-xl bg-brand text-lg">
+              🇭🇹
+            </span>
+          </div>
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+              {t(lang, "founder.title")}
+            </p>
+            <blockquote className="mt-3 text-lg leading-relaxed text-cloud">
+              « {t(lang, "founder.quote")} »
+            </blockquote>
+            <p className="mt-4 text-sm font-semibold">
+              {t(lang, "founder.name")}
+              <span className="ml-2 font-normal text-mist">
+                {t(lang, "founder.role")}
+              </span>
+            </p>
+          </div>
         </div>
       </section>
 
