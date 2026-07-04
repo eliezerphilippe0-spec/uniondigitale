@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { AdminProductRow } from "@/components/admin-product-row";
+import { AdminRefundButton } from "@/components/admin-refund-button";
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
@@ -43,6 +44,14 @@ type PaymentRow = {
   order: { amount_htg: number } | { amount_htg: number }[] | null;
 };
 
+type OrderRow = {
+  id: string;
+  status: string;
+  amount_htg: number;
+  created_at: string;
+  product: { title: string } | { title: string }[] | null;
+};
+
 function one<T>(v: T | T[] | null): T | null {
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
@@ -79,8 +88,13 @@ export default async function AdminPage() {
 
   const admin = createAdminClient();
 
-  const [{ data: prods }, { data: pays }, { data: paidOrders }, pendingRes] =
-    await Promise.all([
+  const [
+    { data: prods },
+    { data: pays },
+    { data: paidOrders },
+    pendingRes,
+    { data: recentOrders },
+  ] = await Promise.all([
       admin
         .from("products")
         .select("id, title, status, seller:profiles!products_seller_id_fkey(display_name)")
@@ -100,10 +114,17 @@ export default async function AdminPage() {
         .from("payments")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending"),
+      admin
+        .from("orders")
+        .select("id, status, amount_htg, created_at, product:products(title)")
+        .in("status", ["paid", "delivered", "disputed", "refunded"])
+        .order("created_at", { ascending: false })
+        .limit(15),
     ]);
 
   const products = (prods ?? []) as ProductRow[];
   const payments = (pays ?? []) as PaymentRow[];
+  const orders = (recentOrders ?? []) as unknown as OrderRow[];
   const gmv = (paidOrders ?? []).reduce((s, o) => s + o.amount_htg, 0);
   const pendingPayments = pendingRes.count ?? 0;
 
@@ -147,6 +168,55 @@ export default async function AdminPage() {
                 status={p.status}
               />
             ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Commandes : remboursement + litiges */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Commandes</h2>
+        <p className="mt-1 text-xs text-mist">
+          Rembourser annule l&apos;escrow (avant maturité : aucun solde fantôme).
+          Les commandes <span className="text-danger-text">disputed</span> (écart
+          de montant) sont à examiner.
+        </p>
+        {orders.length === 0 ? (
+          <p className="mt-3 text-sm text-mist">Aucune commande payée.</p>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {orders.map((o) => {
+              const product = Array.isArray(o.product) ? o.product[0] : o.product;
+              return (
+                <li
+                  key={o.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">
+                      {product?.title ?? "Produit"}
+                    </p>
+                    <p className="text-xs text-mist">
+                      {formatHTG(o.amount_htg)} ·{" "}
+                      {new Date(o.created_at).toLocaleDateString("fr-HT")} ·{" "}
+                      <span
+                        className={
+                          o.status === "disputed"
+                            ? "text-danger-text"
+                            : o.status === "refunded"
+                              ? "text-warning-text"
+                              : "text-success-text"
+                        }
+                      >
+                        {o.status}
+                      </span>
+                    </p>
+                  </div>
+                  {(o.status === "paid" || o.status === "delivered") && (
+                    <AdminRefundButton orderId={o.id} />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

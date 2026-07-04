@@ -101,14 +101,9 @@ curl -X POST https://<domaine>/api/maturation \
 ---
 
 ## 6. Remboursement avant maturité = aucun solde fantôme
-Sur un autre achat encore `maturing`, rembourse via l'admin (rôle `admin` requis) :
-```bash
-curl -X POST https://<domaine>/api/admin/refund \
-  -H "Content-Type: application/json" \
-  --cookie "<session admin>" \
-  -d '{"orderId":"<ORDER_ID>"}'
-```
-(ou ajoute un bouton admin ; l'endpoint exige une session admin.)
+Sur un autre achat encore `maturing` : connecte-toi en **admin**, va sur
+`/admin` → section **Commandes** → bouton **Rembourser** sur la commande.
+(Équivalent API : `POST /api/admin/refund {"orderId":"…"}` avec session admin.)
 ✅ Attendu : `escrow=reversed`, `order=refunded`, `pending_htg` réduit du net,
 `balance_htg` inchangé. Relancer la maturation ne crédite **rien** (pas de solde
 fantôme).
