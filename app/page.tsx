@@ -4,35 +4,29 @@ import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { HeroVisual } from "@/components/hero-visual";
 import { getPublishedProducts } from "@/lib/products";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Publiez",
-    body: "Mettez en ligne un produit digital ou une prestation en quelques minutes.",
-  },
-  {
-    n: "02",
-    title: "Encaissez",
-    body: "L'acheteur paie via MonCash. Le paiement est confirmé serveur-à-serveur.",
-  },
-  {
-    n: "03",
-    title: "Livrez & retirez",
-    body: "Livraison automatique du fichier, crédit de votre wallet, retrait de vos gains.",
-  },
-];
-
-const STATS = [
-  { value: "100%", label: "digital & talents" },
-  { value: "MonCash", label: "paiement mobile" },
-  { value: "Instant", label: "livraison après paiement" },
-];
-
 export default async function HomePage() {
-  const products = await getPublishedProducts();
+  const [products, lang] = await Promise.all([
+    getPublishedProducts(),
+    getLang(),
+  ]);
+
+  const steps = [
+    { n: "01", title: t(lang, "home.s1.t"), body: t(lang, "home.s1.b") },
+    { n: "02", title: t(lang, "home.s2.t"), body: t(lang, "home.s2.b") },
+    { n: "03", title: t(lang, "home.s3.t"), body: t(lang, "home.s3.b") },
+  ];
+
+  const stats = [
+    { value: "100%", label: t(lang, "home.stat1") },
+    { value: "MonCash", label: t(lang, "home.stat2") },
+    { value: t(lang, "home.stat3.v"), label: t(lang, "home.stat3") },
+  ];
+
   return (
     <div className="bg-grain">
       <SiteNav />
@@ -43,18 +37,18 @@ export default async function HomePage() {
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-mist">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              La marketplace digitale africaine
+              {t(lang, "home.badge")}
             </span>
 
             <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
-              Vendez vos <span className="text-gradient">produits digitaux</span>{" "}
-              et vos <span className="text-gradient">talents</span>.
+              {t(lang, "home.h1.a")}{" "}
+              <span className="text-gradient">{t(lang, "home.h1.b")}</span>{" "}
+              {t(lang, "home.h1.c")}{" "}
+              <span className="text-gradient">{t(lang, "home.h1.d")}</span>.
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-base text-mist sm:text-lg lg:mx-0">
-              Templates, formations, beats, mentorat… Publiez, encaissez via
-              mobile money et livrez instantanément. Pensé pour le contexte
-              africain.
+              {t(lang, "home.sub")}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
@@ -62,13 +56,13 @@ export default async function HomePage() {
                 href="/vendre"
                 className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
               >
-                Commencer à vendre
+                {t(lang, "home.cta.sell")}
               </Link>
               <Link
                 href="/catalogue"
                 className="w-full rounded-xl border border-line bg-surface/60 px-6 py-3 text-sm font-semibold text-cloud transition hover:border-violet/50 sm:w-auto"
               >
-                Explorer le catalogue
+                {t(lang, "home.cta.browse")}
               </Link>
             </div>
           </div>
@@ -79,7 +73,7 @@ export default async function HomePage() {
         </div>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-4">
-          {STATS.map((s) => (
+          {stats.map((s) => (
             <div
               key={s.label}
               className="rounded-2xl border border-line bg-surface-maroon/60 p-4"
@@ -98,17 +92,15 @@ export default async function HomePage() {
         <div className="flex items-end justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Tendances du moment
+              {t(lang, "home.trends")}
             </h2>
-            <p className="mt-2 text-sm text-mist">
-              Les produits et talents les plus demandés.
-            </p>
+            <p className="mt-2 text-sm text-mist">{t(lang, "home.trends.sub")}</p>
           </div>
           <Link
             href="/catalogue"
             className="hidden text-sm text-mist transition hover:text-cloud sm:block"
           >
-            Tout voir →
+            {t(lang, "home.all")}
           </Link>
         </div>
 
@@ -122,10 +114,10 @@ export default async function HomePage() {
       {/* COMMENT ÇA MARCHE */}
       <section id="comment" className="mx-auto max-w-6xl px-5 py-16">
         <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-          Comment ça marche
+          {t(lang, "home.how")}
         </h2>
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-          {STEPS.map((step) => (
+          {steps.map((step) => (
             <div
               key={step.n}
               className="rounded-2xl border border-line bg-surface/40 p-6"
@@ -142,17 +134,17 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-5 py-16">
         <div className="glass glow-ring relative overflow-hidden rounded-3xl px-8 py-14 text-center">
           <h2 className="mx-auto max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">
-            Votre talent mérite d'être <span className="text-gradient">payé</span>.
+            {t(lang, "home.final.a")}{" "}
+            <span className="text-gradient">{t(lang, "home.final.b")}</span>.
           </h2>
           <p className="mx-auto mt-4 max-w-md text-mist">
-            Rejoignez les créateurs qui monétisent leur savoir-faire sur
-            Zabelie Digi.
+            {t(lang, "home.final.sub")}
           </p>
           <Link
             href="/vendre"
             className="mt-8 inline-block rounded-xl bg-cloud px-7 py-3 text-sm font-semibold text-ink transition hover:opacity-90"
           >
-            Créer ma boutique
+            {t(lang, "home.final.cta")}
           </Link>
         </div>
       </section>

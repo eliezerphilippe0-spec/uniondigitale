@@ -30,7 +30,7 @@ vendeur **apporte son propre trafic** (WhatsApp, Instagram, TikTok).
 
 ## Backlog différenciation (non construit, à prioriser plus tard)
 
-- **Kreyòl ayisyen** en première classe (bascule FR/HT) — aucun concurrent ne le fait.
+- ~~Kreyòl ayisyen~~ ✅ **Construit** : bascule FR/KR dans la nav (cookie), surfaces acheteur traduites (accueil, catalogue, fiche, paiement, nav/footer). ⚠️ À faire relire par un locuteur natif avant lancement.
 - Paiement en gourdes affiché en toutes lettres + reçus WhatsApp.
 - Mode hors-ligne / PWA pour le catalogue.
 

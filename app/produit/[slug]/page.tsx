@@ -7,6 +7,8 @@ import { getProductView } from "@/lib/products";
 import { getProductReviews } from "@/lib/reviews";
 import { BuyButton } from "@/components/buy-button";
 import { ShareButtons } from "@/components/share-buttons";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,7 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProductView(slug);
+  const [product, lang] = await Promise.all([getProductView(slug), getLang()]);
   if (!product) notFound();
 
   const reviews = product.creatorId
@@ -58,12 +60,12 @@ export default async function ProductPage({
             href="/catalogue"
             className="text-sm text-mist hover:text-cloud"
           >
-            ← Retour au catalogue
+            {t(lang, "product.back")}
           </Link>
 
           <div className="mt-4 flex items-center gap-2">
             <span className="rounded-full border border-line px-3 py-1 text-xs text-mist">
-              {product.kind === "service" ? "Service" : "Fichier digital"}
+              {product.kind === "service" ? t(lang, "product.kind.service") : t(lang, "product.kind.file")}
             </span>
             <span className="rounded-full border border-line px-3 py-1 text-xs text-mist">
               {product.category}
@@ -81,19 +83,22 @@ export default async function ProductPage({
                 href={`/createur/${product.creatorId}`}
                 className="hover:text-cloud"
               >
-                par {product.creator}
+                {t(lang, "product.by")} {product.creator}
               </Link>
             ) : (
-              <span>par {product.creator}</span>
+              <span>{t(lang, "product.by")} {product.creator}</span>
             )}
             {product.ratingAvg !== null && (
               <span>
                 <Stars value={product.ratingAvg} /> {product.ratingAvg} (
-                {product.ratingCount} avis vérifié
-                {product.ratingCount > 1 ? "s" : ""})
+                {product.ratingCount} {t(lang, "product.reviews.badge")})
               </span>
             )}
-            {product.sales > 0 && <span>{product.sales} ventes</span>}
+            {product.sales > 0 && (
+              <span>
+                {product.sales} {t(lang, "product.sales")}
+              </span>
+            )}
           </div>
 
           <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
@@ -104,28 +109,32 @@ export default async function ProductPage({
               <BuyButton
                 productId={product.id}
                 priceLabel={formatHTG(product.priceHTG)}
+                label={t(lang, "product.pay", { price: formatHTG(product.priceHTG) })}
+                loadingLabel={t(lang, "product.pay.loading")}
               />
             </div>
             <p className="mt-3 text-center text-xs text-mist">
-              Livraison instantanée après confirmation du paiement.
+              {t(lang, "product.delivery")}
             </p>
           </div>
 
           <ul className="mt-6 space-y-2 text-sm text-mist">
-            <li>✓ Paiement sécurisé, confirmé serveur-à-serveur</li>
+            <li>{t(lang, "product.secure")}</li>
             <li>
-              ✓{" "}
               {product.kind === "service"
-                ? "Mise en relation après paiement"
-                : "Téléchargement immédiat du fichier"}
+                ? t(lang, "product.service")
+                : t(lang, "product.file")}
             </li>
-            <li>✓ Avis réservés aux acheteurs vérifiés</li>
+            <li>{t(lang, "product.verifiedOnly")}</li>
           </ul>
 
           <div className="mt-6">
             <ShareButtons
               path={`/produit/${product.slug}`}
-              text={`${product.title} — ${formatHTG(product.priceHTG)} sur Zabelie Digi :`}
+              text={`${product.title} — ${formatHTG(product.priceHTG)} ${t(lang, "product.share")}`}
+              waLabel={t(lang, "share.wa")}
+              copyLabel={t(lang, "share.copy")}
+              copiedLabel={t(lang, "share.copied")}
             />
           </div>
         </div>
@@ -135,10 +144,10 @@ export default async function ProductPage({
       {reviews.length > 0 && (
         <section className="mx-auto max-w-6xl px-5 pb-16">
           <h2 className="text-lg font-semibold">
-            Avis vérifiés ({reviews.length})
+            {t(lang, "product.reviews")} ({reviews.length})
           </h2>
           <p className="mt-1 text-xs text-mist">
-            Seuls les acheteurs ayant payé peuvent laisser un avis.
+            {t(lang, "product.reviews.note")}
           </p>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {reviews.map((r) => (
@@ -154,8 +163,8 @@ export default async function ProductPage({
                   <p className="mt-2 text-sm text-mist">{r.comment}</p>
                 )}
                 <p className="mt-2 text-xs text-mist/70">
-                  {new Date(r.createdAt).toLocaleDateString("fr-HT")} · Achat
-                  vérifié ✓
+                  {new Date(r.createdAt).toLocaleDateString("fr-HT")} ·{" "}
+                  {t(lang, "product.verified")}
                 </p>
               </li>
             ))}

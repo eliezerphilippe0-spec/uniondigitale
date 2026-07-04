@@ -79,6 +79,12 @@ La plateforme est donc démontrable sans base.
 - `/mes-achats` — commandes payées + téléchargement (URL signée).
 - `/admin` — back-office (rôle `admin`) : modération produits + suivi paiements.
 
+## Langues
+
+Français (défaut) + **Kreyòl ayisyen** — bascule FR/KR dans la nav (cookie
+`zabelie_lang`). Dictionnaire maison : `lib/i18n.ts` (parité des clés testée).
+Surfaces acheteur traduites ; espace créateur en FR pour l'instant.
+
 ## Intégration continue
 
 `.github/workflows/ci.yml` exécute `typecheck`, `test` et `build` à chaque push

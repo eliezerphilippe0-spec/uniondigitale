@@ -9,9 +9,15 @@ import { useState } from "react";
 export function ShareButtons({
   path,
   text,
+  waLabel = "Partager sur WhatsApp",
+  copyLabel = "Copier le lien",
+  copiedLabel = "Lien copié ✓",
 }: {
   path: string; // ex: /produit/mon-slug
   text: string; // message pré-rempli
+  waLabel?: string;
+  copyLabel?: string;
+  copiedLabel?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -41,13 +47,13 @@ export function ShareButtons({
         onClick={shareWhatsApp}
         className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-cloud transition hover:border-success/60"
       >
-        <span className="text-success">🟢</span> Partager sur WhatsApp
+        <span className="text-success">🟢</span> {waLabel}
       </button>
       <button
         onClick={copyLink}
         className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-mist transition hover:border-accent/50 hover:text-cloud"
       >
-        {copied ? "Lien copié ✓" : "Copier le lien"}
+        {copied ? copiedLabel : copyLabel}
       </button>
     </div>
   );
