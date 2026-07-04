@@ -18,7 +18,7 @@ export default async function EchecPage({
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-danger text-2xl text-ink">
           ✕
         </span>
-        <h1 className="mt-6 text-2xl font-black">{t(lang, "pay.fail.title")}</h1>
+        <h1 className="mt-6 text-2xl font-extrabold">{t(lang, "pay.fail.title")}</h1>
         <p className="mt-3 text-mist">
           {t(lang, "pay.fail.body")}
         </p>

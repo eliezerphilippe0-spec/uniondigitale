@@ -56,9 +56,12 @@
   --color-violet: #f5934f;   /* = accent (focus/hover) */
   --color-teal: #8fbf6f;     /* = success */
 
-  /* ── Typographie ── */
-  --font-sans: "General Sans", "Satoshi", "Inter", system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
+  /* ── Typographie ──
+     Titres : Manrope ExtraBold (800) · Texte : Inter · Boutons : Inter SemiBold.
+     Poids chargés : Inter 400/500/600/700 — Manrope 800. */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-heading: "Manrope", "Inter", system-ui, sans-serif;
   --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", monospace;
 
   --radius-xl: 1.25rem;

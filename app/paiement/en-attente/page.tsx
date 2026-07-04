@@ -15,7 +15,7 @@ export default async function EnAttentePage() {
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-warning text-2xl text-ink">
           ⏳
         </span>
-        <h1 className="mt-6 text-2xl font-black">{t(lang, "pay.wait.title")}</h1>
+        <h1 className="mt-6 text-2xl font-extrabold">{t(lang, "pay.wait.title")}</h1>
         <p className="mt-3 text-mist">
           {t(lang, "pay.wait.body")}
         </p>

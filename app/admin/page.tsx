@@ -22,7 +22,7 @@ function Shell({
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-5xl px-5 py-16">
-        <h1 className="text-3xl font-black tracking-tight">{title}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
         {children}
       </main>
       <SiteFooter />
@@ -146,7 +146,7 @@ export default async function AdminPage() {
             key={s.label}
             className="rounded-2xl border border-line bg-surface-maroon/70 p-5"
           >
-            <p className="metric text-xl font-black text-gradient">{s.value}</p>
+            <p className="metric text-xl font-extrabold text-gradient">{s.value}</p>
             <p className="mt-1 text-xs text-mist">{s.label}</p>
           </div>
         ))}

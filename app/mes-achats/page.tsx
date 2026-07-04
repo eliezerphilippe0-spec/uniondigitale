@@ -24,7 +24,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-3xl px-5 py-16">
-        <h1 className="text-3xl font-black tracking-tight">Mes achats</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Mes achats</h1>
         {children}
       </main>
       <SiteFooter />

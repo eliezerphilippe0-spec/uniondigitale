@@ -72,7 +72,7 @@ export default async function ProductPage({
             </span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight">
+          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight">
             {product.title}
           </h1>
           <p className="mt-3 text-mist">{product.blurb}</p>
@@ -102,7 +102,7 @@ export default async function ProductPage({
           </div>
 
           <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
-            <p className="numeric text-3xl font-black text-gradient">
+            <p className="numeric text-3xl font-extrabold text-gradient">
               {formatHTG(product.priceHTG)}
             </p>
             <div className="mt-5">

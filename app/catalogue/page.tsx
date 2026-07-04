@@ -47,7 +47,7 @@ export default async function CataloguePage({
       <SiteNav />
 
       <section className="mx-auto max-w-6xl px-5 pb-10 pt-16">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
           {t(lang, "catalog.title")}
         </h1>
         <p className="mt-2 text-sm text-mist">

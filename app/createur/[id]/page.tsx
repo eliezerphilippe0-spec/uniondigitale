@@ -46,12 +46,12 @@ export default async function CreatorPage({
               className="h-20 w-20 rounded-2xl object-cover"
             />
           ) : (
-            <span className="grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-gold to-violet text-2xl font-black text-ink">
+            <span className="grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-gold to-violet text-2xl font-extrabold text-ink">
               {initials}
             </span>
           )}
           <div>
-            <h1 className="text-3xl font-black tracking-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight">
               {creator.displayName}
             </h1>
             <p className="mt-1 text-sm text-mist">

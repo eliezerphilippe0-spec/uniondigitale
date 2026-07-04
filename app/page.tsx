@@ -40,7 +40,7 @@ export default async function HomePage() {
               {t(lang, "home.badge")}
             </span>
 
-            <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
               {t(lang, "home.h1.a")}{" "}
               <span className="text-gradient">{t(lang, "home.h1.b")}</span>{" "}
               {t(lang, "home.h1.c")}{" "}
@@ -122,7 +122,7 @@ export default async function HomePage() {
               key={step.n}
               className="rounded-2xl border border-line bg-surface/40 p-6"
             >
-              <span className="text-3xl font-black text-gradient">{step.n}</span>
+              <span className="text-3xl font-extrabold text-gradient">{step.n}</span>
               <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
               <p className="mt-2 text-sm text-mist">{step.body}</p>
             </div>
@@ -133,7 +133,7 @@ export default async function HomePage() {
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-5 py-16">
         <div className="glass glow-ring relative overflow-hidden rounded-3xl px-8 py-14 text-center">
-          <h2 className="mx-auto max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">
+          <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl">
             {t(lang, "home.final.a")}{" "}
             <span className="text-gradient">{t(lang, "home.final.b")}</span>.
           </h2>
