@@ -1,0 +1,54 @@
+"use client";
+
+import { useState } from "react";
+
+/**
+ * Vente par lien — la force de Chariow, adaptée au canal n°1 haïtien :
+ * WhatsApp. Chaque produit/boutique se partage en un tap.
+ */
+export function ShareButtons({
+  path,
+  text,
+}: {
+  path: string; // ex: /produit/mon-slug
+  text: string; // message pré-rempli
+}) {
+  const [copied, setCopied] = useState(false);
+
+  function url() {
+    return `${window.location.origin}${path}`;
+  }
+
+  function shareWhatsApp() {
+    const msg = encodeURIComponent(`${text} ${url()}`);
+    window.open(`https://wa.me/?text=${msg}`, "_blank", "noopener");
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(url());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // navigateurs anciens : sélection manuelle
+      window.prompt("Copiez le lien :", url());
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={shareWhatsApp}
+        className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-cloud transition hover:border-success/60"
+      >
+        <span className="text-success">🟢</span> Partager sur WhatsApp
+      </button>
+      <button
+        onClick={copyLink}
+        className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-mist transition hover:border-accent/50 hover:text-cloud"
+      >
+        {copied ? "Lien copié ✓" : "Copier le lien"}
+      </button>
+    </div>
+  );
+}

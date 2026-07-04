@@ -34,9 +34,11 @@ export function ProductCard({ product }: { product: ProductView }) {
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
           {product.kind === "service" ? "Service" : "Fichier"}
         </span>
-        {product.sales > 0 && (
+        {(product.ratingAvg !== null || product.sales > 0) && (
           <span className="absolute right-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
-            {product.sales} ventes
+            {product.ratingAvg !== null
+              ? `★ ${product.ratingAvg} (${product.ratingCount})`
+              : `${product.sales} ventes`}
           </span>
         )}
       </div>

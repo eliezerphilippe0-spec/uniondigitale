@@ -3,6 +3,7 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { getCreator } from "@/lib/creators";
+import { ShareButtons } from "@/components/share-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,14 @@ export default async function CreatorPage({
         {creator.bio && (
           <p className="mt-6 max-w-2xl text-mist">{creator.bio}</p>
         )}
+
+        {/* Boutique en un lien : se partage sur WhatsApp comme une vitrine */}
+        <div className="mt-6">
+          <ShareButtons
+            path={`/createur/${creator.id}`}
+            text={`Découvre la boutique de ${creator.displayName} sur Zabelie Digi :`}
+          />
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-16">

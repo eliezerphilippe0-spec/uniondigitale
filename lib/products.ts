@@ -16,6 +16,8 @@ export type ProductView = {
   category: string;
   priceHTG: number;
   sales: number;
+  ratingAvg: number | null; // null si aucun avis
+  ratingCount: number;
   accent: string;
   blurb: string;
 };
@@ -54,6 +56,8 @@ const sampleAsView = (): ProductView[] =>
     category: p.category,
     priceHTG: p.priceHTG,
     sales: p.sales,
+    ratingAvg: null,
+    ratingCount: 0,
     accent: p.accent,
     blurb: p.blurb,
   }));
@@ -67,6 +71,8 @@ type Row = {
   category: string | null;
   price_htg: number;
   sales_count: number;
+  rating_count: number;
+  rating_sum: number;
   seller_id: string;
   seller: { display_name: string } | { display_name: string }[] | null;
 };
@@ -83,13 +89,18 @@ function rowAsView(r: Row): ProductView {
     category: r.category ?? "Divers",
     priceHTG: r.price_htg,
     sales: r.sales_count,
+    ratingAvg:
+      r.rating_count > 0
+        ? Math.round((r.rating_sum / r.rating_count) * 10) / 10
+        : null,
+    ratingCount: r.rating_count ?? 0,
     accent: accentFor(r.slug),
     blurb: r.description ?? "",
   };
 }
 
 const SELECT =
-  "id, slug, title, description, kind, category, price_htg, sales_count, seller_id, seller:profiles!products_seller_id_fkey(display_name)";
+  "id, slug, title, description, kind, category, price_htg, sales_count, rating_count, rating_sum, seller_id, seller:profiles!products_seller_id_fkey(display_name)";
 
 export type ProductFilters = {
   q?: string;

@@ -4,9 +4,20 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { formatHTG } from "@/lib/sample-data";
 import { getProductView } from "@/lib/products";
+import { getProductReviews } from "@/lib/reviews";
 import { BuyButton } from "@/components/buy-button";
+import { ShareButtons } from "@/components/share-buttons";
 
 export const dynamic = "force-dynamic";
+
+function Stars({ value }: { value: number }) {
+  return (
+    <span aria-label={`${value} sur 5`} className="text-accent">
+      {"★".repeat(Math.round(value))}
+      <span className="text-mist/40">{"★".repeat(5 - Math.round(value))}</span>
+    </span>
+  );
+}
 
 export default async function ProductPage({
   params,
@@ -16,6 +27,10 @@ export default async function ProductPage({
   const { slug } = await params;
   const product = await getProductView(slug);
   if (!product) notFound();
+
+  const reviews = product.creatorId
+    ? await getProductReviews(product.id)
+    : [];
 
   return (
     <div className="bg-grain min-h-screen">
@@ -60,7 +75,7 @@ export default async function ProductPage({
           </h1>
           <p className="mt-3 text-mist">{product.blurb}</p>
 
-          <div className="mt-4 flex items-center gap-4 text-sm text-mist">
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-mist">
             {product.creatorId ? (
               <Link
                 href={`/createur/${product.creatorId}`}
@@ -70,6 +85,13 @@ export default async function ProductPage({
               </Link>
             ) : (
               <span>par {product.creator}</span>
+            )}
+            {product.ratingAvg !== null && (
+              <span>
+                <Stars value={product.ratingAvg} /> {product.ratingAvg} (
+                {product.ratingCount} avis vérifié
+                {product.ratingCount > 1 ? "s" : ""})
+              </span>
             )}
             {product.sales > 0 && <span>{product.sales} ventes</span>}
           </div>
@@ -97,10 +119,49 @@ export default async function ProductPage({
                 ? "Mise en relation après paiement"
                 : "Téléchargement immédiat du fichier"}
             </li>
-            <li>✓ Support du créateur</li>
+            <li>✓ Avis réservés aux acheteurs vérifiés</li>
           </ul>
+
+          <div className="mt-6">
+            <ShareButtons
+              path={`/produit/${product.slug}`}
+              text={`${product.title} — ${formatHTG(product.priceHTG)} sur Zabelie Digi :`}
+            />
+          </div>
         </div>
       </section>
+
+      {/* Avis vérifiés */}
+      {reviews.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 pb-16">
+          <h2 className="text-lg font-semibold">
+            Avis vérifiés ({reviews.length})
+          </h2>
+          <p className="mt-1 text-xs text-mist">
+            Seuls les acheteurs ayant payé peuvent laisser un avis.
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {reviews.map((r) => (
+              <li
+                key={r.id}
+                className="rounded-2xl border border-line bg-surface/60 p-4"
+              >
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{r.buyerName}</span>
+                  <Stars value={r.rating} />
+                </div>
+                {r.comment && (
+                  <p className="mt-2 text-sm text-mist">{r.comment}</p>
+                )}
+                <p className="mt-2 text-xs text-mist/70">
+                  {new Date(r.createdAt).toLocaleDateString("fr-HT")} · Achat
+                  vérifié ✓
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <SiteFooter />
     </div>

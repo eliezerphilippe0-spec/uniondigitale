@@ -37,6 +37,16 @@ export type PlatformEarning = {
   created_at: string;
 };
 
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  buyer_id: string;
+  order_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
 export type Product = {
   id: string;
   seller_id: string;
@@ -49,6 +59,8 @@ export type Product = {
   cover_url: string | null;
   status: ProductStatus;
   sales_count: number;
+  rating_count: number;
+  rating_sum: number;
   created_at: string;
 };
 
