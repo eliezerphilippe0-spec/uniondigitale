@@ -33,6 +33,14 @@ vendeur **apporte son propre trafic** (WhatsApp, Instagram, TikTok).
 - ~~Kreyòl ayisyen~~ ✅ **Construit** : bascule FR/KR dans la nav (cookie), surfaces acheteur traduites (accueil, catalogue, fiche, paiement, nav/footer). ⚠️ À faire relire par un locuteur natif avant lancement.
 - Paiement en gourdes affiché en toutes lettres + reçus WhatsApp.
 - Mode hors-ligne / PWA pour le catalogue.
+- **Programme d'affiliation (P4)** — spec rédigée (côté conseiller), prête à coller
+  le moment venu. Principes actés : commission affilié = simple entrée de ledger
+  supplémentaire (clé `affiliate_credit:<order_id>` sur l'idempotence existante),
+  même maturation J+7, waterfall `paiement = commission plateforme (sur brut) +
+  commission affilié (sur net vendeur) + net vendeur` testable au centime,
+  attribution figée à la création de commande, code invalide ≠ échec de checkout.
+  Ouvert : plafond du taux (5–40 %) et seuil KYC affilié (~5 000 HTG).
+  ⚠️ Ne construire qu'après le lancement du MVP (des produits et des acheteurs d'abord).
 
 ## Règle de position
 
