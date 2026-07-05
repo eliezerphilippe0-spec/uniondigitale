@@ -112,7 +112,7 @@ const fr = {
   // Fondateur
   "founder.title": "Le mot du fondateur",
   "founder.quote":
-    "Zabelie Digi est né d'une conviction : le talent haïtien mérite des outils modernes pour être vendu, payé et respecté. Chaque créateur qui vit de son savoir-faire fait avancer tout le pays.",
+    "Les opportunités ne se trouvent pas, elles se créent. Oser Agir.",
   "founder.name": "Éliezer Philippe",
   "founder.role": "Fondateur, Zabelie Digi",
 } as const;
@@ -213,7 +213,7 @@ const ht: Record<I18nKey, string> = {
 
   "founder.title": "Pawòl fondatè a",
   "founder.quote":
-    "Zabelie Digi fèt ak yon konviksyon : talan ayisyen merite zouti modèn pou li vann, pou li peye, pou li respekte. Chak kreyatè k ap viv ak konesans li fè tout peyi a vanse.",
+    "Opòtinite yo pa jwenn, se kreye yo kreye. Oze Aji.",
   "founder.name": "Éliezer Philippe",
   "founder.role": "Fondatè, Zabelie Digi",
 };
