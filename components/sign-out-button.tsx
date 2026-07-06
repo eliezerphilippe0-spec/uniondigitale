@@ -7,7 +7,11 @@ export function SignOutButton({ className = "" }: { className?: string }) {
   const router = useRouter();
 
   async function signOut() {
-    await createClient().auth.signOut();
+    try {
+      await createClient().auth.signOut();
+    } catch {
+      // Supabase non configuré : on renvoie quand même à l'accueil.
+    }
     router.push("/");
     router.refresh();
   }

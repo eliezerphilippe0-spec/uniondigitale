@@ -24,9 +24,11 @@ function ConnexionForm() {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
-    const supabase = createClient();
 
     try {
+      // Dans le try : sans Supabase configuré (mode démo), createClient()
+      // lève — l'utilisateur doit voir un message, pas un bouton figé.
+      const supabase = createClient();
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -52,7 +54,12 @@ function ConnexionForm() {
         router.refresh();
       }
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : "Une erreur est survenue.");
+      const raw = err instanceof Error ? err.message : "Une erreur est survenue.";
+      setMsg(
+        raw.includes("URL and API key")
+          ? "Mode démo : connectez le projet Supabase pour activer les comptes."
+          : raw
+      );
     } finally {
       setLoading(false);
     }
