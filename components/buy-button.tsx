@@ -96,6 +96,14 @@ export function BuyButton({
       }
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === "coupon_invalid" && coupon) {
+          // Bilingue (i18n) + retour à l'état sans remise : l'acheteur
+          // re-choisit en connaissance de cause, jamais de prix plein en douce.
+          setApplied(null);
+          setCouponError(true);
+          setError(coupon.invalid);
+          return;
+        }
         setError(data.error ?? "Une erreur est survenue.");
         return;
       }

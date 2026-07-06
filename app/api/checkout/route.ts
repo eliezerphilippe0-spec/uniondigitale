@@ -88,8 +88,13 @@ export async function POST(req: Request) {
   let discountHtg = 0;
   if (typeof couponInput === "string" && couponInput.trim()) {
     const code = normalizeCouponCode(couponInput);
+    // `code: "coupon_invalid"` permet au client d'afficher le message dans la
+    // langue de l'acheteur (FR/KR) — le texte serveur n'est qu'un repli.
     const rejected = () =>
-      NextResponse.json({ error: "Code promo invalide ou expiré." }, { status: 422 });
+      NextResponse.json(
+        { error: "Code promo invalide ou expiré.", code: "coupon_invalid" },
+        { status: 422 }
+      );
     if (!code) return rejected();
 
     const { data: coupon } = await admin

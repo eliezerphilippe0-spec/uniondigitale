@@ -6,6 +6,7 @@ import {
   couponApplies,
   type CouponRow,
 } from "../lib/zabelie-coupons";
+import { commissionHTG, netHTG } from "../lib/commission";
 
 test("normalizeCouponCode : trim, majuscules, format borné", () => {
   assert.equal(normalizeCouponCode("  promo50 "), "PROMO50");
@@ -29,6 +30,26 @@ test("discountedPriceHtg : arrondi entier, plancher 10 HTG, bornes", () => {
   assert.throws(() => discountedPriceHtg(1000, 0));
   assert.throws(() => discountedPriceHtg(1000, 91));
   assert.throws(() => discountedPriceHtg(1000, 12.5));
+});
+
+test("plancher 10 HTG : le ledger reste sain (net > 0, commission ≥ 1 entière)", () => {
+  // Les arrondis sur petits montants sont là où les ledgers se désalignent :
+  // on fige le comportement au plancher, via l'oracle de la formule SQL.
+  for (const tier of ["standard", "elite"] as const) {
+    for (let gross = 10; gross <= 100; gross++) {
+      const c = commissionHTG(gross, tier);
+      const n = netHTG(gross, tier);
+      assert.ok(Number.isInteger(c) && Number.isInteger(n), `${tier}@${gross}: entiers`);
+      assert.ok(c >= 1, `${tier}@${gross}: commission ≥ 1 HTG (obtenu ${c})`);
+      assert.ok(n > 0, `${tier}@${gross}: net vendeur > 0 (obtenu ${n})`);
+      assert.equal(c + n, gross, `${tier}@${gross}: commission + net = brut`);
+    }
+  }
+  // Cas exacts au plancher : standard 1/9, elite 1/9 (0,6 s'arrondit à 1).
+  assert.equal(commissionHTG(10, "standard"), 1);
+  assert.equal(netHTG(10, "standard"), 9);
+  assert.equal(commissionHTG(10, "elite"), 1);
+  assert.equal(netHTG(10, "elite"), 9);
 });
 
 test("couponApplies : vendeur, produit, expiration, plafond, actif", () => {
