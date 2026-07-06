@@ -13,7 +13,7 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 1. Créer un projet sur https://supabase.com.
 2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`) :
    - via CLI : `supabase link --project-ref <ref>` puis `supabase db push` ;
-   - ou manuellement : exécuter `0001 → 0002 → 0003 → 0004` dans le SQL Editor.
+   - ou manuellement : exécuter `0001 → … → 0009` dans le SQL Editor (ou coller `supabase/schema.sql` en une fois).
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
 4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
    **Redirect URLs** : `https://<domaine>/auth/callback`.
@@ -43,6 +43,23 @@ psql "$DATABASE_URL" -f supabase/tests/payment_idempotency.test.sql
 
 ---
 
+## 2 bis. Rails diaspora USD — Stripe & Zelle (optionnels, V-10)
+
+Non configurés = invisibles au checkout (MonCash seul). Pour les activer :
+
+1. **Taux** : `USD_HTG_RATE` (ex. `132`) — obligatoire pour les deux rails.
+2. **Zelle** (recommandé en premier — aucun prérequis) : `ZELLE_RECIPIENT`
+   (e-mail/téléphone US enrôlé Zelle) + `ZELLE_RECIPIENT_NAME`. Les virements
+   arrivent avec un mémo `ZD-XXXXXXXX` ; l'admin confirme depuis le back-office
+   (`/admin`, section « Paiements Zelle à confirmer ») **après vérification du
+   relevé** (montant exact + mémo).
+3. **Stripe** ⚠️ : nécessite un compte Stripe adossé à une **entité US**
+   (Haïti non supporté comme pays marchand). `STRIPE_SECRET_KEY` +
+   webhook `https://<domaine>/api/stripe/webhook` (événement
+   `checkout.session.completed`) → `STRIPE_WEBHOOK_SECRET`.
+
+---
+
 ## 3. Vercel
 
 1. Importer le dépôt, brancher `claude/zabelie-talent-context-85ph4j` (ou `main`).
@@ -64,7 +81,7 @@ psql "$DATABASE_URL" -f supabase/tests/payment_idempotency.test.sql
 
 ## 4. Checklist de mise en prod
 
-- [ ] Migrations `0001→0004` appliquées, bucket `product-files` privé.
+- [ ] Migrations `0001→0009` appliquées, bucket `product-files` privé.
 - [ ] Test SQL d'idempotence : OK.
 - [ ] Variables d'env Supabase (dont `SUPABASE_SERVICE_ROLE_KEY`) sur Vercel.
 - [ ] Auth : redirect URL `/auth/callback` configurée côté Supabase.

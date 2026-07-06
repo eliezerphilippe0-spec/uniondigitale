@@ -72,6 +72,8 @@ export default async function DashboardPage() {
 
   let balance = 0;
   let pending = 0;
+  let netTotal = 0;
+  let nextMaturity: string | null = null;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
   let profile = { display_name: user.displayName, bio: "", avatar_url: "" };
@@ -81,11 +83,33 @@ export default async function DashboardPage() {
 
     const { data: wallet } = await admin
       .from("wallets")
-      .select("balance_htg, pending_htg")
+      .select("id, balance_htg, pending_htg")
       .eq("owner_id", user.id)
       .maybeSingle();
     balance = wallet?.balance_htg ?? 0;
     pending = wallet?.pending_htg ?? 0;
+
+    if (wallet?.id) {
+      // « Quand est-ce que l'argent arrive ? » vaut plus que la règle J+7.
+      const [{ data: nextEscrow }, { data: credits }] = await Promise.all([
+        admin
+          .from("escrow_entries")
+          .select("matures_at")
+          .eq("wallet_id", wallet.id)
+          .eq("status", "maturing")
+          .order("matures_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        admin
+          .from("wallet_transactions")
+          .select("amount_htg")
+          .eq("wallet_id", wallet.id)
+          .eq("type", "credit")
+          .limit(1000),
+      ]);
+      nextMaturity = nextEscrow?.matures_at ?? null;
+      netTotal = (credits ?? []).reduce((s, c) => s + c.amount_htg, 0);
+    }
 
     const { data: prof } = await admin
       .from("profiles")
@@ -133,8 +157,14 @@ export default async function DashboardPage() {
 
   const stats = [
     { label: "Disponible", value: formatHTG(balance) },
-    { label: "En attente (J+7)", value: formatHTG(pending) },
-    { label: "Ventes totales", value: String(totalSales) },
+    {
+      label: nextMaturity
+        ? `En attente · débloqué le ${new Date(nextMaturity).toLocaleDateString("fr-HT")}`
+        : "En attente (J+7)",
+      value: formatHTG(pending),
+    },
+    // Montant net cumulé d'abord (standard Chariow), le compte en contexte.
+    { label: `Revenus nets · ${totalSales} vente${totalSales > 1 ? "s" : ""}`, value: formatHTG(netTotal) },
     { label: "Produits publiés", value: String(published) },
   ];
 

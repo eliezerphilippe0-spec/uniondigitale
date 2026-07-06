@@ -3,37 +3,48 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+export type BuyOption = {
+  rail: "moncash" | "stripe" | "zelle";
+  label: string;
+};
+
 /**
- * Lance le checkout MonCash : POST /api/checkout puis redirection vers la
- * passerelle MonCash. La confirmation se fait serveur-à-serveur au retour.
+ * Lance le checkout sur le rail choisi : POST /api/checkout { productId, rail }
+ * puis redirection (passerelle MonCash/Stripe, ou page d'instructions Zelle).
+ * La confirmation se fait toujours serveur-à-serveur — jamais ici.
+ * Les options sont construites CÔTÉ SERVEUR (rails activés + libellés i18n) ;
+ * une seule option = bouton simple (parcours MVP inchangé).
  */
 export function BuyButton({
   productId,
-  priceLabel,
-  label,
-  loadingLabel = "Redirection vers MonCash…",
+  options,
+  othersLabel,
+  loadingLabel = "Redirection…",
 }: {
   productId: string;
-  priceLabel: string;
-  label?: string;
+  options: BuyOption[];
+  /** Petit titre au-dessus des rails secondaires (ex. « Diaspora ? … »). */
+  othersLabel?: string;
   loadingLabel?: string;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loadingRail, setLoadingRail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleBuy() {
-    setLoading(true);
+  async function handleBuy(rail: string) {
+    setLoadingRail(rail);
     setError(null);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, rail }),
       });
 
       if (res.status === 401) {
-        router.push("/connexion");
+        // Préserve le contexte : retour automatique sur la page produit
+        // après connexion (le point de friction n°1 vs Gumroad).
+        router.push(`/connexion?next=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
       const data = await res.json();
@@ -41,24 +52,52 @@ export function BuyButton({
         setError(data.error ?? "Une erreur est survenue.");
         return;
       }
-      // Redirection vers MonCash.
-      window.location.href = data.redirectUrl;
+      // Redirection vers le rail (URL absolue opérateur ou page interne).
+      if (String(data.redirectUrl).startsWith("/")) {
+        router.push(data.redirectUrl);
+      } else {
+        window.location.href = data.redirectUrl;
+      }
     } catch {
       setError("Connexion impossible. Réessayez.");
     } finally {
-      setLoading(false);
+      setLoadingRail(null);
     }
   }
+
+  const [primary, ...others] = options;
+  const busy = loadingRail !== null;
 
   return (
     <div>
       <button
-        onClick={handleBuy}
-        disabled={loading}
+        onClick={() => handleBuy(primary.rail)}
+        disabled={busy}
         className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
       >
-        {loading ? loadingLabel : (label ?? `Payer ${priceLabel} avec MonCash`)}
+        {loadingRail === primary.rail ? loadingLabel : primary.label}
       </button>
+
+      {others.length > 0 && (
+        <div className="mt-3">
+          {othersLabel && (
+            <p className="text-center text-xs text-mist">{othersLabel}</p>
+          )}
+          <div className="mt-2 grid gap-2">
+            {others.map((o) => (
+              <button
+                key={o.rail}
+                onClick={() => handleBuy(o.rail)}
+                disabled={busy}
+                className="w-full rounded-xl border border-line bg-surface/60 px-6 py-2.5 text-sm font-semibold text-cloud transition hover:border-brand/60 disabled:opacity-60"
+              >
+                {loadingRail === o.rail ? loadingLabel : o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {error && <p className="mt-2 text-center text-xs text-danger-text">{error}</p>}
     </div>
   );

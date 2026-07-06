@@ -12,6 +12,9 @@ import {
   amountMatches,
   withinRailCap,
   railCap,
+  usdCentsFromHtg,
+  formatUsd,
+  zelleMemo,
 } from "../lib/payment-utils";
 
 test("isSuccessful : true uniquement si statut 'successful'", () => {
@@ -81,6 +84,34 @@ test("plafonds : MonCash 25k, NatCash 20k", () => {
   assert.equal(withinRailCap(20001, "natcash"), false);
   // Rail inconnu → pas de plafond appliqué (true).
   assert.equal(withinRailCap(999999, "inconnu"), true);
+});
+
+test("usdCentsFromHtg : conversion figée au checkout (rails diaspora)", () => {
+  // 2500 HTG à 125 HTG/USD = 20 USD = 2000 cents.
+  assert.equal(usdCentsFromHtg(2500, 125), 2000);
+  // Arrondi au cent le plus proche (jamais de float stocké).
+  assert.equal(usdCentsFromHtg(1000, 132), 758); // 757.57… → 758
+  assert.equal(Number.isInteger(usdCentsFromHtg(1234, 131)), true);
+  // Taux invalide → erreur claire (rail refusé au checkout).
+  assert.throws(() => usdCentsFromHtg(1000, 0));
+  assert.throws(() => usdCentsFromHtg(1000, -5));
+  assert.throws(() => usdCentsFromHtg(1000, Number.NaN));
+});
+
+test("formatUsd : affichage en dollars", () => {
+  assert.equal(formatUsd(2000), "$20.00");
+  assert.equal(formatUsd(758), "$7.58");
+  assert.equal(formatUsd(0), "$0.00");
+});
+
+test("zelleMemo : code stable, court, dérivé de la commande", () => {
+  const memo = zelleMemo("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+  assert.equal(memo, "ZD-A1B2C3D4");
+  // Stable au rejeu (rapprochement manuel fiable).
+  assert.equal(
+    zelleMemo("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+    memo
+  );
 });
 
 test("slugify : URL propre, accents retirés, borné", () => {

@@ -3,6 +3,13 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { AdminProductRow } from "@/components/admin-product-row";
 import { AdminRefundButton } from "@/components/admin-refund-button";
+import { AdminZelleConfirmButton } from "@/components/admin-zelle-confirm-button";
+import {
+  AdminTopupZelleButton,
+  AdminTopupRefundButton,
+} from "@/components/admin-topup-buttons";
+import { formatHaitiPhone } from "@/lib/zabelie-topup/phone";
+import { formatUsd, zelleMemo } from "@/lib/payment-utils";
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
@@ -41,6 +48,27 @@ type PaymentRow = {
   status: string;
   created_at: string;
   provider_ref: string | null;
+  order: { amount_htg: number } | { amount_htg: number }[] | null;
+};
+
+type TopupActionRow = {
+  id: string;
+  status: string;
+  rail: string;
+  operator: string;
+  beneficiary_phone: string;
+  face_value_htg: number;
+  amount_htg: number;
+  expected_usd_cents: number | null;
+  last_error: string | null;
+  created_at: string;
+};
+
+type ZellePendingRow = {
+  order_id: string;
+  expected_usd_cents: number | null;
+  created_at: string;
+  raw: Record<string, unknown> | null;
   order: { amount_htg: number } | { amount_htg: number }[] | null;
 };
 
@@ -94,6 +122,8 @@ export default async function AdminPage() {
     { data: paidOrders },
     pendingRes,
     { data: recentOrders },
+    { data: zellePendings },
+    { data: topupActions },
   ] = await Promise.all([
       admin
         .from("products")
@@ -120,11 +150,28 @@ export default async function AdminPage() {
         .in("status", ["paid", "delivered", "disputed", "refunded"])
         .order("created_at", { ascending: false })
         .limit(15),
+      admin
+        .from("payments")
+        .select("order_id, expected_usd_cents, created_at, raw, order:orders(amount_htg)")
+        .eq("rail", "zelle")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(50),
+      admin
+        .from("zabelie_topup_orders")
+        .select(
+          "id, status, rail, operator, beneficiary_phone, face_value_htg, amount_htg, expected_usd_cents, last_error, created_at"
+        )
+        .or("and(rail.eq.zelle,status.eq.payment_pending),status.eq.refund_pending")
+        .order("created_at", { ascending: true })
+        .limit(50),
     ]);
 
   const products = (prods ?? []) as ProductRow[];
   const payments = (pays ?? []) as PaymentRow[];
   const orders = (recentOrders ?? []) as unknown as OrderRow[];
+  const zelleQueue = (zellePendings ?? []) as unknown as ZellePendingRow[];
+  const topupQueue = (topupActions ?? []) as unknown as TopupActionRow[];
   const gmv = (paidOrders ?? []).reduce((s, o) => s + o.amount_htg, 0);
   const pendingPayments = pendingRes.count ?? 0;
 
@@ -220,6 +267,122 @@ export default async function AdminPage() {
           </ul>
         )}
       </section>
+
+      {/* Virements Zelle en attente de confirmation manuelle */}
+      {zelleQueue.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Paiements Zelle à confirmer</h2>
+          <p className="mt-1 text-xs text-mist">
+            Vérifiez le relevé bancaire (montant exact + mémo) avant de
+            confirmer. La confirmation livre le produit et crédite le vendeur
+            (escrow J+7) — elle est idempotente.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {zelleQueue.map((z) => {
+              const buyerRef =
+                typeof z.raw?.buyer_ref === "string" && z.raw.buyer_ref
+                  ? String(z.raw.buyer_ref)
+                  : null;
+              const usd = formatUsd(z.expected_usd_cents ?? 0);
+              return (
+                <li
+                  key={z.order_id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {usd}{" "}
+                      <span className="text-xs text-mist">
+                        ({one(z.order)?.amount_htg != null
+                          ? formatHTG(one(z.order)!.amount_htg)
+                          : "—"})
+                      </span>
+                    </p>
+                    <p className="text-xs text-mist">
+                      Mémo <span className="numeric text-accent">{zelleMemo(z.order_id)}</span>
+                      {" · "}
+                      {new Date(z.created_at).toLocaleString("fr-HT")}
+                      {buyerRef && (
+                        <>
+                          {" · "}réf. acheteur : <span className="text-cloud">{buyerRef}</span>
+                        </>
+                      )}
+                      {!buyerRef && " · l'acheteur n'a pas encore signalé l'envoi"}
+                    </p>
+                  </div>
+                  <AdminZelleConfirmButton orderId={z.order_id} amountUsd={usd} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {/* Recharges téléphoniques : Zelle à confirmer + remboursements (checkpoint humain) */}
+      {topupQueue.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Recharges — actions requises</h2>
+          <p className="mt-1 text-xs text-mist">
+            Zelle : vérifier le relevé (montant exact + mémo) avant de confirmer
+            — la recharge part immédiatement. Remboursements : rembourser via le
+            moyen de paiement d&apos;origine PUIS enregistrer la référence.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {topupQueue.map((z) => (
+              <li
+                key={z.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    <span className="capitalize">{z.operator}</span>{" "}
+                    {z.face_value_htg} HTG → {formatHaitiPhone(z.beneficiary_phone)}
+                  </p>
+                  <p className="text-xs text-mist">
+                    {z.status === "refund_pending" ? (
+                      <span className="text-danger-text">
+                        échec de livraison — à rembourser ({formatHTG(z.amount_htg)}
+                        {z.rail === "zelle" && z.expected_usd_cents != null
+                          ? ` / ${formatUsd(z.expected_usd_cents)}`
+                          : ""}{" "}
+                        via {z.rail})
+                      </span>
+                    ) : (
+                      <>
+                        virement Zelle attendu :{" "}
+                        <span className="text-cloud">
+                          {formatUsd(z.expected_usd_cents ?? 0)}
+                        </span>{" "}
+                        · mémo{" "}
+                        <span className="numeric text-accent">{zelleMemo(z.id)}</span>
+                      </>
+                    )}
+                    {" · "}
+                    {new Date(z.created_at).toLocaleString("fr-HT")}
+                    {z.last_error && ` · ${z.last_error.slice(0, 80)}`}
+                  </p>
+                </div>
+                {z.status === "refund_pending" ? (
+                  <AdminTopupRefundButton
+                    orderId={z.id}
+                    amountLabel={
+                      z.rail === "zelle" && z.expected_usd_cents != null
+                        ? formatUsd(z.expected_usd_cents)
+                        : formatHTG(z.amount_htg)
+                    }
+                    rail={z.rail}
+                  />
+                ) : (
+                  <AdminTopupZelleButton
+                    orderId={z.id}
+                    amountUsd={formatUsd(z.expected_usd_cents ?? 0)}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Réconciliation paiements */}
       <section className="mt-10">
