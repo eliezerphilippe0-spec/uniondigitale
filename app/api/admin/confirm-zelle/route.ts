@@ -65,5 +65,9 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  if (data?.status === "confirmed") {
+    const { notifyOrderPaid } = await import("@/lib/zabelie-notify");
+    notifyOrderPaid(admin, body.orderId).catch(() => undefined);
+  }
   return NextResponse.json({ ok: true, status: data?.status });
 }

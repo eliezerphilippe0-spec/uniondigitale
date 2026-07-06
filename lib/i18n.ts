@@ -93,6 +93,11 @@ const fr = {
   "product.verified": "Achat vérifié ✓",
   "product.share": "sur Zabelie Digi :",
   "product.cta.bottom": "Acheter maintenant — {price} ↑",
+  "coupon.have": "J'ai un code promo",
+  "coupon.ph": "Ex. PROMO50",
+  "coupon.apply": "Appliquer",
+  "coupon.applied": "✓ −{percent} % — vous payez {price}",
+  "coupon.invalid": "Code invalide ou expiré.",
 
   // Paiement
   "pay.ok.title": "Paiement confirmé",
@@ -248,6 +253,11 @@ const ht: Record<I18nKey, string> = {
   "product.verified": "Acha verifye ✓",
   "product.share": "sou Zabelie Digi :",
   "product.cta.bottom": "Achte kounye a — {price} ↑",
+  "coupon.have": "Mwen gen yon kòd pwomo",
+  "coupon.ph": "Egz. PROMO50",
+  "coupon.apply": "Aplike",
+  "coupon.applied": "✓ −{percent} % — w ap peye {price}",
+  "coupon.invalid": "Kòd la pa bon oswa li ekspire.",
 
   "pay.ok.title": "Peman konfime",
   "pay.ok.body":

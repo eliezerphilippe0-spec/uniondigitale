@@ -37,6 +37,16 @@ function buildBuyOptions(lang: "fr" | "ht", priceHTG: number): BuyOption[] {
   return options;
 }
 
+/**
+ * Équivalent USD indicatif pour la diaspora (taux public USD_HTG_RATE).
+ * Affichage seulement — le montant payé reste la vérité serveur.
+ */
+function usdHint(priceHTG: number): string | null {
+  const rate = Number(process.env.USD_HTG_RATE);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+  return formatUsd(usdCentsFromHtg(priceHTG, rate));
+}
+
 function Stars({ value }: { value: number }) {
   return (
     <span aria-label={`${value} sur 5`} className="text-accent">
@@ -129,6 +139,11 @@ export default async function ProductPage({
           <div id="acheter" className="mt-8 scroll-mt-24 rounded-2xl border border-line bg-surface/60 p-6">
             <p className="numeric text-3xl font-extrabold text-gradient">
               {formatHTG(product.priceHTG)}
+              {usdHint(product.priceHTG) && (
+                <span className="ml-2 align-middle text-base font-semibold text-mist">
+                  ≈ {usdHint(product.priceHTG)}
+                </span>
+              )}
             </p>
             {/* Preuve sociale À CÔTÉ du prix : c'est là que l'hésitation se joue. */}
             {(product.ratingAvg !== null || product.sales > 0) && (
@@ -153,6 +168,13 @@ export default async function ProductPage({
                 options={buildBuyOptions(lang, product.priceHTG)}
                 othersLabel={t(lang, "pay.other")}
                 loadingLabel={t(lang, "pay.redirect")}
+                coupon={{
+                  have: t(lang, "coupon.have"),
+                  placeholder: t(lang, "coupon.ph"),
+                  apply: t(lang, "coupon.apply"),
+                  applied: t(lang, "coupon.applied"),
+                  invalid: t(lang, "coupon.invalid"),
+                }}
               />
             </div>
             <p className="mt-3 text-center text-xs text-mist">

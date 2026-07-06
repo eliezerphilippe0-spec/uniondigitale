@@ -57,6 +57,11 @@ function liveDeps(): ReconcileDeps {
         p_amount: amount,
       });
       if (error) return { error: error.message };
+      if (data?.status === "confirmed") {
+        // idempotency_key = order.id ; e-mails best-effort, une seule fois.
+        const { notifyOrderPaid } = await import("@/lib/zabelie-notify");
+        notifyOrderPaid(admin, idempotencyKey).catch(() => undefined);
+      }
       return { status: data?.status };
     },
   };

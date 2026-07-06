@@ -5,6 +5,12 @@ import { createPayment } from "@/lib/moncash";
 import { createStripeCheckout, isStripeEnabled } from "@/lib/stripe";
 import { isZelleEnabled } from "@/lib/zelle";
 import { withinRailCap, railCap, usdCentsFromHtg } from "@/lib/payment-utils";
+import {
+  normalizeCouponCode,
+  couponApplies,
+  discountedPriceHtg,
+  type CouponRow,
+} from "@/lib/zabelie-coupons";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,8 +37,9 @@ function railEnabled(rail: Rail): boolean {
 export async function POST(req: Request) {
   let productId: string | undefined;
   let railInput: unknown;
+  let couponInput: unknown;
   try {
-    ({ productId, rail: railInput } = await req.json());
+    ({ productId, rail: railInput, couponCode: couponInput } = await req.json());
   } catch {
     return NextResponse.json({ error: "JSON invalide" }, { status: 400 });
   }
@@ -64,7 +71,7 @@ export async function POST(req: Request) {
   // Produit publié uniquement, prix = source de vérité serveur.
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, title, price_htg, status")
+    .select("id, title, price_htg, status, seller_id")
     .eq("id", productId)
     .eq("status", "published")
     .single();
@@ -73,9 +80,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
   }
 
+  // Code promo (optionnel) : validation + consommation ATOMIQUE côté serveur.
+  // L'acheteur qui saisit un code attend la remise — un code invalide est un
+  // refus clair (422), jamais une facturation au prix plein en silence.
+  let finalPriceHtg = product.price_htg;
+  let couponCode: string | null = null;
+  let discountHtg = 0;
+  if (typeof couponInput === "string" && couponInput.trim()) {
+    const code = normalizeCouponCode(couponInput);
+    // `code: "coupon_invalid"` permet au client d'afficher le message dans la
+    // langue de l'acheteur (FR/KR) — le texte serveur n'est qu'un repli.
+    const rejected = () =>
+      NextResponse.json(
+        { error: "Code promo invalide ou expiré.", code: "coupon_invalid" },
+        { status: 422 }
+      );
+    if (!code) return rejected();
+
+    const { data: coupon } = await admin
+      .from("zabelie_coupons")
+      .select("id, seller_id, product_id, percent, max_uses, uses, expires_at, active")
+      .eq("seller_id", product.seller_id)
+      .eq("code", code)
+      .maybeSingle();
+    if (!coupon || !couponApplies(coupon as CouponRow, product.id, product.seller_id)) {
+      return rejected();
+    }
+    // Réserve une utilisation (atomique : plafond revérifié en base).
+    const { data: consumed } = await admin.rpc("zabelie_coupon_consume", {
+      p_coupon_id: coupon.id,
+    });
+    if (!consumed) return rejected();
+
+    finalPriceHtg = discountedPriceHtg(product.price_htg, coupon.percent);
+    discountHtg = product.price_htg - finalPriceHtg;
+    couponCode = code;
+  }
+
   // Plafond du rail : on bloque AVANT de créer la commande (message clair plutôt
   // qu'un échec brutal côté opérateur). Pas de plafond connu pour Stripe/Zelle.
-  if (!withinRailCap(product.price_htg, rail)) {
+  if (!withinRailCap(finalPriceHtg, rail)) {
     return NextResponse.json(
       {
         error: `Montant supérieur au plafond MonCash (${railCap(rail)} HTG) par transaction.`,
@@ -89,7 +133,7 @@ export async function POST(req: Request) {
   if (rail === "stripe" || rail === "zelle") {
     const rate = Number(process.env.USD_HTG_RATE);
     try {
-      expectedUsdCents = usdCentsFromHtg(product.price_htg, rate);
+      expectedUsdCents = usdCentsFromHtg(finalPriceHtg, rate);
     } catch {
       return NextResponse.json(
         { error: "Taux USD non configuré (USD_HTG_RATE)." },
@@ -104,7 +148,9 @@ export async function POST(req: Request) {
     .insert({
       buyer_id: user.id,
       product_id: product.id,
-      amount_htg: product.price_htg,
+      amount_htg: finalPriceHtg, // prix remisé figé — tous les garde-fous s'y appliquent
+      coupon_code: couponCode,
+      discount_htg: discountHtg,
       status: "pending",
     })
     .select("id, amount_htg")

@@ -68,5 +68,9 @@ export async function POST(req: Request) {
     // 500 → Stripe réessaiera ; confirm_payment est idempotent, c'est sûr.
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  if (data?.status === "confirmed") {
+    const { notifyOrderPaid } = await import("@/lib/zabelie-notify");
+    notifyOrderPaid(admin, orderId).catch(() => undefined);
+  }
   return NextResponse.json({ received: true, status: data?.status });
 }
