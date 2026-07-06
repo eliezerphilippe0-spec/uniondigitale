@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0010).
+-- Zabelie Digi — schéma complet (concaténation 0001→0011).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
@@ -1221,3 +1221,26 @@ insert into zabelie_topup_products
   ('natcom',  'Rechaj Natcom 250 HTG',   250,  250,  263),
   ('natcom',  'Rechaj Natcom 500 HTG',   500,  500,  525),
   ('natcom',  'Rechaj Natcom 1000 HTG',  1000, 1000, 1050);
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0011_security_hardening.sql
+-- ═══════════════════════════════════════════════════════════════════
+-- Zabelie Digi — Durcissement sécurité (advisors Supabase, post-migration prod)
+-- 1. RLS manquant sur 2 tables financières (niveau ERROR au linter) : sans RLS,
+--    l'API REST Supabase (PostgREST) les expose aux clients authentifiés.
+--    Aucune policy = service role uniquement — le bon défaut pour l'argent.
+alter table platform_earnings enable row level security;
+alter table escrow_entries    enable row level security;
+
+-- Le vendeur peut lire SES entrées d'escrow (transparence du J+7) ; l'écriture
+-- reste réservée aux fonctions SECURITY DEFINER / service role.
+create policy "escrow_owner_read"
+  on escrow_entries for select using (
+    exists (select 1 from wallets w
+            where w.id = escrow_entries.wallet_id and w.owner_id = auth.uid())
+  );
+
+-- 2. search_path mutable (niveau WARN) sur 3 fonctions : on le fige.
+alter function commission_rate_bps(creator_tier) set search_path = public;
+alter function apply_review_aggregates() set search_path = public;
+alter function zabelie_topup_ledger_guard() set search_path = public;
