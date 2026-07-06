@@ -32,9 +32,23 @@ Design : **Higgsfield** pour les visuels.
    V-9). Ne jamais réintroduire de couplage. Décisions `[À CONFIRMER]` restantes
    (D-1/D-2) : ne pas trancher seul, demander.
 
+## Topup — recharge téléphonique (V-11)
+Service **first-party** de revente de recharge **Digicel/Natcom**
+(`app/rechaj`, `lib/zabelie-topup/`, migration `0010`). Cadre **BRH Circ. 121,
+non négociable** : Zabelie Digi = **revendeur télécom, jamais émetteur de
+monnaie électronique**. Interdits absolus (REFUSER si demandé) : solde
+rechargeable acheteur, P2P, cash-in/cash-out, remboursement vers un solde
+interne (moyen d'origine uniquement + checkpoint humain), montants en float,
+prix venant du client. Ledger `zabelie_topup_ledger` **append-only** (trigger).
+Fournisseur : Reloadly (adapter pattern), idempotence transmise au fournisseur
+(customIdentifier = order.id). Plafonds : 5 000 HTG/tx · 25 000 HTG/j ·
+5 bénéficiaires/h (configurables en base). → `docs/07-TOPUP.md`.
+
 ## Documents (chaîne : Contexte → PRD → Design)
 - `docs/00-CONTEXTE.md` — contexte complet (15 sections), source de vérité.
 - `docs/01-PRD.md` — exigences produit, EPICs.
 - `docs/02-DECISIONS.md` — décisions verrouillées + ouvertes.
 - `docs/03-PAIEMENTS.md` — architecture paiement (EPIC 4, critique).
 - `docs/04-DEPLOIEMENT.md` — guide de mise en prod (Supabase → MonCash → Vercel).
+- `docs/07-TOPUP.md` — recharge téléphonique + checklist conformité BRH.
+- `OPS_TODO.md` — actions opérationnelles porteur + écarts de réconciliation.

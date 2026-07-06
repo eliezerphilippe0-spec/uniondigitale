@@ -21,6 +21,9 @@ export async function SiteNav() {
           <Link href="/#talents" className="transition hover:text-cloud">
             {t(lang, "nav.talents")}
           </Link>
+          <Link href="/rechaj" className="transition hover:text-cloud">
+            {t(lang, "nav.topup")}
+          </Link>
           <Link href="/#comment" className="transition hover:text-cloud">
             {t(lang, "nav.how")}
           </Link>

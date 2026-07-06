@@ -14,6 +14,7 @@ const fr = {
   "nav.catalog": "Catalogue",
   "nav.talents": "Talents",
   "nav.how": "Comment ça marche",
+  "nav.topup": "Recharge",
   "nav.login": "Connexion",
   "nav.sell": "Vendre",
   "nav.dashboard": "Tableau de bord",
@@ -129,6 +130,35 @@ const fr = {
   "share.copy": "Copier le lien",
   "share.copied": "Lien copié ✓",
 
+  // Recharge téléphonique (V-11)
+  "topup.title": "Recharge téléphone",
+  "topup.sub":
+    "Rechargez n'importe quel téléphone Digicel ou Natcom en quelques secondes. Payez avec MonCash — ou par Zelle depuis la diaspora.",
+  "topup.operator": "Opérateur",
+  "topup.phone.label": "Numéro à recharger",
+  "topup.phone.ph": "Ex. 37 12 34 56",
+  "topup.phone2.label": "Confirmez le numéro (nouvelle saisie)",
+  "topup.phone2.why":
+    "Un numéro erroné = recharge perdue. Vérifiez chaque chiffre.",
+  "topup.mismatch": "Les deux numéros ne correspondent pas.",
+  "topup.invalid": "Numéro haïtien invalide (8 chiffres, mobile 3X/4X).",
+  "topup.detected": "Opérateur détecté",
+  "topup.amount.label": "Montant de la recharge",
+  "topup.receives": "Le numéro reçoit {face} HTG",
+  "topup.status.payment_pending": "En attente du paiement…",
+  "topup.status.paid": "Paiement reçu — envoi de la recharge…",
+  "topup.status.fulfillment_pending": "Envoi de la recharge en cours…",
+  "topup.status.delivered": "Recharge livrée ✓",
+  "topup.status.failed": "La recharge a échoué.",
+  "topup.status.refund_pending":
+    "La recharge a échoué après paiement : remboursement en préparation vers votre moyen de paiement d'origine.",
+  "topup.status.refunded":
+    "Remboursé via votre moyen de paiement d'origine.",
+  "topup.disabled":
+    "Le service de recharge arrive bientôt. Revenez très vite !",
+  "topup.legal":
+    "Zabelie Digi est revendeur de recharge télécom : paiement puis livraison immédiate — aucun solde n'est stocké sur votre compte.",
+
   // Fondateur
   "founder.title": "Le mot du fondateur",
   "founder.quote":
@@ -143,6 +173,7 @@ const ht: Record<I18nKey, string> = {
   "nav.catalog": "Katalòg",
   "nav.talents": "Talan",
   "nav.how": "Kijan sa mache",
+  "nav.topup": "Rechaj",
   "nav.login": "Konekte",
   "nav.sell": "Vann",
   "nav.dashboard": "Tablo bò",
@@ -249,6 +280,33 @@ const ht: Record<I18nKey, string> = {
   "share.wa": "Pataje sou WhatsApp",
   "share.copy": "Kopye lyen an",
   "share.copied": "Lyen kopye ✓",
+
+  "topup.title": "Rechaj telefòn",
+  "topup.sub":
+    "Rechaje nenpòt telefòn Digicel oswa Natcom an kèk segonn. Peye ak MonCash — oswa ak Zelle depi dyaspora a.",
+  "topup.operator": "Operatè",
+  "topup.phone.label": "Nimewo pou rechaje a",
+  "topup.phone.ph": "Egz. 37 12 34 56",
+  "topup.phone2.label": "Konfime nimewo a (retape l)",
+  "topup.phone2.why":
+    "Yon move nimewo = rechaj la pèdi. Verifye chak chif byen.",
+  "topup.mismatch": "De nimewo yo pa menm.",
+  "topup.invalid": "Nimewo ayisyen an pa bon (8 chif, mobil 3X/4X).",
+  "topup.detected": "Operatè nou detekte",
+  "topup.amount.label": "Montan rechaj la",
+  "topup.receives": "Nimewo a ap resevwa {face} HTG",
+  "topup.status.payment_pending": "N ap tann peman an…",
+  "topup.status.paid": "Peman an antre — n ap voye rechaj la…",
+  "topup.status.fulfillment_pending": "Rechaj la ap pati…",
+  "topup.status.delivered": "Rechaj la rive ✓",
+  "topup.status.failed": "Rechaj la pa t pase.",
+  "topup.status.refund_pending":
+    "Rechaj la pa t pase apre peman an : n ap prepare ranbousman an sou menm mwayen peman ou te itilize a.",
+  "topup.status.refunded":
+    "Ranbouse sou menm mwayen peman ou te itilize a.",
+  "topup.disabled": "Sèvis rechaj la ap vini talè konsa. Tounen vit !",
+  "topup.legal":
+    "Zabelie Digi se revandè rechaj telekòm : ou peye, rechaj la pati nan menm moman — nou pa janm kenbe okenn balans sou kont ou.",
 
   "founder.title": "Pawòl fondatè a",
   "founder.quote":

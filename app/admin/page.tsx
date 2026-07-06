@@ -4,6 +4,11 @@ import { SiteFooter } from "@/components/site-footer";
 import { AdminProductRow } from "@/components/admin-product-row";
 import { AdminRefundButton } from "@/components/admin-refund-button";
 import { AdminZelleConfirmButton } from "@/components/admin-zelle-confirm-button";
+import {
+  AdminTopupZelleButton,
+  AdminTopupRefundButton,
+} from "@/components/admin-topup-buttons";
+import { formatHaitiPhone } from "@/lib/zabelie-topup/phone";
 import { formatUsd, zelleMemo } from "@/lib/payment-utils";
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,6 +49,19 @@ type PaymentRow = {
   created_at: string;
   provider_ref: string | null;
   order: { amount_htg: number } | { amount_htg: number }[] | null;
+};
+
+type TopupActionRow = {
+  id: string;
+  status: string;
+  rail: string;
+  operator: string;
+  beneficiary_phone: string;
+  face_value_htg: number;
+  amount_htg: number;
+  expected_usd_cents: number | null;
+  last_error: string | null;
+  created_at: string;
 };
 
 type ZellePendingRow = {
@@ -105,6 +123,7 @@ export default async function AdminPage() {
     pendingRes,
     { data: recentOrders },
     { data: zellePendings },
+    { data: topupActions },
   ] = await Promise.all([
       admin
         .from("products")
@@ -138,12 +157,21 @@ export default async function AdminPage() {
         .eq("status", "pending")
         .order("created_at", { ascending: true })
         .limit(50),
+      admin
+        .from("zabelie_topup_orders")
+        .select(
+          "id, status, rail, operator, beneficiary_phone, face_value_htg, amount_htg, expected_usd_cents, last_error, created_at"
+        )
+        .or("and(rail.eq.zelle,status.eq.payment_pending),status.eq.refund_pending")
+        .order("created_at", { ascending: true })
+        .limit(50),
     ]);
 
   const products = (prods ?? []) as ProductRow[];
   const payments = (pays ?? []) as PaymentRow[];
   const orders = (recentOrders ?? []) as unknown as OrderRow[];
   const zelleQueue = (zellePendings ?? []) as unknown as ZellePendingRow[];
+  const topupQueue = (topupActions ?? []) as unknown as TopupActionRow[];
   const gmv = (paidOrders ?? []).reduce((s, o) => s + o.amount_htg, 0);
   const pendingPayments = pendingRes.count ?? 0;
 
@@ -286,6 +314,72 @@ export default async function AdminPage() {
                 </li>
               );
             })}
+          </ul>
+        </section>
+      )}
+
+      {/* Recharges téléphoniques : Zelle à confirmer + remboursements (checkpoint humain) */}
+      {topupQueue.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Recharges — actions requises</h2>
+          <p className="mt-1 text-xs text-mist">
+            Zelle : vérifier le relevé (montant exact + mémo) avant de confirmer
+            — la recharge part immédiatement. Remboursements : rembourser via le
+            moyen de paiement d&apos;origine PUIS enregistrer la référence.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {topupQueue.map((z) => (
+              <li
+                key={z.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    <span className="capitalize">{z.operator}</span>{" "}
+                    {z.face_value_htg} HTG → {formatHaitiPhone(z.beneficiary_phone)}
+                  </p>
+                  <p className="text-xs text-mist">
+                    {z.status === "refund_pending" ? (
+                      <span className="text-danger-text">
+                        échec de livraison — à rembourser ({formatHTG(z.amount_htg)}
+                        {z.rail === "zelle" && z.expected_usd_cents != null
+                          ? ` / ${formatUsd(z.expected_usd_cents)}`
+                          : ""}{" "}
+                        via {z.rail})
+                      </span>
+                    ) : (
+                      <>
+                        virement Zelle attendu :{" "}
+                        <span className="text-cloud">
+                          {formatUsd(z.expected_usd_cents ?? 0)}
+                        </span>{" "}
+                        · mémo{" "}
+                        <span className="numeric text-accent">{zelleMemo(z.id)}</span>
+                      </>
+                    )}
+                    {" · "}
+                    {new Date(z.created_at).toLocaleString("fr-HT")}
+                    {z.last_error && ` · ${z.last_error.slice(0, 80)}`}
+                  </p>
+                </div>
+                {z.status === "refund_pending" ? (
+                  <AdminTopupRefundButton
+                    orderId={z.id}
+                    amountLabel={
+                      z.rail === "zelle" && z.expected_usd_cents != null
+                        ? formatUsd(z.expected_usd_cents)
+                        : formatHTG(z.amount_htg)
+                    }
+                    rail={z.rail}
+                  />
+                ) : (
+                  <AdminTopupZelleButton
+                    orderId={z.id}
+                    amountUsd={formatUsd(z.expected_usd_cents ?? 0)}
+                  />
+                )}
+              </li>
+            ))}
           </ul>
         </section>
       )}

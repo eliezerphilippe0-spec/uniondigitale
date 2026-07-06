@@ -35,6 +35,34 @@ export async function GET(req: Request) {
   // payment.reference = notre order.id = idempotency_key du paiement.
   const orderId = payment.reference;
   const admin = createAdminClient();
+
+  // Recharge téléphonique (V-11) ? Même vérité serveur-à-serveur, pipeline
+  // dédié : confirmation idempotente puis fulfillment immédiat.
+  const { data: topupOrder } = await admin
+    .from("zabelie_topup_orders")
+    .select("id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (topupOrder) {
+    const { data: confirmed, error: topupErr } = await admin.rpc(
+      "zabelie_topup_confirm_payment",
+      {
+        p_order_id: orderId,
+        p_payment_ref: payment.transactionId,
+        p_raw: payment as unknown as Record<string, unknown>,
+        p_amount: Math.round(payment.cost),
+      }
+    );
+    if (topupErr) {
+      return NextResponse.redirect(`${site}/rechaj/${orderId}`);
+    }
+    if (confirmed?.status === "paid") {
+      const { fulfillTopupOrder } = await import("@/lib/zabelie-topup/fulfill");
+      await fulfillTopupOrder(admin, orderId).catch(() => undefined);
+    }
+    return NextResponse.redirect(`${site}/rechaj/${orderId}`);
+  }
+
   const { data, error } = await admin.rpc("confirm_payment", {
     p_idempotency_key: orderId,
     p_provider_ref: payment.transactionId,
