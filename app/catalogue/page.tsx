@@ -65,7 +65,7 @@ export default async function CataloguePage({
             name="q"
             defaultValue={q ?? ""}
             placeholder={t(lang, "catalog.search.ph")}
-            className="flex-1 rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
+            className="min-w-0 flex-1 rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
           />
           <button
             type="submit"
