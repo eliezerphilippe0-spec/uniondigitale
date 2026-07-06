@@ -47,8 +47,11 @@ test.describe("Chemin de l'argent", () => {
     await page.goto(PRODUCT);
     await page.getByRole("button", { name: /MonCash/ }).click();
 
-    await page.waitForURL("**/connexion");
+    // La redirection porte ?next=<page produit> : le contexte d'achat est
+    // préservé (retour automatique après connexion, delta checkout P1).
+    await page.waitForURL(/\/connexion\?next=/);
     expect(page.url()).toContain("/connexion");
+    expect(decodeURIComponent(page.url())).toContain("next=/produit/");
   });
 
   test("page succès affiche la confirmation", async ({ page }) => {
