@@ -68,7 +68,72 @@ RELOADLY_MODE=sandbox    # puis production (checkpoint humain avant bascule)
 ```
 Non configuré → la page `/rechaj` affiche « service à venir », l'API renvoie 503.
 
-## 4. Fichiers
+## 4. Vérification post-migration & go-live
+
+### 4.1 Juste après `0009` + `0010` (SQL Editor Supabase — lecture seule)
+
+```sql
+-- a) Les rails diaspora existent dans l'enum
+select unnest(enum_range(null::payment_rail));
+-- attendu : moncash, stripe, zelle (natcash ⛔ différé, absent par design)
+
+-- b) Le trigger append-only du ledger est ACTIF
+select tgname, tgenabled from pg_trigger
+ where tgname = 'zabelie_topup_ledger_immutable';
+-- attendu : 1 ligne, tgenabled = 'O' (origin, actif)
+
+-- c) RLS activé sur les 4 tables topup
+select relname, relrowsecurity from pg_class
+ where relname like 'zabelie_topup%' and relkind = 'r';
+-- attendu : relrowsecurity = true partout
+
+-- d) Plafonds et catalogue seedés
+select * from zabelie_topup_limits;                    -- 3 lignes (5000/25000/5)
+select operator, count(*) from zabelie_topup_products
+ group by operator;                                     -- 6 digicel, 6 natcom
+
+-- e) Les fonctions sensibles ne sont PAS exposées au public
+select proname, proacl from pg_proc
+ where proname in ('zabelie_topup_transition',
+                   'zabelie_topup_confirm_payment', 'confirm_payment');
+-- attendu : proacl sans « =X » pour anon/authenticated/public
+```
+
+### 4.2 Preuve vivante des invariants (recommandé, sans effet : rollback)
+
+```bash
+psql "$DATABASE_URL" -f supabase/tests/zabelie_topup.test.sql
+# Doit afficher : OK — T1 machine à états ; T2 idempotence ; T3 montants
+# falsifiés rejetés ; T4 ledger immuable ; T5 remboursement tracé
+```
+C'est le même banc d'essai que la CI : il prouve **sur la base de prod** que le
+ledger refuse UPDATE/DELETE et qu'un webhook rejoué ne produit qu'un effet.
+Tout se passe dans une transaction annulée — aucune donnée ne reste.
+
+### 4.3 Bout-en-bout sandbox AVANT d'ouvrir le service
+
+⚠️ La page `/rechaj` s'active dès que `RELOADLY_CLIENT_ID/SECRET` sont posés.
+Pour tester sans exposer le service : poser les variables sur un déploiement
+**Preview** Vercel (ou en local), pas sur Production.
+
+1. `RELOADLY_MODE=sandbox` + identifiants sandbox (jamais dans le chat/repo).
+2. Renseigner `provider_product_id` (operatorId Reloadly) et les coûtants réels
+   dans `zabelie_topup_products` (voir `OPS_TODO.md`).
+3. **Achat MonCash sandbox** vers votre propre numéro : statut `delivered` sur
+   `/rechaj/<id>`, et 4 lignes dans `zabelie_topup_ledger` pour la commande.
+4. **Test « redirect coupé »** : couper le réseau avant le retour navigateur,
+   puis `POST /api/reconcile` (Bearer `RECONCILE_SECRET`) → la commande passe
+   `paid` puis `delivered` sans intervention ; `topup.discrepancies` vide.
+5. **Parcours Zelle** : commande Zelle → confirmation depuis `/admin` →
+   fulfillment immédiat.
+6. **Parcours échec** : commande avec `provider_product_id` volontairement vide
+   → après paiement sandbox, la commande finit `refund_pending` et apparaît
+   dans « Recharges — actions requises » de `/admin`.
+7. Seulement après ces 6 points : variables sur Production
+   (checkpoint humain : `RELOADLY_MODE=production` vient encore plus tard,
+   après validation des marges réelles).
+
+## 5. Fichiers
 
 | Brique | Fichier |
 |--------|---------|

@@ -19,6 +19,13 @@ réconciliation topup détectés par le cron doivent aussi être consignés ici.
       recharge testée sur vos propres numéros).
 - [ ] Consigner ici tout écart remonté par le cron (`/api/reconcile`,
       champ `topup.discrepancies`).
+- [ ] **Après migrations 0009+0010** : dérouler la vérification post-migration
+      (`docs/07-TOPUP.md §4.1–4.2` : trigger append-only actif, RLS, seeds,
+      fonctions non exposées, banc d'essai SQL en rollback).
+- [ ] **Avant d'ouvrir `/rechaj`** : bout-en-bout sandbox complet
+      (`docs/07-TOPUP.md §4.3`) sur un déploiement Preview — la page s'active
+      dès que les clés Reloadly sont posées, donc pas de clés en Production
+      avant la fin des 6 points.
 
 ## Paiements (rappels)
 
