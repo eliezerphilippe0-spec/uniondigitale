@@ -49,11 +49,15 @@ psql "$DATABASE_URL" -f supabase/tests/payment_idempotency.test.sql
 2. **Environment Variables** : recopier tout `.env.example` (clés Supabase,
    MonCash, `NEXT_PUBLIC_SITE_URL=https://<domaine>`, `RECONCILE_SECRET`,
    `CRON_SECRET`).
-3. Le cron est défini dans `vercel.json` (`/api/reconcile`, toutes les 5 min).
-   Vercel injecte `Authorization: Bearer $CRON_SECRET` sur l'appel GET.
-   > ⚠️ Plan **Hobby** : crons limités à **1×/jour**. Pour toutes les 5 min,
-   > prévoir le plan **Pro**, ou un cron externe (cron-job.org) appelant
-   > `POST /api/reconcile` avec `RECONCILE_SECRET`.
+3. Les crons sont définis dans `vercel.json` en fréquence **quotidienne**
+   (compatible plan Hobby — Vercel REJETTE tout le déploiement si un cron
+   dépasse la limite du plan). Vercel injecte `Authorization: Bearer
+   $CRON_SECRET` sur l'appel GET.
+   > 🔧 En production réelle, le réconciliateur doit tourner **toutes les
+   > 5 min** : passer au plan **Pro** (et remettre `*/5 * * * *`), ou brancher
+   > un cron externe gratuit (ex. cron-job.org) qui appelle
+   > `POST /api/reconcile` avec l'en-tête `Authorization: Bearer
+   > $RECONCILE_SECRET` toutes les 5 min. Idem `/api/maturation` (1×/h suffit).
 4. Déployer. Vérifier `https://<domaine>` puis un achat de bout en bout.
 
 ---

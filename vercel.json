@@ -3,11 +3,11 @@
   "crons": [
     {
       "path": "/api/reconcile",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/maturation",
-      "schedule": "0 * * * *"
+      "schedule": "0 13 * * *"
     }
   ]
 }
