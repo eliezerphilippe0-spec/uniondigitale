@@ -12,7 +12,8 @@ export type OrderStatus =
   | "cancelled"
   | "refunded"
   | "disputed";
-export type PaymentRail = "moncash"; // 'natcash' en Vague 2 (bloqué)
+// 'natcash' en Vague 2 (bloqué). 'stripe'/'zelle' = rails diaspora USD (V-10).
+export type PaymentRail = "moncash" | "stripe" | "zelle";
 export type PaymentStatus = "pending" | "confirmed" | "failed";
 export type WalletTxnType = "credit" | "debit" | "payout";
 export type PayoutStatus = "requested" | "processing" | "paid" | "rejected";
@@ -88,6 +89,8 @@ export type Payment = {
   rail: PaymentRail;
   idempotency_key: string;
   provider_ref: string | null;
+  /** Montant USD figé au checkout (rails diaspora) ; null pour MonCash. */
+  expected_usd_cents: number | null;
   status: PaymentStatus;
   raw: Record<string, unknown> | null;
   confirmed_at: string | null;

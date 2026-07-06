@@ -5,12 +5,37 @@ import { SiteFooter } from "@/components/site-footer";
 import { formatHTG } from "@/lib/sample-data";
 import { getProductView } from "@/lib/products";
 import { getProductReviews } from "@/lib/reviews";
-import { BuyButton } from "@/components/buy-button";
+import { BuyButton, type BuyOption } from "@/components/buy-button";
+import { isStripeEnabled } from "@/lib/stripe";
+import { isZelleEnabled } from "@/lib/zelle";
+import { usdCentsFromHtg, formatUsd } from "@/lib/payment-utils";
 import { ShareButtons } from "@/components/share-buttons";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Rails proposés, construits côté serveur : MonCash toujours, puis les rails
+ * diaspora USD si configurés (Stripe/Zelle + USD_HTG_RATE). Le prix USD affiché
+ * est indicatif — la vérité reste figée au checkout puis vérifiée en base.
+ */
+function buildBuyOptions(lang: "fr" | "ht", priceHTG: number): BuyOption[] {
+  const options: BuyOption[] = [
+    { rail: "moncash", label: t(lang, "product.pay", { price: formatHTG(priceHTG) }) },
+  ];
+  const rate = Number(process.env.USD_HTG_RATE);
+  if (Number.isFinite(rate) && rate > 0) {
+    const usd = formatUsd(usdCentsFromHtg(priceHTG, rate));
+    if (isStripeEnabled()) {
+      options.push({ rail: "stripe", label: t(lang, "product.pay.stripe", { usd }) });
+    }
+    if (isZelleEnabled()) {
+      options.push({ rail: "zelle", label: t(lang, "product.pay.zelle", { usd }) });
+    }
+  }
+  return options;
+}
 
 function Stars({ value }: { value: number }) {
   return (
@@ -108,9 +133,9 @@ export default async function ProductPage({
             <div className="mt-5">
               <BuyButton
                 productId={product.id}
-                priceLabel={formatHTG(product.priceHTG)}
-                label={t(lang, "product.pay", { price: formatHTG(product.priceHTG) })}
-                loadingLabel={t(lang, "product.pay.loading")}
+                options={buildBuyOptions(lang, product.priceHTG)}
+                othersLabel={t(lang, "pay.other")}
+                loadingLabel={t(lang, "pay.redirect")}
               />
             </div>
             <p className="mt-3 text-center text-xs text-mist">

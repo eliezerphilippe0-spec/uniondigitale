@@ -36,10 +36,13 @@ function liveDeps(): ReconcileDeps {
   const admin = createAdminClient();
   return {
     listPending: async () => {
+      // MonCash UNIQUEMENT : Stripe se confirme par webhook signé, Zelle par
+      // l'admin. Interroger MonCash pour ces rails serait toujours « pending ».
       const { data, error } = await admin
         .from("payments")
         .select("idempotency_key, order_id")
         .eq("status", "pending")
+        .eq("rail", "moncash")
         .order("created_at", { ascending: true })
         .limit(50);
       if (error) throw new Error(error.message);

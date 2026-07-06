@@ -78,6 +78,10 @@ const fr = {
   "product.reviews.badge": "avis vérifié(s)",
   "product.pay": "Payer {price} avec MonCash",
   "product.pay.loading": "Redirection vers MonCash…",
+  "product.pay.stripe": "Payer {usd} par carte",
+  "product.pay.zelle": "Payer {usd} avec Zelle",
+  "pay.redirect": "Redirection…",
+  "pay.other": "Diaspora ? Payez en USD :",
   "product.delivery": "Livraison instantanée après confirmation du paiement.",
   "product.secure": "✓ Paiement sécurisé, confirmé serveur-à-serveur",
   "product.file": "✓ Téléchargement immédiat du fichier",
@@ -103,6 +107,22 @@ const fr = {
     "Le paiement n'a pas pu être validé. Aucun produit n'a été livré. Vous pouvez réessayer en toute sécurité.",
   "pay.fail.code": "Code :",
   "pay.order": "Commande",
+
+  // Zelle (diaspora — flux semi-manuel)
+  "zelle.title": "Paiement Zelle",
+  "zelle.sub":
+    "Envoyez le montant exact depuis votre application bancaire (Zelle), avec le mémo ci-dessous. Votre achat sera validé après vérification du virement — généralement sous 24 h.",
+  "zelle.amount": "Montant exact à envoyer",
+  "zelle.to": "Destinataire Zelle",
+  "zelle.name": "Nom du compte",
+  "zelle.memo": "Mémo à indiquer (important)",
+  "zelle.memo.why":
+    "Ce code nous permet de retrouver votre virement et de valider votre achat rapidement.",
+  "zelle.ref.label": "Vous avez envoyé le paiement ?",
+  "zelle.ref.ph": "Référence de confirmation Zelle (optionnel)",
+  "zelle.sent": "J'ai envoyé le paiement",
+  "zelle.done":
+    "Merci ! Nous vérifions votre virement. Votre fichier apparaîtra dans « Mes achats » dès la confirmation.",
 
   // Partage
   "share.wa": "Partager sur WhatsApp",
@@ -182,6 +202,10 @@ const ht: Record<I18nKey, string> = {
   "product.reviews.badge": "avi verifye",
   "product.pay": "Peye {price} ak MonCash",
   "product.pay.loading": "N ap voye ou sou MonCash…",
+  "product.pay.stripe": "Peye {usd} ak kat",
+  "product.pay.zelle": "Peye {usd} ak Zelle",
+  "pay.redirect": "N ap voye ou…",
+  "pay.other": "Dyaspora ? Peye an USD :",
   "product.delivery": "Livrezon nan menm moman apre peman an konfime.",
   "product.secure": "✓ Peman sekirize, konfime sèvè-a-sèvè",
   "product.file": "✓ Telechaje fichye a nan menm moman",
@@ -206,6 +230,21 @@ const ht: Record<I18nKey, string> = {
     "Peman an pa t ka valide. Nou pa livre okenn pwodwi. Ou ka eseye ankò san pwoblèm.",
   "pay.fail.code": "Kòd :",
   "pay.order": "Kòmand",
+
+  "zelle.title": "Peman Zelle",
+  "zelle.sub":
+    "Voye montan egzak la ak aplikasyon bank ou (Zelle), avèk memo ki anba a. Acha ou ap valide apre nou verifye viman an — anjeneral nan mwens pase 24 èdtan.",
+  "zelle.amount": "Montan egzak pou voye",
+  "zelle.to": "Destinatè Zelle",
+  "zelle.name": "Non kont lan",
+  "zelle.memo": "Memo pou mete (enpòtan)",
+  "zelle.memo.why":
+    "Kòd sa a pèmèt nou jwenn viman ou an epi valide acha ou pi vit.",
+  "zelle.ref.label": "Ou voye peman an deja ?",
+  "zelle.ref.ph": "Referans konfimasyon Zelle (si ou genyen l)",
+  "zelle.sent": "Mwen voye peman an",
+  "zelle.done":
+    "Mèsi ! N ap verifye viman ou an. Fichye ou ap parèt nan « Acha mwen yo » kou peman an konfime.",
 
   "share.wa": "Pataje sou WhatsApp",
   "share.copy": "Kopye lyen an",

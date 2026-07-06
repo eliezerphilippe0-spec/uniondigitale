@@ -2,26 +2,52 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/moncash";
-import { withinRailCap, railCap } from "@/lib/payment-utils";
+import { createStripeCheckout, isStripeEnabled } from "@/lib/stripe";
+import { isZelleEnabled } from "@/lib/zelle";
+import { withinRailCap, railCap, usdCentsFromHtg } from "@/lib/payment-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/checkout  { productId }
+ * POST /api/checkout  { productId, rail? }
+ * rail ∈ 'moncash' (défaut) | 'stripe' | 'zelle' (rails diaspora, V-10).
  * Crée une commande + un paiement (pending, clé d'idempotence) puis renvoie
- * l'URL de redirection MonCash. Aucune livraison/crédit ici : tout passe par la
- * confirmation serveur-à-serveur (return/réconciliateur → confirm_payment).
+ * l'URL de redirection du rail. Aucune livraison/crédit ici : tout passe par la
+ * confirmation serveur-à-serveur (return/webhook/réconciliateur/admin →
+ * confirm_payment). Le LEDGER reste en HTG ; pour les rails USD, le montant
+ * est figé ici (expected_usd_cents) et vérifié en base à la confirmation.
  */
+
+const RAILS = ["moncash", "stripe", "zelle"] as const;
+type Rail = (typeof RAILS)[number];
+
+function railEnabled(rail: Rail): boolean {
+  if (rail === "stripe") return isStripeEnabled();
+  if (rail === "zelle") return isZelleEnabled();
+  return true; // moncash = rail MVP, toujours proposé
+}
+
 export async function POST(req: Request) {
   let productId: string | undefined;
+  let railInput: unknown;
   try {
-    ({ productId } = await req.json());
+    ({ productId, rail: railInput } = await req.json());
   } catch {
     return NextResponse.json({ error: "JSON invalide" }, { status: 400 });
   }
   if (!productId) {
     return NextResponse.json({ error: "productId requis" }, { status: 400 });
+  }
+
+  const rail: Rail = (RAILS as readonly string[]).includes(String(railInput ?? "moncash"))
+    ? ((railInput ?? "moncash") as Rail)
+    : "moncash";
+  if (!railEnabled(rail)) {
+    return NextResponse.json(
+      { error: "Ce moyen de paiement n'est pas disponible." },
+      { status: 422 }
+    );
   }
 
   // Acheteur authentifié.
@@ -38,7 +64,7 @@ export async function POST(req: Request) {
   // Produit publié uniquement, prix = source de vérité serveur.
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, price_htg, status")
+    .select("id, title, price_htg, status")
     .eq("id", productId)
     .eq("status", "published")
     .single();
@@ -48,8 +74,7 @@ export async function POST(req: Request) {
   }
 
   // Plafond du rail : on bloque AVANT de créer la commande (message clair plutôt
-  // qu'un échec brutal côté opérateur).
-  const rail = "moncash";
+  // qu'un échec brutal côté opérateur). Pas de plafond connu pour Stripe/Zelle.
   if (!withinRailCap(product.price_htg, rail)) {
     return NextResponse.json(
       {
@@ -57,6 +82,20 @@ export async function POST(req: Request) {
       },
       { status: 422 }
     );
+  }
+
+  // Rails USD : montant figé MAINTENANT (garde-fou vérifié en base ensuite).
+  let expectedUsdCents: number | null = null;
+  if (rail === "stripe" || rail === "zelle") {
+    const rate = Number(process.env.USD_HTG_RATE);
+    try {
+      expectedUsdCents = usdCentsFromHtg(product.price_htg, rate);
+    } catch {
+      return NextResponse.json(
+        { error: "Taux USD non configuré (USD_HTG_RATE)." },
+        { status: 422 }
+      );
+    }
   }
 
   // Commande (pending).
@@ -81,9 +120,10 @@ export async function POST(req: Request) {
   // Paiement (pending). idempotency_key = order.id (1 paiement/commande).
   const { error: payErr } = await admin.from("payments").insert({
     order_id: order.id,
-    rail: "moncash",
+    rail,
     idempotency_key: order.id,
     status: "pending",
+    expected_usd_cents: expectedUsdCents,
   });
   if (payErr) {
     return NextResponse.json(
@@ -92,8 +132,31 @@ export async function POST(req: Request) {
     );
   }
 
-  // Session MonCash. orderId envoyé = notre order.id (clé de rapprochement).
   try {
+    if (rail === "stripe") {
+      // Session Stripe Checkout ; confirmation via webhook signé uniquement.
+      const { redirectUrl, sessionId } = await createStripeCheckout({
+        orderId: order.id,
+        usdCents: expectedUsdCents as number,
+        productTitle: product.title,
+      });
+      await admin
+        .from("payments")
+        .update({ raw: { stripe_session_id: sessionId } })
+        .eq("order_id", order.id);
+      return NextResponse.json({ redirectUrl, orderId: order.id });
+    }
+
+    if (rail === "zelle") {
+      // Pas d'API Zelle : page d'instructions (mémo + montant), confirmation
+      // administrative ensuite — même confirm_payment idempotent.
+      return NextResponse.json({
+        redirectUrl: `/paiement/zelle/${order.id}`,
+        orderId: order.id,
+      });
+    }
+
+    // MonCash. orderId envoyé = notre order.id (clé de rapprochement).
     const { redirectUrl, paymentToken } = await createPayment(
       order.id,
       order.amount_htg
@@ -106,7 +169,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ redirectUrl, orderId: order.id });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Erreur MonCash" },
+      { error: e instanceof Error ? e.message : "Erreur de paiement" },
       { status: 502 }
     );
   }
