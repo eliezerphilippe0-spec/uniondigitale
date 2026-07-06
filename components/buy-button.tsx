@@ -42,7 +42,9 @@ export function BuyButton({
       });
 
       if (res.status === 401) {
-        router.push("/connexion");
+        // Préserve le contexte : retour automatique sur la page produit
+        // après connexion (le point de friction n°1 vs Gumroad).
+        router.push(`/connexion?next=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
       const data = await res.json();

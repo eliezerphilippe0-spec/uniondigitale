@@ -84,7 +84,8 @@ export function ZabelieTopupForm({
         }),
       });
       if (res.status === 401) {
-        router.push("/connexion");
+        // Retour automatique sur /rechaj après connexion.
+        router.push(`/connexion?next=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
       const data = await res.json();

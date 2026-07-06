@@ -87,11 +87,10 @@ proche, on s'y aligne pleinement :
 - Notifications de vente temps réel (app/PWA — Chariow Creators).
 - Analytics vendeur avancés (Shopify).
 
-## ⚠️ Divergence à trancher (hors scope de cette analyse, signalée)
+## Divergence tiers — TRANCHÉE (statu quo, V-12)
 
-Le brief §0 annonce comme « tranché » **4 tiers** (Starter 12 % J+14,
-Standard 10 % J+7, Pro 8 % J+5, Elite 6 % J+3). Le repo implémente **2 tiers**
-(standard 10 %, elite 6 %) avec **maturation J+7 uniforme** (`0005`/`0006`).
-Si les 4 tiers sont la décision finale : chantier financier séparé
-(`commission_rate_bps` + `matures_at` par tier + tests SQL), en PR dédiée avec
-relecture humaine — à ne pas glisser dans le chantier storefront.
+Le brief §0 mentionnait 4 tiers (Starter 12 % J+14 → Elite 6 % J+3). Décision
+porteur (2026-07) : **on garde les 2 tiers implémentés** (standard 10 %,
+elite 6 %) avec **maturation J+7 uniforme** (`0005`/`0006`). Sujet refermé —
+un éventuel passage à 4 tiers serait une nouvelle décision, en chantier
+financier dédié.

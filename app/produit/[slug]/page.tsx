@@ -126,10 +126,27 @@ export default async function ProductPage({
             )}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
+          <div id="acheter" className="mt-8 scroll-mt-24 rounded-2xl border border-line bg-surface/60 p-6">
             <p className="numeric text-3xl font-extrabold text-gradient">
               {formatHTG(product.priceHTG)}
             </p>
+            {/* Preuve sociale À CÔTÉ du prix : c'est là que l'hésitation se joue. */}
+            {(product.ratingAvg !== null || product.sales > 0) && (
+              <p className="mt-1 text-xs text-mist">
+                {product.ratingAvg !== null && (
+                  <>
+                    <span className="text-accent">★</span> {product.ratingAvg} (
+                    {product.ratingCount} {t(lang, "product.reviews.badge")})
+                  </>
+                )}
+                {product.ratingAvg !== null && product.sales > 0 && " · "}
+                {product.sales > 0 && (
+                  <>
+                    {product.sales} {t(lang, "product.sales")}
+                  </>
+                )}
+              </p>
+            )}
             <div className="mt-5">
               <BuyButton
                 productId={product.id}
@@ -194,6 +211,18 @@ export default async function ProductPage({
               </li>
             ))}
           </ul>
+
+          {/* CTA bas de page (règle Gumroad) : le lecteur convaincu par les
+              avis ne doit pas remonter chercher le bouton. Ancre, pas un
+              second checkout — un seul point d'achat, zéro état dupliqué. */}
+          <div className="mt-8 text-center">
+            <a
+              href="#acheter"
+              className="inline-block rounded-xl bg-brand px-8 py-3 text-sm font-semibold text-ink transition hover:opacity-90"
+            >
+              {t(lang, "product.cta.bottom", { price: formatHTG(product.priceHTG) })}
+            </a>
+          </div>
         </section>
       )}
 

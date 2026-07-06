@@ -92,6 +92,7 @@ const fr = {
   "product.reviews.note": "Seuls les acheteurs ayant payé peuvent laisser un avis.",
   "product.verified": "Achat vérifié ✓",
   "product.share": "sur Zabelie Digi :",
+  "product.cta.bottom": "Acheter maintenant — {price} ↑",
 
   // Paiement
   "pay.ok.title": "Paiement confirmé",
@@ -246,6 +247,7 @@ const ht: Record<I18nKey, string> = {
   "product.reviews.note": "Se sèlman achtè ki peye ki ka bay avi.",
   "product.verified": "Acha verifye ✓",
   "product.share": "sou Zabelie Digi :",
+  "product.cta.bottom": "Achte kounye a — {price} ↑",
 
   "pay.ok.title": "Peman konfime",
   "pay.ok.body":
