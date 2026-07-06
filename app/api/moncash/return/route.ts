@@ -79,5 +79,9 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${site}/paiement/echec?raison=montant`);
   }
 
+  // E-mails livraison acheteur + 🎉 vendeur (best-effort, idempotent en base).
+  const { notifyOrderPaid } = await import("@/lib/zabelie-notify");
+  notifyOrderPaid(admin, orderId).catch(() => undefined);
+
   return NextResponse.redirect(`${site}/paiement/succes?commande=${orderId}`);
 }

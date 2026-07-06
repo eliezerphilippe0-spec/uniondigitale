@@ -6,6 +6,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 import { ProfileForm } from "@/components/profile-form";
+import {
+  ZabelieCouponManager,
+  type CouponItem,
+} from "@/components/zabelie-coupon-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord — Zabelie Digi" };
@@ -76,6 +80,7 @@ export default async function DashboardPage() {
   let nextMaturity: string | null = null;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
+  let coupons: CouponItem[] = [];
   let profile = { display_name: user.displayName, bio: "", avatar_url: "" };
 
   try {
@@ -130,6 +135,14 @@ export default async function DashboardPage() {
       .eq("seller_id", user.id)
       .order("created_at", { ascending: false });
     products = (prods ?? []) as ProductRow[];
+
+    const { data: cps } = await admin
+      .from("zabelie_coupons")
+      .select("id, code, percent, product_id, max_uses, uses, expires_at, active")
+      .eq("seller_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    coupons = (cps ?? []) as CouponItem[];
 
     const productIds = (prods ?? []).map((p) => (p as { id: string }).id);
     if (productIds.length > 0) {
@@ -251,6 +264,21 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
+
+      {/* Codes promo (V-13) */}
+      {products.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Codes promo</h2>
+          <p className="mt-1 text-xs text-mist">
+            Créez un code (ex. <span className="numeric text-accent">PROMO50</span>),
+            partagez-le sur WhatsApp — la remise s&apos;applique automatiquement au
+            paiement. Valable sur tous vos produits.
+          </p>
+          <div className="mt-4 rounded-2xl border border-line bg-surface/60 p-5">
+            <ZabelieCouponManager coupons={coupons} />
+          </div>
+        </section>
+      )}
 
       {/* Profil public */}
       <section className="mt-10">
