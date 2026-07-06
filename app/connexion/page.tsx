@@ -5,18 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { BrandMark } from "@/components/brand-logo";
+import { safeNext } from "@/lib/safe-next";
 
 type Mode = "signin" | "signup";
-
-/**
- * Destination post-connexion : ?next=/chemin/interne (uniquement un chemin
- * relatif interne — jamais une URL absolue, anti open-redirect). Permet à un
- * acheteur interrompu au moment de payer de retrouver sa page produit.
- */
-function safeNext(raw: string | null): string {
-  if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
-  return "/";
-}
 
 function ConnexionForm() {
   const router = useRouter();
