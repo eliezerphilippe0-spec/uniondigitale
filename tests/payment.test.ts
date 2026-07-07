@@ -8,6 +8,7 @@ import {
   amountMatches,
   withinRailCap,
   railCap,
+  railCountry,
 } from "../lib/payment-utils";
 
 test("isSuccessful : true uniquement si statut 'successful'", () => {
@@ -53,6 +54,12 @@ test("plafonds : MonCash 25k, NatCash 20k", () => {
   assert.equal(withinRailCap(20001, "natcash"), false);
   // Rail inconnu → pas de plafond appliqué (true).
   assert.equal(withinRailCap(999999, "inconnu"), true);
+});
+
+test("railCountry : rails haïtiens → HT, inconnu → null", () => {
+  assert.equal(railCountry("moncash"), "HT");
+  assert.equal(railCountry("natcash"), "HT");
+  assert.equal(railCountry("inconnu"), null);
 });
 
 test("slugify : URL propre, accents retirés, borné", () => {

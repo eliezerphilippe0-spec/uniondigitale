@@ -62,3 +62,18 @@ export function withinRailCap(amountHTG: number, rail: string): boolean {
   const cap = railCap(rail);
   return cap === null ? true : amountHTG <= cap;
 }
+
+/**
+ * Pays implicite d'un rail de paiement (ISO-3166 alpha-2). MonCash et NatCash
+ * sont des mobile money HAÏTIENS : payer via ce rail implique un compte en Haïti.
+ * Sert au backfill best-effort de profiles.country_code (dashboard /admin/geo) —
+ * jamais d'écrasement d'un pays déjà renseigné par l'utilisateur.
+ */
+export const RAIL_COUNTRY: Record<string, string> = {
+  moncash: "HT",
+  natcash: "HT",
+};
+
+export function railCountry(rail: string): string | null {
+  return RAIL_COUNTRY[rail] ?? null;
+}
