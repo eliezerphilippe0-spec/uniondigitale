@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
@@ -71,6 +71,37 @@ export default async function DashboardPage() {
         >
           Se connecter
         </Link>
+      </Shell>
+    );
+  }
+
+  // Compte suspendu (modération) : accès au tableau de bord bloqué, motif
+  // affiché. Le wallet reste intact (aucun gel de solde — cadre BRH) ; seul
+  // l'accès et la visibilité catalogue sont coupés le temps de la suspension.
+  const suspension = await getSuspension(user.id);
+  if (suspension) {
+    return (
+      <Shell title="Compte suspendu">
+        <div className="mt-6 max-w-xl rounded-2xl border border-danger-text/40 bg-surface/60 p-6 text-sm">
+          <p>
+            Votre compte a été suspendu le{" "}
+            <strong>
+              {new Date(suspension.suspendedAt).toLocaleDateString("fr-HT")}
+            </strong>{" "}
+            pour non-respect du règlement de Zabelie Digi.
+          </p>
+          {suspension.reason && (
+            <p className="mt-3 text-mist">
+              Motif : <span className="text-cloud">{suspension.reason}</span>
+            </p>
+          )}
+          <p className="mt-3 text-mist">
+            Vos produits sont retirés du catalogue et vos gains restent
+            conservés. Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur,
+            contactez l&apos;équipe pour faire appel — la suspension est
+            réversible.
+          </p>
+        </div>
       </Shell>
     );
   }

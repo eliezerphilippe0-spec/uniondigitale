@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/moncash";
 import { createStripeCheckout, isStripeEnabled } from "@/lib/stripe";
@@ -73,6 +74,15 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+  }
+
+  // Compte suspendu (modération) : action bloquée même si la session est
+  // encore active (le ban auth ne coupe la session qu'au refresh du token).
+  if (await getSuspension(user.id)) {
+    return NextResponse.json(
+      { error: "Compte suspendu — action non autorisée." },
+      { status: 403 }
+    );
   }
 
   const admin = createAdminClient();

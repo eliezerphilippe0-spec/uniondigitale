@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { AdminProductRow } from "@/components/admin-product-row";
+import { AdminSellerRow } from "@/components/admin-seller-row";
 import { AdminRefundButton } from "@/components/admin-refund-button";
 import { AdminZelleConfirmButton } from "@/components/admin-zelle-confirm-button";
 import {
@@ -42,6 +43,13 @@ type ProductRow = {
   title: string;
   status: string;
   seller: { display_name: string } | { display_name: string }[] | null;
+};
+
+type SellerRow = {
+  id: string;
+  display_name: string;
+  suspended_at: string | null;
+  suspended_reason: string | null;
 };
 
 type PaymentRow = {
@@ -124,6 +132,7 @@ export default async function AdminPage() {
     { data: recentOrders },
     { data: zellePendings },
     { data: topupActions },
+    { data: sellerRows },
   ] = await Promise.all([
       admin
         .from("products")
@@ -165,9 +174,16 @@ export default async function AdminPage() {
         .or("and(rail.eq.zelle,status.eq.payment_pending),status.eq.refund_pending")
         .order("created_at", { ascending: true })
         .limit(50),
+      admin
+        .from("profiles")
+        .select("id, display_name, suspended_at, suspended_reason")
+        .eq("role", "creator")
+        .order("suspended_at", { ascending: false, nullsFirst: false })
+        .limit(50),
     ]);
 
   const products = (prods ?? []) as ProductRow[];
+  const sellers = (sellerRows ?? []) as SellerRow[];
   const payments = (pays ?? []) as PaymentRow[];
   const orders = (recentOrders ?? []) as unknown as OrderRow[];
   const zelleQueue = (zellePendings ?? []) as unknown as ZellePendingRow[];
@@ -205,6 +221,32 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+
+      {/* Modération vendeurs : suspension réversible */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Vendeurs</h2>
+        <p className="mt-1 text-xs text-mist">
+          Suspendre bloque l&apos;accès et masque les produits du catalogue —{" "}
+          <strong>sans toucher au wallet ni à l&apos;escrow</strong> (cadre BRH :
+          aucun gel de solde dû ; un litige financier se règle par remboursement
+          de commande). Réactiver restaure tout, produits compris.
+        </p>
+        {sellers.length === 0 ? (
+          <p className="mt-3 text-sm text-mist">Aucun vendeur.</p>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {sellers.map((s) => (
+              <AdminSellerRow
+                key={s.id}
+                id={s.id}
+                name={s.display_name}
+                suspendedAt={s.suspended_at}
+                suspendedReason={s.suspended_reason}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Modération produits */}
       <section className="mt-10">

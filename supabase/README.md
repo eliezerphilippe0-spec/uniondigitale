@@ -17,6 +17,7 @@ Schéma, RLS et logique de paiement de la plateforme (Vague 1).
 | `migrations/0014_haiti_departments.sql` | `profiles.region_code` + vue `analytics_geo_ht` (talents par département). |
 | `migrations/0015_profiles_hardening.sql` | Trigger anti-escalade `role`/`tier` + GRANT colonne (localisation non lisible publiquement). |
 | `migrations/0016_gdpr_retention.sql` | `purge_payment_raw()` — purge du payload opérateur clôturé (rétention RGPD). |
+| `migrations/0017_seller_suspension.sql` | Suspension réversible (modération) : `suspended_*`, produits masqués via policy, **zéro écriture monétaire** (BRH). |
 
 ## Appliquer
 
