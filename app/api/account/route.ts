@@ -44,7 +44,6 @@ export async function DELETE() {
       avatar_url: null,
       country_code: null,
       region_code: null,
-      zabelie1_user_id: null,
     })
     .eq("id", user.id);
   if (scrubErr) {

@@ -6,8 +6,9 @@
 export function HeroVisual() {
   return (
     <div className="relative aspect-square w-full max-w-md select-none">
-      {/* Halo de dégradés */}
-      <div className="absolute inset-0 rounded-[2rem] bg-grain blur-2xl" />
+      {/* Halo de dégradés (rampe accent → brand, scopé au visuel —
+          ne pas réutiliser .bg-grain ici : c'est le wrapper de page) */}
+      <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-accent/25 via-brand/10 to-transparent blur-2xl" />
 
       {/* Motif géométrique (chevrons) en filigrane */}
       <svg
@@ -25,7 +26,7 @@ export function HeroVisual() {
           >
             <path
               d="M0 10 L10 0 L20 10 M0 20 L10 10 L20 20"
-              stroke="#f5b53d"
+              stroke="var(--color-accent-gold)"
               strokeWidth="1.5"
               fill="none"
             />
@@ -73,7 +74,7 @@ export function HeroVisual() {
 
       {/* Badge "paiement confirmé" */}
       <div className="glass absolute right-8 top-4 flex items-center gap-2 rounded-full px-3 py-1.5">
-        <span className="grid h-4 w-4 place-items-center rounded-full bg-teal text-[9px] text-ink">
+        <span className="grid h-4 w-4 place-items-center rounded-full bg-success text-[9px] text-ink">
           ✓
         </span>
         <span className="text-[10px] font-medium text-cloud">

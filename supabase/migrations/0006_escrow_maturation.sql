@@ -1,4 +1,4 @@
--- Zabelie Talent — Escrow & maturation J+7 + remboursements (EPIC 5)
+-- Zabelie Digi — Escrow & maturation J+7 + remboursements (EPIC 5)
 -- Fenêtre anti-fraude : le NET du vendeur est d'abord EN ATTENTE (pending), puis
 -- DISPONIBLE (available, retirable) après 7 jours. Un remboursement avant
 -- maturation annule l'escrow → aucun solde fantôme.

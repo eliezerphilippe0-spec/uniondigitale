@@ -1,4 +1,4 @@
-# Zabelie Talent — Architecture de paiement (EPIC 4)
+# Zabelie Digi — Architecture de paiement (EPIC 4)
 
 > Détail technique du module le plus critique. Découle de `00-CONTEXTE.md §8–§11`.
 > Les **trois invariants** sont des contraintes dures, non négociables.
@@ -11,6 +11,8 @@
 |------|--------|-------|
 | **MonCash** (Digicel) | ✅ Ouvert — rail du MVP | 1 |
 | **NatCash** | ⛔ Bloqué — en attente d'accès | 2 |
+| **Stripe** (carte, diaspora USD) | 🟡 Construit (V-10) — ⚠️ exige une **entité US** (Haïti non supporté comme pays marchand) ; mode test dès maintenant | 1.5 |
+| **Zelle** (diaspora USD) | ✅ Construit (V-10) — flux **semi-manuel** (pas d'API Zelle) : instructions + mémo, confirmation admin | 1.5 |
 | **Wallet interne** | ✅ Crédit après confirmation | 1 |
 
 ## 2. Les trois invariants (NON NÉGOCIABLES)
@@ -113,6 +115,38 @@ livraison passe par `/api/download` qui exige une commande `paid`.
 > ⚠️ Nécessite des identifiants MonCash (sandbox) et un projet Supabase lié pour
 > fonctionner de bout en bout. La logique d'idempotence est garantie en base
 > (cf. §4) indépendamment des identifiants.
+
+### Rails diaspora USD — Stripe & Zelle (V-10, migration `0009`)
+
+Principe : **le ledger reste en HTG**. Net vendeur, commission et escrow J+7
+sont calculés sur `orders.amount_htg`, identiques pour tous les rails. Le
+montant USD est converti au taux `USD_HTG_RATE`, **figé au checkout** dans
+`payments.expected_usd_cents`, puis **vérifié en base** par `confirm_payment`
+(param `p_usd_cents`) : USD reçu ≠ USD figé → `payment failed` +
+`order disputed`, aucun crédit (même garde-fou que MonCash).
+
+| Brique | Fichier |
+|--------|---------|
+| Client Stripe (Checkout Session + vérif signature webhook) | `lib/stripe.ts` |
+| Webhook Stripe (`checkout.session.completed` → `confirm_payment`) | `app/api/stripe/webhook/route.ts` |
+| Zelle : activation + destinataire | `lib/zelle.ts` |
+| Zelle : instructions acheteur (montant, destinataire, mémo `ZD-XXXXXXXX`) | `app/paiement/zelle/[orderId]/page.tsx` |
+| Zelle : « j'ai envoyé » (référence acheteuse, déclaratif) | `app/api/zelle/reference/route.ts` |
+| Zelle : confirmation ADMIN (relevé vérifié → `confirm_payment`) | `app/api/admin/confirm-zelle/route.ts` + section back-office |
+| Conversion HTG→cents USD, mémo | `lib/payment-utils.ts` |
+
+- **Stripe** : seule la notification **signée** (webhook) confirme — le retour
+  navigateur envoie vers « en attente ». Un 500 côté webhook fait rejouer
+  Stripe sans risque (idempotence en base).
+- **Zelle** : aucune API ⇒ **aucune livraison automatique**. L'admin confirme
+  après vérification du relevé (montant exact + mémo) ; la confirmation passe
+  par le même `confirm_payment` idempotent.
+- **Réconciliateur** : limité au rail `moncash` (les autres rails ont leur
+  propre voie de confirmation).
+- Rails proposés au checkout seulement si configurés (`STRIPE_SECRET_KEY`,
+  `ZELLE_RECIPIENT`, et `USD_HTG_RATE` dans les deux cas).
+- Tests : scénarios **D** (USD falsifié → rejet) et **E** (USD exact, rejoué →
+  un seul crédit net HTG) dans `supabase/tests/payment_idempotency.test.sql`.
 
 ## 8. Conformité BRH (différée)
 

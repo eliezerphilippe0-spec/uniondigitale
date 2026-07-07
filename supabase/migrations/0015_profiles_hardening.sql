@@ -1,4 +1,4 @@
--- Zabelie Talent — Durcissement RLS de `profiles` (audit sécurité)
+-- Zabelie Digi — Durcissement RLS de `profiles` (audit sécurité)
 -- Corrige trois failles issues d'un même angle mort : les policies de `profiles`
 -- s'appliquent PAR LIGNE, jamais PAR COLONNE. Ajouter une colonne sensible à une
 -- table dont la policy est `using(true)` / sans `with check` l'expose ou la rend
@@ -53,8 +53,8 @@ create policy "profiles_self_update"
 -- ─────────────────── [3] lecture publique restreinte aux colonnes sûres ───────
 -- La RLS ne filtre pas les colonnes : on le fait via des GRANTs colonne. On révoque
 -- le SELECT « toutes colonnes » à anon/authenticated et on ne rouvre que le strict
--- nécessaire au catalogue public et à l'app. country_code / region_code /
--- zabelie1_user_id restent lisibles UNIQUEMENT par le service_role (dashboard).
+-- nécessaire au catalogue public et à l'app. country_code / region_code restent
+-- lisibles UNIQUEMENT par le service_role (dashboard /admin/geo).
 revoke select on profiles from anon, authenticated;
 grant  select (id, role, display_name, bio, avatar_url, tier, created_at)
   on profiles to anon, authenticated;

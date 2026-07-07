@@ -1,4 +1,4 @@
--- Zabelie Talent — Géo-analytics back-office (Vague 1)
+-- Zabelie Digi — Géo-analytics back-office (Vague 1)
 -- Objectif : dashboard interne « d'où viennent nos clients/talents », AGRÉGÉ
 -- PAR PAYS uniquement. Aucune position individuelle, aucune coordonnée en base.
 --

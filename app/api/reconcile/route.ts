@@ -36,10 +36,13 @@ function liveDeps(): ReconcileDeps {
   const admin = createAdminClient();
   return {
     listPending: async () => {
+      // MonCash UNIQUEMENT : Stripe se confirme par webhook signé, Zelle par
+      // l'admin. Interroger MonCash pour ces rails serait toujours « pending ».
       const { data, error } = await admin
         .from("payments")
         .select("idempotency_key, order_id")
         .eq("status", "pending")
+        .eq("rail", "moncash")
         .order("created_at", { ascending: true })
         .limit(50);
       if (error) throw new Error(error.message);
@@ -54,6 +57,11 @@ function liveDeps(): ReconcileDeps {
         p_amount: amount,
       });
       if (error) return { error: error.message };
+      if (data?.status === "confirmed") {
+        // idempotency_key = order.id ; e-mails best-effort, une seule fois.
+        const { notifyOrderPaid } = await import("@/lib/zabelie-notify");
+        notifyOrderPaid(admin, idempotencyKey).catch(() => undefined);
+      }
       return { status: data?.status };
     },
   };
@@ -65,7 +73,12 @@ async function handle(req: Request) {
   }
   try {
     const result = await reconcilePayments(liveDeps());
-    return NextResponse.json(result);
+    // Recharges téléphoniques (V-11) — même cron (Hobby = 2 crons max).
+    const { reconcileTopups } = await import("@/lib/zabelie-topup/reconcile");
+    const topup = await reconcileTopups(createAdminClient()).catch((e) => ({
+      error: e instanceof Error ? e.message : "Erreur topup",
+    }));
+    return NextResponse.json({ ...result, topup });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Erreur" },

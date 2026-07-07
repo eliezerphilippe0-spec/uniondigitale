@@ -77,3 +77,25 @@ export const RAIL_COUNTRY: Record<string, string> = {
 export function railCountry(rail: string): string | null {
   return RAIL_COUNTRY[rail] ?? null;
 }
+
+/**
+ * Conversion HTG → cents USD pour les rails diaspora (Stripe/Zelle).
+ * `htgPerUsd` = taux configuré (env USD_HTG_RATE, ex. 132 HTG pour 1 USD).
+ * Le montant USD est FIGÉ au checkout (payments.expected_usd_cents) puis
+ * vérifié en base par confirm_payment — même invariant que MonCash.
+ */
+export function usdCentsFromHtg(amountHtg: number, htgPerUsd: number): number {
+  if (!Number.isFinite(htgPerUsd) || htgPerUsd <= 0) {
+    throw new Error("Taux USD_HTG_RATE invalide");
+  }
+  return Math.round((amountHtg * 100) / htgPerUsd);
+}
+
+export function formatUsd(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+/** Code mémo Zelle lisible, dérivé de la commande (rapprochement manuel). */
+export function zelleMemo(orderId: string): string {
+  return `ZD-${orderId.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+}

@@ -1,4 +1,4 @@
--- Zabelie Talent — Zoom Haïti par département (back-office /admin/geo)
+-- Zabelie Digi — Zoom Haïti par département (back-office /admin/geo)
 -- Marché ciblé : Haïti. On veut voir OÙ sont les TALENTS (créateurs) à l'échelle
 -- des 10 départements, en restant agrégé (jamais une position individuelle).
 --

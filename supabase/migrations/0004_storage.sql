@@ -1,4 +1,4 @@
--- Zabelie Talent — Storage (Vague 1)
+-- Zabelie Digi — Storage (Vague 1)
 -- Bucket PRIVÉ pour les fichiers livrables. L'accès se fait exclusivement par
 -- URL signée délivrée côté serveur APRÈS paiement confirmé (app/api/download).
 -- Upload : via le service role (app/api/products/asset), donc pas de policy

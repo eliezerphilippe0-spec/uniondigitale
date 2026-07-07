@@ -34,7 +34,7 @@ export function DownloadButton({ orderId }: { orderId: string }) {
       >
         {loading ? "…" : "Télécharger"}
       </button>
-      {error && <p className="mt-1 text-xs text-magenta">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

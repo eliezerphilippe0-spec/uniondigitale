@@ -90,11 +90,11 @@ export function PublishForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-gradient-to-r from-gold to-amber px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
+        className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
       >
         {loading ? "Publication…" : "Publier le produit"}
       </button>
-      {error && <p className="text-center text-xs text-magenta">{error}</p>}
+      {error && <p className="text-center text-xs text-danger-text">{error}</p>}
       <p className="text-center text-xs text-mist">
         L'envoi du fichier livrable se fera depuis la fiche produit (étape
         suivante).

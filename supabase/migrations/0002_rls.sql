@@ -1,4 +1,4 @@
--- Zabelie Talent — Row Level Security (Vague 1)
+-- Zabelie Digi — Row Level Security (Vague 1)
 -- Principe : lecture publique du catalogue ; chacun gère ses propres données ;
 -- les paiements/wallet ne sont JAMAIS écrits côté client (service role + RPC).
 

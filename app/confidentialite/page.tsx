@@ -2,7 +2,7 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 
 export const metadata = {
-  title: "Politique de confidentialité — Zabelie Talent",
+  title: "Politique de confidentialité — Zabelie Digi",
 };
 
 // Dernière mise à jour de la politique (à actualiser à chaque changement).
@@ -39,7 +39,7 @@ export default function ConfidentialitePage() {
 
         <Section title="1. Responsable du traitement">
           <p>
-            Zabelie Talent (« nous ») exploite cette marketplace de produits
+            Zabelie Digi (« nous ») exploite cette marketplace de produits
             digitaux et de talents. Responsable du traitement :{" "}
             <strong className="text-cloud">[À COMPLÉTER : entité juridique,
             adresse]</strong>. Pour toute question relative à vos données,

@@ -1,4 +1,4 @@
--- Zabelie Talent — Rétention / minimisation (audit RGPD)
+-- Zabelie Digi — Rétention / minimisation (audit RGPD)
 -- Le payload opérateur (payments.raw) n'est utile qu'à la réconciliation d'un
 -- paiement encore 'pending'. Une fois le paiement clôturé (confirmed/failed) et
 -- passé un délai d'audit, on efface raw : minimisation (Art. 5(1)(c)) + limitation

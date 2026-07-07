@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: ProductView }) {
           >
             <path
               d="M0 9 L9 0 L18 9"
-              stroke="#0a0a0f"
+              stroke="var(--color-ink)"
               strokeWidth="1.2"
               fill="none"
             />
@@ -34,9 +34,11 @@ export function ProductCard({ product }: { product: ProductView }) {
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
           {product.kind === "service" ? "Service" : "Fichier"}
         </span>
-        {product.sales > 0 && (
+        {(product.ratingAvg !== null || product.sales > 0) && (
           <span className="absolute right-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
-            {product.sales} ventes
+            {product.ratingAvg !== null
+              ? `★ ${product.ratingAvg} (${product.ratingCount})`
+              : `${product.sales} ventes`}
           </span>
         )}
       </div>
@@ -50,7 +52,7 @@ export function ProductCard({ product }: { product: ProductView }) {
 
         <div className="mt-auto flex items-center justify-between pt-3">
           <span className="text-xs text-mist">par {product.creator}</span>
-          <span className="text-sm font-bold text-gradient">
+          <span className="numeric text-sm font-bold text-gradient">
             {formatHTG(product.priceHTG)}
           </span>
         </div>

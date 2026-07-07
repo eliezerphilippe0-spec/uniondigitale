@@ -3,11 +3,13 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { getPublishedProducts } from "@/lib/products";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Catalogue — Zabelie Talent",
+  title: "Catalogue — Zabelie Digi",
 };
 
 const CATEGORIES = [
@@ -27,7 +29,10 @@ export default async function CataloguePage({
 }) {
   const { q, cat } = await searchParams;
   const activeCat = cat ?? "Tout";
-  const products = await getPublishedProducts({ q, category: activeCat });
+  const [products, lang] = await Promise.all([
+    getPublishedProducts({ q, category: activeCat }),
+    getLang(),
+  ]);
 
   const catHref = (c: string) => {
     const params = new URLSearchParams();
@@ -42,12 +47,12 @@ export default async function CataloguePage({
       <SiteNav />
 
       <section className="mx-auto max-w-6xl px-5 pb-10 pt-16">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-          Catalogue
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          {t(lang, "catalog.title")}
         </h1>
         <p className="mt-2 text-sm text-mist">
-          {products.length} résultat{products.length > 1 ? "s" : ""}
-          {q ? ` pour « ${q} »` : ""}
+          {products.length} {t(lang, "catalog.results")}
+          {q ? ` ${t(lang, "catalog.for")} « ${q} »` : ""}
           {activeCat !== "Tout" ? ` · ${activeCat}` : ""}.
         </p>
 
@@ -59,14 +64,14 @@ export default async function CataloguePage({
           <input
             name="q"
             defaultValue={q ?? ""}
-            placeholder="Rechercher un produit, un talent…"
-            className="flex-1 rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
+            placeholder={t(lang, "catalog.search.ph")}
+            className="min-w-0 flex-1 rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
           />
           <button
             type="submit"
             className="rounded-xl bg-cloud px-5 py-3 text-sm font-semibold text-ink transition hover:opacity-90"
           >
-            Rechercher
+            {t(lang, "catalog.search.btn")}
           </button>
         </form>
 
@@ -91,9 +96,9 @@ export default async function CataloguePage({
       <section className="mx-auto max-w-6xl px-5 pb-16">
         {products.length === 0 ? (
           <div className="rounded-2xl border border-line bg-surface/40 p-10 text-center text-sm text-mist">
-            Aucun résultat.{" "}
+            {t(lang, "catalog.none")}{" "}
             <Link href="/catalogue" className="text-cloud underline">
-              Réinitialiser
+              {t(lang, "catalog.reset")}
             </Link>
           </div>
         ) : (

@@ -2,12 +2,14 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { DownloadButton } from "@/components/download-button";
+import { ReviewForm } from "@/components/review-form";
+import { getReviewedOrderIds } from "@/lib/reviews";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Mes achats — Zabelie Talent" };
+export const metadata = { title: "Mes achats — Zabelie Digi" };
 
 type OrderRow = {
   id: string;
@@ -22,7 +24,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-3xl px-5 py-16">
-        <h1 className="text-3xl font-black tracking-tight">Mes achats</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Mes achats</h1>
         {children}
       </main>
       <SiteFooter />
@@ -54,7 +56,7 @@ export default async function MesAchatsPage() {
         </p>
         <Link
           href="/connexion"
-          className="mt-4 inline-block rounded-xl bg-gradient-to-r from-gold to-amber px-5 py-2.5 text-sm font-semibold text-ink"
+          className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-ink"
         >
           Se connecter
         </Link>
@@ -72,6 +74,7 @@ export default async function MesAchatsPage() {
     .order("created_at", { ascending: false });
 
   const orders = (data ?? []) as unknown as OrderRow[];
+  const reviewed = await getReviewedOrderIds(orders.map((o) => o.id));
 
   return (
     <Shell>
@@ -87,7 +90,7 @@ export default async function MesAchatsPage() {
           {orders.map((o) => (
             <li
               key={o.id}
-              className="flex items-center justify-between rounded-2xl border border-line bg-surface/60 p-4"
+              className="flex items-start justify-between gap-4 rounded-2xl border border-line bg-surface/60 p-4"
             >
               <div>
                 <p className="text-sm font-semibold">
@@ -98,11 +101,20 @@ export default async function MesAchatsPage() {
                   {new Date(o.created_at).toLocaleDateString("fr-HT")}
                 </p>
               </div>
-              {o.product?.kind === "service" ? (
-                <span className="text-xs text-mist">Service · mise en relation</span>
-              ) : (
-                <DownloadButton orderId={o.id} />
-              )}
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                {o.product?.kind === "service" ? (
+                  <span className="text-xs text-mist">
+                    Service · mise en relation
+                  </span>
+                ) : (
+                  <DownloadButton orderId={o.id} />
+                )}
+                {reviewed.has(o.id) ? (
+                  <span className="text-xs text-success-text">Avis déposé ✓</span>
+                ) : (
+                  <ReviewForm orderId={o.id} />
+                )}
+              </div>
             </li>
           ))}
         </ul>

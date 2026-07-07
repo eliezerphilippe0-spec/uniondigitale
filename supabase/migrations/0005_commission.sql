@@ -1,4 +1,4 @@
--- Zabelie Talent — Commission par tier (EPIC 4 / EPIC 5)
+-- Zabelie Digi — Commission par tier (EPIC 4 / EPIC 5)
 -- Le vendeur est crédité du NET ; la plateforme prélève une commission selon le
 -- tier. C'est le modèle économique : sans ça, le ledger est faux à chaque vente.
 --

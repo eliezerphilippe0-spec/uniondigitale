@@ -1,4 +1,4 @@
-# Zabelie Talent
+# Zabelie Digi
 
 Marketplace de **produits digitaux et talents haïtiens** (inspirée de Chariow et
 Talent gn). Paiement mobile money haïtien (MonCash), livraison digitale instantanée,
@@ -78,6 +78,25 @@ La plateforme est donc démontrable sans base.
 - `/createur/[id]` — profil public d'un créateur + ses produits.
 - `/mes-achats` — commandes payées + téléchargement (URL signée).
 - `/admin` — back-office (rôle `admin`) : modération produits + suivi paiements.
+
+## Assets de marque (`public/brand/`)
+
+Photos du porteur du projet, normalisées (orientation EXIF corrigée) et
+optimisées pour le web 3G :
+
+| Fichier | Usage recommandé |
+|---|---|
+| `eliezer-portrait.jpg` (900×1200, ~100 Ko) | Portrait officiel — avatar du profil créateur (`avatar_url: /brand/eliezer-portrait.jpg`), page « à propos » |
+| `eliezer-casual.jpg` (900×1200, ~350 Ko) | Photo décontractée — contenus sociaux / à propos |
+| `eliezer-welcome-25x.png` | Visuel « Welcome 25X » — **référence uniquement** (contient une marque tierce, ne pas utiliser dans l'UI) |
+
+⚠️ Ces fichiers sont servis publiquement une fois le site déployé.
+
+## Langues
+
+Français (défaut) + **Kreyòl ayisyen** — bascule FR/KR dans la nav (cookie
+`zabelie_lang`). Dictionnaire maison : `lib/i18n.ts` (parité des clés testée).
+Surfaces acheteur traduites ; espace créateur en FR pour l'instant.
 
 ## Intégration continue
 

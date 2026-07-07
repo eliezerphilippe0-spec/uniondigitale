@@ -1,4 +1,4 @@
--- Zabelie Talent — Logique de paiement idempotente (EPIC 4)
+-- Zabelie Digi — Logique de paiement idempotente (EPIC 4)
 -- docs/03-PAIEMENTS.md. À appeler UNIQUEMENT côté serveur (webhook MonCash
 -- vérifié serveur-à-serveur, ou réconciliateur). Jamais depuis le navigateur.
 

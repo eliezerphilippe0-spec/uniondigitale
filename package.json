@@ -1,8 +1,8 @@
 {
-  "name": "zabelie-talent",
+  "name": "zabelie-digi",
   "version": "0.1.0",
   "private": true,
-  "description": "Zabelie Talent — marketplace de produits digitaux et talents haïtiens",
+  "description": "Zabelie Digi — marketplace de produits digitaux et talents haïtiens",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,14 +10,16 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:contrast": "node scripts/zabelie-contrast.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.4",
-    "next": "15.1.6",
+    "next": "^15.5.20",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "stripe": "^22.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
@@ -28,5 +30,8 @@
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }

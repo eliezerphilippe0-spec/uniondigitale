@@ -7,9 +7,13 @@ import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 import { ProfileForm } from "@/components/profile-form";
 import { AccountActions } from "@/components/account-actions";
+import {
+  ZabelieCouponManager,
+  type CouponItem,
+} from "@/components/zabelie-coupon-manager";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Tableau de bord — Zabelie Talent" };
+export const metadata = { title: "Tableau de bord — Zabelie Digi" };
 
 function Shell({
   title,
@@ -22,7 +26,7 @@ function Shell({
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-5xl px-5 py-16">
-        <h1 className="text-3xl font-black tracking-tight">{title}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
         {children}
       </main>
       <SiteFooter />
@@ -63,7 +67,7 @@ export default async function DashboardPage() {
         <p className="mt-4 text-sm text-mist">Connecte-toi pour accéder à ton tableau de bord.</p>
         <Link
           href="/connexion"
-          className="mt-4 inline-block rounded-xl bg-gradient-to-r from-gold to-amber px-5 py-2.5 text-sm font-semibold text-ink"
+          className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-ink"
         >
           Se connecter
         </Link>
@@ -73,8 +77,11 @@ export default async function DashboardPage() {
 
   let balance = 0;
   let pending = 0;
+  let netTotal = 0;
+  let nextMaturity: string | null = null;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
+  let coupons: CouponItem[] = [];
   let profile = {
     display_name: user.displayName,
     bio: "",
@@ -88,11 +95,33 @@ export default async function DashboardPage() {
 
     const { data: wallet } = await admin
       .from("wallets")
-      .select("balance_htg, pending_htg")
+      .select("id, balance_htg, pending_htg")
       .eq("owner_id", user.id)
       .maybeSingle();
     balance = wallet?.balance_htg ?? 0;
     pending = wallet?.pending_htg ?? 0;
+
+    if (wallet?.id) {
+      // « Quand est-ce que l'argent arrive ? » vaut plus que la règle J+7.
+      const [{ data: nextEscrow }, { data: credits }] = await Promise.all([
+        admin
+          .from("escrow_entries")
+          .select("matures_at")
+          .eq("wallet_id", wallet.id)
+          .eq("status", "maturing")
+          .order("matures_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        admin
+          .from("wallet_transactions")
+          .select("amount_htg")
+          .eq("wallet_id", wallet.id)
+          .eq("type", "credit")
+          .limit(1000),
+      ]);
+      nextMaturity = nextEscrow?.matures_at ?? null;
+      netTotal = (credits ?? []).reduce((s, c) => s + c.amount_htg, 0);
+    }
 
     const { data: prof } = await admin
       .from("profiles")
@@ -116,6 +145,14 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false });
     products = (prods ?? []) as ProductRow[];
 
+    const { data: cps } = await admin
+      .from("zabelie_coupons")
+      .select("id, code, percent, product_id, max_uses, uses, expires_at, active")
+      .eq("seller_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    coupons = (cps ?? []) as CouponItem[];
+
     const productIds = (prods ?? []).map((p) => (p as { id: string }).id);
     if (productIds.length > 0) {
       const { data: orders } = await admin
@@ -130,7 +167,7 @@ export default async function DashboardPage() {
   } catch {
     return (
       <Shell title={`Bonjour, ${user.displayName}`}>
-        <p className="mt-4 text-sm text-magenta">
+        <p className="mt-4 text-sm text-danger-text">
           Données indisponibles (clé service role manquante côté serveur ?).
         </p>
       </Shell>
@@ -142,8 +179,14 @@ export default async function DashboardPage() {
 
   const stats = [
     { label: "Disponible", value: formatHTG(balance) },
-    { label: "En attente (J+7)", value: formatHTG(pending) },
-    { label: "Ventes totales", value: String(totalSales) },
+    {
+      label: nextMaturity
+        ? `En attente · débloqué le ${new Date(nextMaturity).toLocaleDateString("fr-HT")}`
+        : "En attente (J+7)",
+      value: formatHTG(pending),
+    },
+    // Montant net cumulé d'abord (standard Chariow), le compte en contexte.
+    { label: `Revenus nets · ${totalSales} vente${totalSales > 1 ? "s" : ""}`, value: formatHTG(netTotal) },
     { label: "Produits publiés", value: String(published) },
   ];
 
@@ -153,15 +196,15 @@ export default async function DashboardPage() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-line bg-surface/60 p-5"
+            className="rounded-2xl border border-line bg-surface-maroon/70 p-5"
           >
-            <p className="text-2xl font-black text-gradient">{s.value}</p>
+            <p className="metric text-2xl font-extrabold text-gradient">{s.value}</p>
             <p className="mt-1 text-xs text-mist">{s.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-line bg-surface/40 p-5 text-sm text-mist">
+      <div className="mt-6 rounded-2xl border border-line bg-surface-brown/50 p-5 text-sm text-mist">
         Chaque vente confirmée est créditée <strong>en attente</strong> et devient{" "}
         <strong>disponible 7 jours plus tard</strong> (fenêtre anti-fraude /
         remboursement). Les retraits du solde disponible arriveront avec la
@@ -230,6 +273,21 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
+
+      {/* Codes promo (V-13) */}
+      {products.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Codes promo</h2>
+          <p className="mt-1 text-xs text-mist">
+            Créez un code (ex. <span className="numeric text-accent">PROMO50</span>),
+            partagez-le sur WhatsApp — la remise s&apos;applique automatiquement au
+            paiement. Valable sur tous vos produits.
+          </p>
+          <div className="mt-4 rounded-2xl border border-line bg-surface/60 p-5">
+            <ZabelieCouponManager coupons={coupons} />
+          </div>
+        </section>
+      )}
 
       {/* Profil public */}
       <section className="mt-10">

@@ -1,4 +1,4 @@
-// Types du schéma Zabelie Talent (Vague 1).
+// Types du schéma Zabelie Digi (Vague 1).
 // Reflètent supabase/migrations/0001_schema.sql.
 // À terme, générables via `supabase gen types typescript`.
 
@@ -12,7 +12,8 @@ export type OrderStatus =
   | "cancelled"
   | "refunded"
   | "disputed";
-export type PaymentRail = "moncash"; // 'natcash' en Vague 2 (bloqué)
+// 'natcash' en Vague 2 (bloqué). 'stripe'/'zelle' = rails diaspora USD (V-10).
+export type PaymentRail = "moncash" | "stripe" | "zelle";
 export type PaymentStatus = "pending" | "confirmed" | "failed";
 export type WalletTxnType = "credit" | "debit" | "payout";
 export type PayoutStatus = "requested" | "processing" | "paid" | "rejected";
@@ -24,7 +25,6 @@ export type Profile = {
   display_name: string;
   bio: string | null;
   avatar_url: string | null;
-  zabelie1_user_id: string | null;
   tier: CreatorTier;
   country_code: string | null;
   region_code: string | null;
@@ -40,6 +40,16 @@ export type PlatformEarning = {
   created_at: string;
 };
 
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  buyer_id: string;
+  order_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
 export type Product = {
   id: string;
   seller_id: string;
@@ -52,6 +62,8 @@ export type Product = {
   cover_url: string | null;
   status: ProductStatus;
   sales_count: number;
+  rating_count: number;
+  rating_sum: number;
   created_at: string;
 };
 
@@ -79,6 +91,8 @@ export type Payment = {
   rail: PaymentRail;
   idempotency_key: string;
   provider_ref: string | null;
+  /** Montant USD figé au checkout (rails diaspora) ; null pour MonCash. */
+  expected_usd_cents: number | null;
   status: PaymentStatus;
   raw: Record<string, unknown> | null;
   confirmed_at: string | null;

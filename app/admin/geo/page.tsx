@@ -11,7 +11,7 @@ import { countryName } from "@/lib/geo/countries";
 import { departmentName } from "@/lib/geo/haiti";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Géo-localisation — Zabelie Talent" };
+export const metadata = { title: "Géo-localisation — Zabelie Digi" };
 
 function Shell({
   title,

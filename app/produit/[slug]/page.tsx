@@ -4,9 +4,57 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { formatHTG } from "@/lib/sample-data";
 import { getProductView } from "@/lib/products";
-import { BuyButton } from "@/components/buy-button";
+import { getProductReviews } from "@/lib/reviews";
+import { BuyButton, type BuyOption } from "@/components/buy-button";
+import { isStripeEnabled } from "@/lib/stripe";
+import { isZelleEnabled } from "@/lib/zelle";
+import { usdCentsFromHtg, formatUsd } from "@/lib/payment-utils";
+import { ShareButtons } from "@/components/share-buttons";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Rails proposés, construits côté serveur : MonCash toujours, puis les rails
+ * diaspora USD si configurés (Stripe/Zelle + USD_HTG_RATE). Le prix USD affiché
+ * est indicatif — la vérité reste figée au checkout puis vérifiée en base.
+ */
+function buildBuyOptions(lang: "fr" | "ht", priceHTG: number): BuyOption[] {
+  const options: BuyOption[] = [
+    { rail: "moncash", label: t(lang, "product.pay", { price: formatHTG(priceHTG) }) },
+  ];
+  const rate = Number(process.env.USD_HTG_RATE);
+  if (Number.isFinite(rate) && rate > 0) {
+    const usd = formatUsd(usdCentsFromHtg(priceHTG, rate));
+    if (isStripeEnabled()) {
+      options.push({ rail: "stripe", label: t(lang, "product.pay.stripe", { usd }) });
+    }
+    if (isZelleEnabled()) {
+      options.push({ rail: "zelle", label: t(lang, "product.pay.zelle", { usd }) });
+    }
+  }
+  return options;
+}
+
+/**
+ * Équivalent USD indicatif pour la diaspora (taux public USD_HTG_RATE).
+ * Affichage seulement — le montant payé reste la vérité serveur.
+ */
+function usdHint(priceHTG: number): string | null {
+  const rate = Number(process.env.USD_HTG_RATE);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+  return formatUsd(usdCentsFromHtg(priceHTG, rate));
+}
+
+function Stars({ value }: { value: number }) {
+  return (
+    <span aria-label={`${value} sur 5`} className="text-accent">
+      {"★".repeat(Math.round(value))}
+      <span className="text-mist/40">{"★".repeat(5 - Math.round(value))}</span>
+    </span>
+  );
+}
 
 export default async function ProductPage({
   params,
@@ -14,8 +62,12 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProductView(slug);
+  const [product, lang] = await Promise.all([getProductView(slug), getLang()]);
   if (!product) notFound();
+
+  const reviews = product.creatorId
+    ? await getProductReviews(product.id)
+    : [];
 
   return (
     <div className="bg-grain min-h-screen">
@@ -43,64 +95,158 @@ export default async function ProductPage({
             href="/catalogue"
             className="text-sm text-mist hover:text-cloud"
           >
-            ← Retour au catalogue
+            {t(lang, "product.back")}
           </Link>
 
           <div className="mt-4 flex items-center gap-2">
             <span className="rounded-full border border-line px-3 py-1 text-xs text-mist">
-              {product.kind === "service" ? "Service" : "Fichier digital"}
+              {product.kind === "service" ? t(lang, "product.kind.service") : t(lang, "product.kind.file")}
             </span>
             <span className="rounded-full border border-line px-3 py-1 text-xs text-mist">
               {product.category}
             </span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight">
+          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight">
             {product.title}
           </h1>
           <p className="mt-3 text-mist">{product.blurb}</p>
 
-          <div className="mt-4 flex items-center gap-4 text-sm text-mist">
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-mist">
             {product.creatorId ? (
               <Link
                 href={`/createur/${product.creatorId}`}
                 className="hover:text-cloud"
               >
-                par {product.creator}
+                {t(lang, "product.by")} {product.creator}
               </Link>
             ) : (
-              <span>par {product.creator}</span>
+              <span>{t(lang, "product.by")} {product.creator}</span>
             )}
-            {product.sales > 0 && <span>{product.sales} ventes</span>}
+            {product.ratingAvg !== null && (
+              <span>
+                <Stars value={product.ratingAvg} /> {product.ratingAvg} (
+                {product.ratingCount} {t(lang, "product.reviews.badge")})
+              </span>
+            )}
+            {product.sales > 0 && (
+              <span>
+                {product.sales} {t(lang, "product.sales")}
+              </span>
+            )}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-line bg-surface/60 p-6">
-            <p className="text-3xl font-black text-gradient">
+          <div id="acheter" className="mt-8 scroll-mt-24 rounded-2xl border border-line bg-surface/60 p-6">
+            <p className="numeric text-3xl font-extrabold text-gradient">
               {formatHTG(product.priceHTG)}
+              {usdHint(product.priceHTG) && (
+                <span className="ml-2 align-middle text-base font-semibold text-mist">
+                  ≈ {usdHint(product.priceHTG)}
+                </span>
+              )}
             </p>
+            {/* Preuve sociale À CÔTÉ du prix : c'est là que l'hésitation se joue. */}
+            {(product.ratingAvg !== null || product.sales > 0) && (
+              <p className="mt-1 text-xs text-mist">
+                {product.ratingAvg !== null && (
+                  <>
+                    <span className="text-accent">★</span> {product.ratingAvg} (
+                    {product.ratingCount} {t(lang, "product.reviews.badge")})
+                  </>
+                )}
+                {product.ratingAvg !== null && product.sales > 0 && " · "}
+                {product.sales > 0 && (
+                  <>
+                    {product.sales} {t(lang, "product.sales")}
+                  </>
+                )}
+              </p>
+            )}
             <div className="mt-5">
               <BuyButton
                 productId={product.id}
-                priceLabel={formatHTG(product.priceHTG)}
+                options={buildBuyOptions(lang, product.priceHTG)}
+                othersLabel={t(lang, "pay.other")}
+                loadingLabel={t(lang, "pay.redirect")}
+                coupon={{
+                  have: t(lang, "coupon.have"),
+                  placeholder: t(lang, "coupon.ph"),
+                  apply: t(lang, "coupon.apply"),
+                  applied: t(lang, "coupon.applied"),
+                  invalid: t(lang, "coupon.invalid"),
+                }}
               />
             </div>
             <p className="mt-3 text-center text-xs text-mist">
-              Livraison instantanée après confirmation du paiement.
+              {t(lang, "product.delivery")}
             </p>
           </div>
 
           <ul className="mt-6 space-y-2 text-sm text-mist">
-            <li>✓ Paiement sécurisé, confirmé serveur-à-serveur</li>
+            <li>{t(lang, "product.secure")}</li>
             <li>
-              ✓{" "}
               {product.kind === "service"
-                ? "Mise en relation après paiement"
-                : "Téléchargement immédiat du fichier"}
+                ? t(lang, "product.service")
+                : t(lang, "product.file")}
             </li>
-            <li>✓ Support du créateur</li>
+            <li>{t(lang, "product.verifiedOnly")}</li>
           </ul>
+
+          <div className="mt-6">
+            <ShareButtons
+              path={`/produit/${product.slug}`}
+              text={`${product.title} — ${formatHTG(product.priceHTG)} ${t(lang, "product.share")}`}
+              waLabel={t(lang, "share.wa")}
+              copyLabel={t(lang, "share.copy")}
+              copiedLabel={t(lang, "share.copied")}
+            />
+          </div>
         </div>
       </section>
+
+      {/* Avis vérifiés */}
+      {reviews.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 pb-16">
+          <h2 className="text-lg font-semibold">
+            {t(lang, "product.reviews")} ({reviews.length})
+          </h2>
+          <p className="mt-1 text-xs text-mist">
+            {t(lang, "product.reviews.note")}
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {reviews.map((r) => (
+              <li
+                key={r.id}
+                className="rounded-2xl border border-line bg-surface/60 p-4"
+              >
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{r.buyerName}</span>
+                  <Stars value={r.rating} />
+                </div>
+                {r.comment && (
+                  <p className="mt-2 text-sm text-mist">{r.comment}</p>
+                )}
+                <p className="mt-2 text-xs text-mist/70">
+                  {new Date(r.createdAt).toLocaleDateString("fr-HT")} ·{" "}
+                  {t(lang, "product.verified")}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA bas de page (règle Gumroad) : le lecteur convaincu par les
+              avis ne doit pas remonter chercher le bouton. Ancre, pas un
+              second checkout — un seul point d'achat, zéro état dupliqué. */}
+          <div className="mt-8 text-center">
+            <a
+              href="#acheter"
+              className="inline-block rounded-xl bg-brand px-8 py-3 text-sm font-semibold text-ink transition hover:opacity-90"
+            >
+              {t(lang, "product.cta.bottom", { price: formatHTG(product.priceHTG) })}
+            </a>
+          </div>
+        </section>
+      )}
 
       <SiteFooter />
     </div>

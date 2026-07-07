@@ -10,17 +10,21 @@
 --   B. Montant falsifié : montant ≠ commande → REJET (payment failed, order
 --      disputed, aucun crédit, aucune livraison).
 --   C. Commission Elite (6 %) : net 940 sur 1000.
+--   D. Rail USD (Zelle/Stripe, 0009) : montant USD reçu ≠ figé → REJET.
+--   E. Rail USD, montant exact : confirmation + crédit net HTG, idempotente.
 
 begin;
 
 -- Vendeurs --------------------------------------------------------------------
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000001', 'seller@test.local'),
-  ('00000000-0000-0000-0000-000000000002', 'elite@test.local')
+  ('00000000-0000-0000-0000-000000000002', 'elite@test.local'),
+  ('00000000-0000-0000-0000-000000000003', 'diaspora@test.local')
   on conflict do nothing;
 insert into profiles (id, role, display_name, tier) values
   ('00000000-0000-0000-0000-000000000001', 'creator', 'Vendeur Standard', 'standard'),
-  ('00000000-0000-0000-0000-000000000002', 'creator', 'Vendeur Elite', 'elite');
+  ('00000000-0000-0000-0000-000000000002', 'creator', 'Vendeur Elite', 'elite'),
+  ('00000000-0000-0000-0000-000000000003', 'creator', 'Vendeur Diaspora', 'standard');
 
 -- ════════════════════ Scénario A : idempotence + commission 10 % ════════════════════
 insert into products (id, seller_id, slug, title, kind, price_htg, status)
@@ -71,6 +75,42 @@ insert into payments (order_id, rail, idempotency_key, status)
 
 select confirm_payment('00000000-0000-0000-0000-0000000000b3', 'TX3', '{}'::jsonb, 1000);
 
+-- ═══════════ Scénario D : rail USD, montant falsifié (garde-fou 0009) ═══════════
+insert into products (id, seller_id, slug, title, kind, price_htg, status)
+  values ('00000000-0000-0000-0000-0000000000a4',
+          '00000000-0000-0000-0000-000000000003',
+          'produit-d', 'Produit D', 'fichier', 2640, 'published');
+insert into orders (id, buyer_id, product_id, amount_htg, status)
+  values ('00000000-0000-0000-0000-0000000000b4',
+          '00000000-0000-0000-0000-000000000003',
+          '00000000-0000-0000-0000-0000000000a4', 2640, 'pending');
+-- 2640 HTG à 132 HTG/USD = 2000 cents figés au checkout.
+insert into payments (order_id, rail, idempotency_key, status, expected_usd_cents)
+  values ('00000000-0000-0000-0000-0000000000b4', 'zelle',
+          '00000000-0000-0000-0000-0000000000b4', 'pending', 2000);
+
+-- USD reçu (1500) ≠ figé (2000) → doit être REJETÉ.
+select confirm_payment('00000000-0000-0000-0000-0000000000b4', 'ZELLE:ref-d',
+                       '{}'::jsonb, null, 1500);
+
+-- ═══════════ Scénario E : rail USD, montant exact, rejoué 2× ═══════════
+insert into products (id, seller_id, slug, title, kind, price_htg, status)
+  values ('00000000-0000-0000-0000-0000000000a5',
+          '00000000-0000-0000-0000-000000000003',
+          'produit-e', 'Produit E', 'fichier', 2640, 'published');
+insert into orders (id, buyer_id, product_id, amount_htg, status)
+  values ('00000000-0000-0000-0000-0000000000b5',
+          '00000000-0000-0000-0000-000000000003',
+          '00000000-0000-0000-0000-0000000000a5', 2640, 'pending');
+insert into payments (order_id, rail, idempotency_key, status, expected_usd_cents)
+  values ('00000000-0000-0000-0000-0000000000b5', 'zelle',
+          '00000000-0000-0000-0000-0000000000b5', 'pending', 2000);
+
+select confirm_payment('00000000-0000-0000-0000-0000000000b5', 'ZELLE:ref-e',
+                       '{}'::jsonb, null, 2000);
+select confirm_payment('00000000-0000-0000-0000-0000000000b5', 'ZELLE:ref-e',
+                       '{}'::jsonb, null, 2000);
+
 -- ════════════════════════════ Assertions ════════════════════════════
 do $$
 declare
@@ -89,6 +129,14 @@ declare
   -- Scénario C
   v_c_balance    bigint;
   v_c_commission bigint;
+  -- Scénario D (USD falsifié)
+  v_d_pay_status payment_status;
+  v_d_order_st   order_status;
+  v_d_credits    int;
+  -- Scénario E (USD exact, rejoué)
+  v_e_pay_status payment_status;
+  v_e_credit     bigint;
+  v_e_txn_count  int;
 begin
   -- A : idempotence + commission standard 10 % (net 2250, commission 250).
   -- Depuis l'escrow (0006), le net va en ATTENTE (pending), pas en disponible.
@@ -139,8 +187,32 @@ begin
   assert v_c_balance = 940, format('C: net Elite attendu 940, obtenu %s', v_c_balance);
   assert v_c_commission = 60, format('C: commission Elite attendue 60, obtenu %s', v_c_commission);
 
-  raise notice 'OK — A (net=%, commission=%, txns=%) ; B rejeté ; C Elite (net=%, commission=%)',
-    v_balance, v_commission, v_txn_count, v_c_balance, v_c_commission;
+  -- D : USD reçu ≠ figé → rejeté, aucun crédit
+  select status into v_d_pay_status
+    from payments where idempotency_key = '00000000-0000-0000-0000-0000000000b4';
+  select status into v_d_order_st
+    from orders where id = '00000000-0000-0000-0000-0000000000b4';
+  select count(*) into v_d_credits
+    from wallet_transactions
+   where idempotency_key = 'order_credit:00000000-0000-0000-0000-0000000000b4';
+
+  assert v_d_pay_status = 'failed', format('D: payment attendu failed, obtenu %s', v_d_pay_status);
+  assert v_d_order_st = 'disputed', format('D: order attendu disputed, obtenu %s', v_d_order_st);
+  assert v_d_credits = 0, format('D: aucun crédit attendu, obtenu %s', v_d_credits);
+
+  -- E : USD exact → confirmé ; ledger HTG (net 2640-264=2376) ; rejeu = 1 seul crédit
+  select status into v_e_pay_status
+    from payments where idempotency_key = '00000000-0000-0000-0000-0000000000b5';
+  select amount_htg, count(*) over () into v_e_credit, v_e_txn_count
+    from wallet_transactions
+   where idempotency_key = 'order_credit:00000000-0000-0000-0000-0000000000b5';
+
+  assert v_e_pay_status = 'confirmed', format('E: payment attendu confirmed, obtenu %s', v_e_pay_status);
+  assert v_e_credit = 2376, format('E: crédit net HTG attendu 2376, obtenu %s', v_e_credit);
+  assert v_e_txn_count = 1, format('E: une seule transaction attendue, obtenu %s', v_e_txn_count);
+
+  raise notice 'OK — A (net=%, commission=%, txns=%) ; B rejeté ; C Elite (net=%, commission=%) ; D USD rejeté ; E USD confirmé (net=%)',
+    v_balance, v_commission, v_txn_count, v_c_balance, v_c_commission, v_e_credit;
 end $$;
 
 rollback;

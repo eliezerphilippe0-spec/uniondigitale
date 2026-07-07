@@ -1,4 +1,4 @@
-# Supabase — Zabelie Talent
+# Supabase — Zabelie Digi
 
 Schéma, RLS et logique de paiement de la plateforme (Vague 1).
 
@@ -12,6 +12,11 @@ Schéma, RLS et logique de paiement de la plateforme (Vague 1).
 | `migrations/0004_storage.sql` | Bucket privé `product-files` (fichiers livrables). |
 | `migrations/0005_commission.sql` | Tier vendeur + commission (net crédité, `platform_earnings`). Supersède `confirm_payment`. |
 | `migrations/0006_escrow_maturation.sql` | Escrow J+7 (`pending`/`available`), `mature_wallets`, `refund_order`. Supersède `confirm_payment`. |
+| `migrations/0007`→`0012` | Standalone, avis, rails diaspora, top-up, durcissement sécurité, coupons. |
+| `migrations/0013_geo_analytics.sql` | `profiles.country_code` + vues agrégées `analytics_geo_*` (dashboard `/admin/geo`), verrouillées service_role. |
+| `migrations/0014_haiti_departments.sql` | `profiles.region_code` + vue `analytics_geo_ht` (talents par département). |
+| `migrations/0015_profiles_hardening.sql` | Trigger anti-escalade `role`/`tier` + GRANT colonne (localisation non lisible publiquement). |
+| `migrations/0016_gdpr_retention.sql` | `purge_payment_raw()` — purge du payload opérateur clôturé (rétention RGPD). |
 
 ## Appliquer
 
@@ -36,7 +41,7 @@ Ou manuellement : exécuter chaque fichier `.sql` dans l'ordre via le SQL Editor
 
 ## Décision D-3 (V-9)
 
-Comptes/wallet **propres** à Zabelie Talent. Fusion future possible avec
+Comptes/wallet **propres** à Zabelie Digi. Fusion future possible avec
 Zabelie 1 via `profiles.zabelie1_user_id` (nullable + unique) — sans migration
 lourde.
 

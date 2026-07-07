@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   isSuccessful,
   redactPayment,
+  normalizePayment,
   type MonCashPayment,
 } from "../lib/moncash";
 import {
@@ -13,6 +14,9 @@ import {
   withinRailCap,
   railCap,
   railCountry,
+  usdCentsFromHtg,
+  formatUsd,
+  zelleMemo,
 } from "../lib/payment-utils";
 
 test("isSuccessful : true uniquement si statut 'successful'", () => {
@@ -44,6 +48,30 @@ test("redactPayment : retire l'identifiant du payeur (minimisation RGPD)", () =>
   assert.equal(r.transactionId, "t1"); // audit/réconciliation préservés
   assert.equal(r.cost, 100);
   assert.equal(r.status, "successful");
+});
+
+test("normalizePayment : format réel MonCash (snake_case + succès par message)", () => {
+  // Réponse type MonCash : transaction_id, cost string, succès via message.
+  const p = normalizePayment({
+    reference: "order-1",
+    transaction_id: "TX-123",
+    cost: "2500",
+    message: "successful",
+    payer: "50937000000",
+  });
+  assert.equal(p?.transactionId, "TX-123");
+  assert.equal(p?.cost, 2500);
+  assert.equal(p?.status, "successful");
+  assert.equal(isSuccessful(p), true);
+
+  // Statut explicite alternatif (payment_status).
+  assert.equal(
+    isSuccessful(normalizePayment({ payment_status: "successful" })),
+    true
+  );
+  // Non abouti.
+  assert.equal(isSuccessful(normalizePayment({ message: "pending" })), false);
+  assert.equal(normalizePayment(null), null);
 });
 
 test("paymentIdempotencyKey : stable = order.id", () => {
@@ -81,6 +109,34 @@ test("railCountry : rails haïtiens → HT, inconnu → null", () => {
   assert.equal(railCountry("moncash"), "HT");
   assert.equal(railCountry("natcash"), "HT");
   assert.equal(railCountry("inconnu"), null);
+});
+
+test("usdCentsFromHtg : conversion figée au checkout (rails diaspora)", () => {
+  // 2500 HTG à 125 HTG/USD = 20 USD = 2000 cents.
+  assert.equal(usdCentsFromHtg(2500, 125), 2000);
+  // Arrondi au cent le plus proche (jamais de float stocké).
+  assert.equal(usdCentsFromHtg(1000, 132), 758); // 757.57… → 758
+  assert.equal(Number.isInteger(usdCentsFromHtg(1234, 131)), true);
+  // Taux invalide → erreur claire (rail refusé au checkout).
+  assert.throws(() => usdCentsFromHtg(1000, 0));
+  assert.throws(() => usdCentsFromHtg(1000, -5));
+  assert.throws(() => usdCentsFromHtg(1000, Number.NaN));
+});
+
+test("formatUsd : affichage en dollars", () => {
+  assert.equal(formatUsd(2000), "$20.00");
+  assert.equal(formatUsd(758), "$7.58");
+  assert.equal(formatUsd(0), "$0.00");
+});
+
+test("zelleMemo : code stable, court, dérivé de la commande", () => {
+  const memo = zelleMemo("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+  assert.equal(memo, "ZD-A1B2C3D4");
+  // Stable au rejeu (rapprochement manuel fiable).
+  assert.equal(
+    zelleMemo("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+    memo
+  );
 });
 
 test("slugify : URL propre, accents retirés, borné", () => {
