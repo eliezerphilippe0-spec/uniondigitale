@@ -11,7 +11,7 @@
 
 ## §1 — Thèse produit
 
-**Zabelie Talent** est une plateforme de **produits digitaux et de talents africains** :
+**Zabelie Talent** est une plateforme de **produits digitaux et de talents haïtiens** :
 une marketplace où des créateurs (designers, formateurs, développeurs, musiciens,
 rédacteurs, consultants…) vendent des produits téléchargeables et des prestations,
 avec encaissement en **monnaie mobile haïtienne** (MonCash, puis NatCash) et un
@@ -29,9 +29,9 @@ l'instabilité réseau.**
   checkout simple, livraison automatique du fichier). On en reprend : la **simplicité
   du checkout**, la **livraison digitale automatique**, la **page produit minimaliste**.
 - **Talent gn** (Guinée) — plateforme de produits digitaux et de mise en avant de
-  talents africains. On en reprend : le **catalogue de talents/créateurs**, la
-  **dimension communautaire africaine**, la mise en avant des **services** autant que
-  des fichiers.
+  talents. On en reprend : le **catalogue de talents/créateurs**, la **dimension
+  communautaire** (adaptée au contexte haïtien), la mise en avant des **services**
+  autant que des fichiers.
 
 **Zabelie Talent = Chariow (produit digital + checkout) ∪ Talent gn (talents +
 communauté) adapté au contexte de paiement haïtien (MonCash/NatCash/BRH).**
@@ -234,7 +234,7 @@ wallet-crédit, back-office) est constructible **maintenant**.
   volontairement. **Aucune session ne doit lancer un grep-replace global** pour
   « uniformiser ». Respecter l'existant.
 - **Design** : assets et visuels via **Higgsfield** (MCP disponible). Objectif :
-  **plateforme ultra-moderne** — UI épurée, moderne, identité africaine assumée.
+  **plateforme ultra-moderne** — UI épurée, moderne, identité haïtienne assumée.
 - **Dépendances bloquantes d'abord** : avant de coder une brique paiement, vérifier
   son statut au §14.
 - **Décisions ouvertes** : ne pas trancher unilatéralement les `[À CONFIRMER]` —

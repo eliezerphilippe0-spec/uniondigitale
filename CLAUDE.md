@@ -3,9 +3,9 @@
 Version condensée « toujours en contexte ». Le détail est dans `docs/`.
 
 ## C'est quoi
-**Zabelie Talent** = marketplace de **produits digitaux + talents africains**
+**Zabelie Talent** = marketplace de **produits digitaux + talents haïtiens**
 (inspirée de **Chariow** et **Talent gn**), avec paiement **mobile money haïtien** et
-wallet vendeur. Objectif : **plateforme ultra-moderne**.
+wallet vendeur. Marché ciblé : **Haïti**. Objectif : **plateforme ultra-moderne**.
 
 ⚠️ **À ne pas confondre avec Zabelie (projet 1)**, la marketplace de produits
 **physiques**. Ce projet-ci est le **deuxième**, dédié au **digital**.
