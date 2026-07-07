@@ -24,6 +24,14 @@ export async function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link href="/tableau-de-bord" aria-label="Tableau de bord">
+            <img
+              src="/images/philippe-avatar.jpg"
+              alt="Philippe"
+              className="h-9 w-9 rounded-full object-cover"
+              style={{ border: "2px solid #FF6B00" }}
+            />
+          </Link>
           {user ? (
             <>
               {user.role === "admin" && (

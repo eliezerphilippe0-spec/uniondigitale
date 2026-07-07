@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 import { ProfileForm } from "@/components/profile-form";
+import { FounderCard } from "@/components/founder-card";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord — Zabelie Talent" };
@@ -23,6 +24,7 @@ function Shell({
       <main className="mx-auto max-w-5xl px-5 py-16">
         <h1 className="text-3xl font-black tracking-tight">{title}</h1>
         {children}
+        <FounderCard />
       </main>
       <SiteFooter />
     </div>
