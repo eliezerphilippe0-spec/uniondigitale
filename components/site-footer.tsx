@@ -14,7 +14,7 @@ export async function SiteFooter() {
           <p className="mt-3 text-sm text-mist">{t(lang, "footer.tagline")}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4">
           <div className="flex flex-col gap-2">
             <p className="font-semibold text-cloud">{t(lang, "footer.explore")}</p>
             <Link href="/catalogue" className="text-mist hover:text-cloud">
@@ -36,7 +36,20 @@ export async function SiteFooter() {
           <div className="flex flex-col gap-2">
             <p className="font-semibold text-cloud">{t(lang, "footer.payment")}</p>
             <span className="text-mist">MonCash</span>
+            <span className="text-mist">Zelle (USD)</span>
             <span className="text-mist/50">{t(lang, "footer.natcash")}</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-cloud">{t(lang, "footer.help")}</p>
+            <Link href="/#faq" className="text-mist hover:text-cloud">
+              {t(lang, "sec.faq")}
+            </Link>
+            <Link href="/rechaj" className="text-mist hover:text-cloud">
+              {t(lang, "nav.topup")}
+            </Link>
+            <Link href="/mes-achats" className="text-mist hover:text-cloud">
+              {t(lang, "pay.ok.cta")}
+            </Link>
           </div>
         </div>
       </div>
