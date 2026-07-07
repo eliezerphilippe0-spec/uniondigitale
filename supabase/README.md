@@ -59,3 +59,17 @@ back-office `/admin/geo`. Deux vues **agrégées par pays** — `analytics_geo_u
 et `analytics_geo_sales` — n'exposent que des compteurs, **jamais un individu ni
 une coordonnée**. Accès **révoqué** à `anon`/`authenticated` : seul le
 `service_role` (back-office, garde `role='admin'` côté app) peut les lire.
+
+## Durcissement `profiles` (0009)
+
+Les policies de `profiles` étant **par ligne**, trois colonnes sensibles étaient
+exposées/modifiables côté client. Corrections :
+
+- **`role` / `tier` non modifiables côté client** — trigger
+  `protect_profile_privileges` : seul le `service_role` peut les fixer ;
+  anon/authenticated se voient forcer les défauts (INSERT) ou l'ancienne valeur
+  (UPDATE). Bloque l'auto-promotion admin et la fraude au tier de commission.
+- **Lecture publique restreinte** — `revoke select` global puis `grant select`
+  colonne par colonne : `country_code`, `region_code`, `zabelie1_user_id` ne sont
+  lisibles que par le `service_role`. Le catalogue public ne voit que
+  `display_name`, `bio`, `avatar_url`, `role`, `tier`.
