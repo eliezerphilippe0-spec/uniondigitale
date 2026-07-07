@@ -17,7 +17,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
   }
 
-  let body: { display_name?: string; bio?: string; avatar_url?: string };
+  let body: {
+    display_name?: string;
+    bio?: string;
+    avatar_url?: string;
+    country_code?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -29,12 +34,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nom requis" }, { status: 400 });
   }
 
+  // Pays : ISO-3166 alpha-2 en majuscules, ou vide → NULL.
+  const rawCountry = body.country_code?.trim().toUpperCase() || "";
+  if (rawCountry && !/^[A-Z]{2}$/.test(rawCountry)) {
+    return NextResponse.json({ error: "Code pays invalide" }, { status: 400 });
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
       display_name: displayName,
       bio: body.bio?.trim() || null,
       avatar_url: body.avatar_url?.trim() || null,
+      country_code: rawCountry || null,
     })
     .eq("id", user.id);
 

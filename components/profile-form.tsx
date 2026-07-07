@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { COUNTRIES } from "@/lib/geo/countries";
 
 export function ProfileForm({
   initial,
 }: {
-  initial: { display_name: string; bio: string; avatar_url: string };
+  initial: {
+    display_name: string;
+    bio: string;
+    avatar_url: string;
+    country_code: string;
+  };
 }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
@@ -55,6 +61,19 @@ export function ProfileForm({
         value={form.avatar_url}
         onChange={(e) => set("avatar_url", e.target.value)}
       />
+      <select
+        className={input}
+        value={form.country_code}
+        onChange={(e) => set("country_code", e.target.value)}
+        aria-label="Pays"
+      >
+        <option value="">Pays (optionnel)</option>
+        {COUNTRIES.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.name}
+          </option>
+        ))}
+      </select>
       <textarea
         className={input}
         rows={3}

@@ -119,6 +119,13 @@ export default async function AdminPage() {
 
   return (
     <Shell title="Back-office">
+      <p className="mt-2 text-sm text-mist">
+        <Link href="/admin/geo" className="text-cloud underline">
+          Carte géo-localisation →
+        </Link>{" "}
+        d’où viennent nos clients et talents.
+      </p>
+
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <div

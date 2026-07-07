@@ -74,7 +74,12 @@ export default async function DashboardPage() {
   let pending = 0;
   let products: ProductRow[] = [];
   let sales: Sale[] = [];
-  let profile = { display_name: user.displayName, bio: "", avatar_url: "" };
+  let profile = {
+    display_name: user.displayName,
+    bio: "",
+    avatar_url: "",
+    country_code: "",
+  };
 
   try {
     const admin = createAdminClient();
@@ -89,7 +94,7 @@ export default async function DashboardPage() {
 
     const { data: prof } = await admin
       .from("profiles")
-      .select("display_name, bio, avatar_url")
+      .select("display_name, bio, avatar_url, country_code")
       .eq("id", user.id)
       .maybeSingle();
     if (prof) {
@@ -97,6 +102,7 @@ export default async function DashboardPage() {
         display_name: prof.display_name ?? user.displayName,
         bio: prof.bio ?? "",
         avatar_url: prof.avatar_url ?? "",
+        country_code: prof.country_code ?? "",
       };
     }
 

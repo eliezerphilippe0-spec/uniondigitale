@@ -51,3 +51,11 @@ lourde.
 Les livrables (`product_assets.storage_path`) vivent dans un bucket **privé**.
 L'accès se fait par **URL signée** délivrée côté serveur **après** paiement
 confirmé — jamais d'accès public au fichier.
+
+## Géo-analytics (0007)
+
+`profiles.country_code` (ISO-3166 alpha-2, nullable) alimente le dashboard
+back-office `/admin/geo`. Deux vues **agrégées par pays** — `analytics_geo_users`
+et `analytics_geo_sales` — n'exposent que des compteurs, **jamais un individu ni
+une coordonnée**. Accès **révoqué** à `anon`/`authenticated` : seul le
+`service_role` (back-office, garde `role='admin'` côté app) peut les lire.
