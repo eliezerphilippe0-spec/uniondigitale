@@ -166,6 +166,9 @@ const fr = {
     "Zabelie Digi est revendeur de recharge télécom : paiement puis livraison immédiate — aucun solde n'est stocké sur votre compte.",
 
   // Accueil V2 (12 sections — maquette porteur)
+  "sec.featured": "Produit de la semaine",
+  "featured.cta": "Voir le produit →",
+  "home.pay": "Payez facilement avec",
   "sec.cats": "Catégories principales",
   "sec.new": "Nouveautés",
   "sec.new.sub": "Les derniers produits publiés par nos créateurs.",
@@ -364,6 +367,9 @@ const ht: Record<I18nKey, string> = {
   "topup.legal":
     "Zabelie Digi se revandè rechaj telekòm : ou peye, rechaj la pati nan menm moman — nou pa janm kenbe okenn balans sou kont ou.",
 
+  "sec.featured": "Pwodui semèn nan",
+  "featured.cta": "Wè pwodui a →",
+  "home.pay": "Peye fasil ak",
   "sec.cats": "Kategori prensipal yo",
   "sec.new": "Sa ki fèk parèt",
   "sec.new.sub": "Dènye pwodui kreyatè nou yo pibliye.",

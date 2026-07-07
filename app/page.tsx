@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { HeroVisual } from "@/components/hero-visual";
 import { getPublishedProducts, isSupabaseConfigured, type ProductView } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatHTG } from "@/lib/sample-data";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
 
@@ -75,6 +76,7 @@ export default async function HomePage() {
 
   // Dérivations : une seule requête catalogue alimente toutes les sections.
   const bySales = [...products].sort((a, b) => b.sales - a.sales);
+  const featured = bySales[0] ?? null; // « Pwodui semèn nan »
   const trending = bySales.slice(0, 6);
   const newest = products.slice(0, 3); // requête déjà triée par date desc
   const services = bySales.filter((p) => p.kind === "service").slice(0, 3);
@@ -186,6 +188,63 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* 1 bis. BANDEAU PAIEMENT (maquette : « PEYE FASIL AK ») */}
+      <section className="mx-auto max-w-6xl px-5 pb-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-line bg-surface/40 px-6 py-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-mist">
+            {t(lang, "home.pay")}
+          </span>
+          <span className="rounded-full bg-brand px-4 py-1.5 text-sm font-bold text-ink">
+            MonCash
+          </span>
+          <span className="rounded-full border border-line bg-surface/60 px-4 py-1.5 text-sm font-bold text-cloud">
+            Zelle&nbsp;$
+          </span>
+          <span className="rounded-full border border-line px-4 py-1.5 text-sm text-mist/60">
+            {t(lang, "footer.natcash")}
+          </span>
+        </div>
+      </section>
+
+      {/* 1 ter. PRODUIT DE LA SEMAINE (maquette : « Pwodui semèn nan ») */}
+      {featured && (
+        <section className="mx-auto max-w-6xl px-5 py-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+            {t(lang, "sec.featured")}
+          </p>
+          <Link
+            href={`/produit/${featured.slug}`}
+            className="mt-4 grid gap-6 rounded-3xl border border-line bg-surface/60 p-6 transition hover:border-brand/60 sm:grid-cols-[220px_1fr] sm:p-8"
+          >
+            <div
+              className={`aspect-[4/3] rounded-2xl bg-gradient-to-br sm:aspect-square ${featured.accent}`}
+            />
+            <div className="flex flex-col justify-center">
+              <p className="text-xs uppercase tracking-wider text-mist">
+                {featured.category} · {featured.creator}
+              </p>
+              <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                {featured.title}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-mist">{featured.blurb}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-4">
+                <span className="numeric text-2xl font-extrabold text-gradient">
+                  {formatHTG(featured.priceHTG)}
+                </span>
+                {featured.ratingAvg !== null && (
+                  <span className="text-sm text-mist">
+                    <span className="text-accent">★</span> {featured.ratingAvg} ({featured.ratingCount})
+                  </span>
+                )}
+                <span className="rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-ink">
+                  {t(lang, "featured.cta")}
+                </span>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* 2. CATÉGORIES PRINCIPALES */}
       {categories.length > 0 && (
