@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { COUNTRIES } from "@/lib/geo/countries";
+import { HT_DEPARTMENTS } from "@/lib/geo/haiti";
 
 export function ProfileForm({
   initial,
@@ -12,6 +13,7 @@ export function ProfileForm({
     bio: string;
     avatar_url: string;
     country_code: string;
+    region_code: string;
   };
 }) {
   const router = useRouter();
@@ -64,7 +66,15 @@ export function ProfileForm({
       <select
         className={input}
         value={form.country_code}
-        onChange={(e) => set("country_code", e.target.value)}
+        onChange={(e) => {
+          const country = e.target.value;
+          // Le département n'existe qu'en Haïti : on le réinitialise sinon.
+          setForm((f) => ({
+            ...f,
+            country_code: country,
+            region_code: country === "HT" ? f.region_code : "",
+          }));
+        }}
         aria-label="Pays"
       >
         <option value="">Pays (optionnel)</option>
@@ -74,6 +84,21 @@ export function ProfileForm({
           </option>
         ))}
       </select>
+      {form.country_code === "HT" && (
+        <select
+          className={input}
+          value={form.region_code}
+          onChange={(e) => set("region_code", e.target.value)}
+          aria-label="Département"
+        >
+          <option value="">Département (optionnel)</option>
+          {HT_DEPARTMENTS.map((d) => (
+            <option key={d.code} value={d.code}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+      )}
       <textarea
         className={input}
         rows={3}

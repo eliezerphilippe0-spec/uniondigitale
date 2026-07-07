@@ -79,6 +79,7 @@ export default async function DashboardPage() {
     bio: "",
     avatar_url: "",
     country_code: "",
+    region_code: "",
   };
 
   try {
@@ -94,7 +95,7 @@ export default async function DashboardPage() {
 
     const { data: prof } = await admin
       .from("profiles")
-      .select("display_name, bio, avatar_url, country_code")
+      .select("display_name, bio, avatar_url, country_code, region_code")
       .eq("id", user.id)
       .maybeSingle();
     if (prof) {
@@ -103,6 +104,7 @@ export default async function DashboardPage() {
         bio: prof.bio ?? "",
         avatar_url: prof.avatar_url ?? "",
         country_code: prof.country_code ?? "",
+        region_code: prof.region_code ?? "",
       };
     }
 

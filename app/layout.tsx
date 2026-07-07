@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const title = "Zabelie Talent — Produits digitaux & talents africains";
+const title = "Zabelie Talent — Produits digitaux & talents haïtiens";
 const description =
-  "Vendez vos produits digitaux et vos talents. Paiement mobile money, livraison instantanée. La marketplace digitale africaine.";
+  "Vendez vos produits digitaux et vos talents. Paiement mobile money, livraison instantanée. La marketplace digitale haïtienne.";
 
 export const metadata: Metadata = {
   title: {

@@ -2,11 +2,13 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { GeoMap, type GeoRow } from "@/components/geo-map";
+import { HaitiMap, type HtRow } from "@/components/haiti-map";
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 import { countryName } from "@/lib/geo/countries";
+import { departmentName } from "@/lib/geo/haiti";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Géo-localisation — Zabelie Talent" };
@@ -32,6 +34,7 @@ function Shell({
 
 type UserAgg = { country_code: string; role: string; users: number };
 type SalesAgg = { country_code: string; orders: number; gmv_htg: number };
+type HtAgg = { region_code: string; creators: number; users: number };
 
 export default async function GeoPage() {
   if (!isSupabaseConfigured()) {
@@ -61,10 +64,12 @@ export default async function GeoPage() {
   }
 
   const admin = createAdminClient();
-  const [{ data: usersData }, { data: salesData }] = await Promise.all([
-    admin.from("analytics_geo_users").select("country_code, role, users"),
-    admin.from("analytics_geo_sales").select("country_code, orders, gmv_htg"),
-  ]);
+  const [{ data: usersData }, { data: salesData }, { data: htData }] =
+    await Promise.all([
+      admin.from("analytics_geo_users").select("country_code, role, users"),
+      admin.from("analytics_geo_sales").select("country_code, orders, gmv_htg"),
+      admin.from("analytics_geo_ht").select("region_code, creators, users"),
+    ]);
 
   // Fusion par pays (jamais par individu).
   const byIso = new Map<string, GeoRow>();
@@ -102,6 +107,18 @@ export default async function GeoPage() {
     .sort((a, b) => b.users - a.users)
     .slice(0, 10);
 
+  // Zoom Haïti — talents (créateurs) par département.
+  const htRows: HtRow[] = (htData ?? []).map((h: HtAgg) => ({
+    code: h.region_code,
+    creators: h.creators,
+    users: h.users,
+  }));
+  const htTalents = htRows.reduce((s, r) => s + r.creators, 0);
+  const htNoDept = htRows.find((r) => r.code === "??");
+  const htByDept = [...htRows]
+    .filter((r) => r.code !== "??")
+    .sort((a, b) => b.creators - a.creators);
+
   const stats = [
     { label: "Utilisateurs", value: String(totalUsers) },
     { label: "Créateurs", value: String(totalCreators) },
@@ -137,8 +154,68 @@ export default async function GeoPage() {
         </p>
       ) : (
         <>
+          {/* Zoom Haïti — marché ciblé, centré sur les talents. */}
           <section className="mt-10">
-            <GeoMap rows={rows} />
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-lg font-semibold">
+                Zoom Haïti — talents par département
+              </h2>
+              <span className="text-xs text-mist">
+                {htTalents} talent{htTalents > 1 ? "s" : ""} en Haïti
+                {htNoDept?.creators
+                  ? ` · ${htNoDept.creators} sans département`
+                  : ""}
+              </span>
+            </div>
+            <div className="mt-4 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+              <HaitiMap rows={htRows} />
+              <div className="overflow-hidden rounded-2xl border border-line">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface/60 text-left text-xs text-mist">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Département</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Talents
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {htByDept.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={2}
+                          className="px-4 py-4 text-mist"
+                        >
+                          Aucun talent localisé par département pour l’instant.
+                        </td>
+                      </tr>
+                    ) : (
+                      htByDept.map((r) => (
+                        <tr key={r.code} className="border-t border-line">
+                          <td className="px-4 py-2.5 font-medium">
+                            {departmentName(r.code)}
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            {r.creators}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* Vue mondiale — diaspora & clients hors Haïti. */}
+          <section className="mt-10">
+            <h2 className="text-lg font-semibold">Vue mondiale</h2>
+            <p className="mt-1 text-xs text-mist">
+              Diaspora et clients hors Haïti.
+            </p>
+            <div className="mt-4">
+              <GeoMap rows={rows} />
+            </div>
           </section>
 
           <section className="mt-10">

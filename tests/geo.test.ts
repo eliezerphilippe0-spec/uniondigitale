@@ -22,7 +22,7 @@ test("countryFromRequest : rejette absent/inconnu/anonymisé", () => {
 
 test("countryName : libellé FR, repli, et '??' → Non renseigné", () => {
   assert.equal(countryName("HT"), "Haïti");
-  assert.equal(countryName("SN"), "Sénégal");
+  assert.equal(countryName("US"), "États-Unis");
   assert.equal(countryName("??"), "Non renseigné");
   assert.equal(countryName("ZZ", "Fallback"), "Fallback");
   assert.equal(countryName("ZZ"), "ZZ");

@@ -43,7 +43,7 @@ export default async function HomePage() {
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-mist">
               <span className="h-1.5 w-1.5 rounded-full bg-teal" />
-              La marketplace digitale africaine
+              La marketplace digitale haïtienne
             </span>
 
             <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
@@ -54,7 +54,7 @@ export default async function HomePage() {
             <p className="mx-auto mt-5 max-w-xl text-base text-mist sm:text-lg lg:mx-0">
               Templates, formations, beats, mentorat… Publiez, encaissez via
               mobile money et livrez instantanément. Pensé pour le contexte
-              africain.
+              haïtien.
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">

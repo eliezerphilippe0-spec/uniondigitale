@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     bio?: string;
     avatar_url?: string;
     country_code?: string;
+    region_code?: string;
   };
   try {
     body = await req.json();
@@ -40,6 +41,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Code pays invalide" }, { status: 400 });
   }
 
+  // Département haïtien (ISO-3166-2:HT). N'a de sens que si pays = HT : sinon on
+  // le remet à NULL pour éviter les incohérences.
+  const rawRegion = body.region_code?.trim().toUpperCase() || "";
+  if (rawRegion && !/^HT-[A-Z]{2}$/.test(rawRegion)) {
+    return NextResponse.json({ error: "Département invalide" }, { status: 400 });
+  }
+  const region = rawCountry === "HT" ? rawRegion || null : null;
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -47,6 +56,7 @@ export async function POST(req: Request) {
       bio: body.bio?.trim() || null,
       avatar_url: body.avatar_url?.trim() || null,
       country_code: rawCountry || null,
+      region_code: region,
     })
     .eq("id", user.id);
 

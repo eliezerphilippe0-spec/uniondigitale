@@ -2,7 +2,7 @@
   "name": "zabelie-talent",
   "version": "0.1.0",
   "private": true,
-  "description": "Zabelie Talent — marketplace de produits digitaux et talents africains",
+  "description": "Zabelie Talent — marketplace de produits digitaux et talents haïtiens",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

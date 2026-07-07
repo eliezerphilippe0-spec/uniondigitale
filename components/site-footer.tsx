@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div className="max-w-xs">
           <BrandLogo />
           <p className="mt-3 text-sm text-mist">
-            La marketplace des produits digitaux et talents africains. Paiement
+            La marketplace des produits digitaux et talents haïtiens. Paiement
             mobile money, livraison instantanée.
           </p>
         </div>

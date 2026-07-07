@@ -27,6 +27,7 @@ export type Profile = {
   zabelie1_user_id: string | null;
   tier: CreatorTier;
   country_code: string | null;
+  region_code: string | null;
   created_at: string;
 };
 

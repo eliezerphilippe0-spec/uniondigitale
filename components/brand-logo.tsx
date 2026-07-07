@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 /**
- * Logo Zabelie Talent — monogramme "Z" géométrique inspiré des motifs
- * africains (chevrons), avec dégradé or → violet de la marque.
+ * Logo Zabelie Talent — monogramme "Z" géométrique (chevrons), avec
+ * dégradé or → violet de la marque.
  * 100% SVG, aucune dépendance externe.
  */
 export function BrandMark({
