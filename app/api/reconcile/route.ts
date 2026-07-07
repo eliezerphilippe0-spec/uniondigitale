@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { retrieveOrderPayment } from "@/lib/moncash";
+import { retrieveOrderPayment, redactPayment } from "@/lib/moncash";
 import { reconcilePayments, type ReconcileDeps } from "@/lib/reconcile";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ function liveDeps(): ReconcileDeps {
       const { data, error } = await admin.rpc("confirm_payment", {
         p_idempotency_key: idempotencyKey,
         p_provider_ref: providerRef,
-        p_raw: raw as unknown as Record<string, unknown>,
+        p_raw: redactPayment(raw),
         p_amount: amount,
       });
       if (error) return { error: error.message };

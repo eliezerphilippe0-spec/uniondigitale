@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isSuccessful, type MonCashPayment } from "../lib/moncash";
+import {
+  isSuccessful,
+  redactPayment,
+  type MonCashPayment,
+} from "../lib/moncash";
 import {
   slugify,
   paymentIdempotencyKey,
@@ -23,6 +27,23 @@ test("isSuccessful : true uniquement si statut 'successful'", () => {
   assert.equal(isSuccessful({ ...base, status: "pending" }), false);
   assert.equal(isSuccessful({ ...base, status: "failed" }), false);
   assert.equal(isSuccessful(null), false);
+});
+
+test("redactPayment : retire l'identifiant du payeur (minimisation RGPD)", () => {
+  const p: MonCashPayment = {
+    reference: "o1",
+    transactionId: "t1",
+    cost: 100,
+    message: "ok",
+    payer: "50912345678",
+    status: "successful",
+  };
+  const r = redactPayment(p);
+  assert.equal("payer" in r, false); // plus d'identifiant payeur
+  assert.equal(r.payer_present, true); // trace de présence seulement
+  assert.equal(r.transactionId, "t1"); // audit/réconciliation préservés
+  assert.equal(r.cost, 100);
+  assert.equal(r.status, "successful");
 });
 
 test("paymentIdempotencyKey : stable = order.id", () => {

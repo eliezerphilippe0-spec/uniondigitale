@@ -13,7 +13,7 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4">
           <div className="flex flex-col gap-2">
             <p className="font-semibold text-cloud">Explorer</p>
             <Link href="/catalogue" className="text-mist hover:text-cloud">
@@ -36,6 +36,15 @@ export function SiteFooter() {
             <p className="font-semibold text-cloud">Paiement</p>
             <span className="text-mist">MonCash</span>
             <span className="text-mist/50">NatCash — bientôt</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-cloud">Légal</p>
+            <Link
+              href="/confidentialite"
+              className="text-mist hover:text-cloud"
+            >
+              Confidentialité
+            </Link>
           </div>
         </div>
       </div>

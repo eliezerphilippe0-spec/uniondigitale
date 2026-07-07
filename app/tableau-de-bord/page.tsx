@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/products";
 import { formatHTG } from "@/lib/sample-data";
 import { ProfileForm } from "@/components/profile-form";
+import { AccountActions } from "@/components/account-actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord — Zabelie Talent" };
@@ -243,6 +244,22 @@ export default async function DashboardPage() {
         </div>
         <div className="mt-4 max-w-lg rounded-2xl border border-line bg-surface/60 p-5">
           <ProfileForm initial={profile} />
+        </div>
+      </section>
+
+      {/* Données & compte (RGPD) */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Mes données &amp; mon compte</h2>
+        <p className="mt-1 text-sm text-mist">
+          Téléchargez une copie de vos données ou supprimez votre compte. Voir
+          notre{" "}
+          <Link href="/confidentialite" className="text-cloud underline">
+            politique de confidentialité
+          </Link>
+          .
+        </p>
+        <div className="mt-4 max-w-lg rounded-2xl border border-line bg-surface/60 p-5">
+          <AccountActions />
         </div>
       </section>
     </Shell>

@@ -30,7 +30,10 @@ async function handle(req: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ matured: data ?? 0 });
+    // Purge RGPD des payloads opérateur clôturés & anciens (best-effort : ne doit
+    // pas faire échouer la maturation).
+    const { data: purged } = await admin.rpc("purge_payment_raw", { p_days: 90 });
+    return NextResponse.json({ matured: data ?? 0, purged: purged ?? 0 });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Erreur" },
