@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/payment-utils";
+import {
+  backfillCountry,
+  countryFromRequest,
+} from "@/lib/geo/country-backfill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,6 +62,10 @@ export async function POST(req: Request) {
       role: "creator",
     });
   }
+
+  // Backfill best-effort du pays VENDEUR (dashboard /admin/geo) via géo-IP, si
+  // vide. Non bloquant, ne remplace jamais un pays déjà renseigné au profil.
+  await backfillCountry(admin, user.id, countryFromRequest(req));
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 

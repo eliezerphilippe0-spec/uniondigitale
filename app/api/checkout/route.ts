@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/moncash";
 import { withinRailCap, railCap, railCountry } from "@/lib/payment-utils";
+import {
+  backfillCountry,
+  countryFromRequest,
+} from "@/lib/geo/country-backfill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,18 +63,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // Backfill best-effort du pays acheteur : le rail (MonCash) implique un compte
-  // mobile money haïtien. On renseigne le pays UNIQUEMENT s'il est vide — jamais
-  // d'écrasement d'un choix explicite. Alimente /admin/geo côté acheteurs.
-  // Non bloquant : une erreur ici ne doit pas empêcher le paiement.
-  const inferredCountry = railCountry(rail);
-  if (inferredCountry) {
-    await admin
-      .from("profiles")
-      .update({ country_code: inferredCountry })
-      .eq("id", user.id)
-      .is("country_code", null);
-  }
+  // Backfill best-effort du pays ACHETEUR (dashboard /admin/geo), uniquement si
+  // vide. Priorité au signal fort du rail (MonCash → compte haïtien), repli sur
+  // la géo-IP de la requête. Non bloquant : n'empêche jamais le paiement.
+  await backfillCountry(
+    admin,
+    user.id,
+    railCountry(rail) ?? countryFromRequest(req),
+  );
 
   // Commande (pending).
   const { data: order, error: orderErr } = await admin
