@@ -4,17 +4,101 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { HeroVisual } from "@/components/hero-visual";
-import { getPublishedProducts } from "@/lib/products";
+import { getPublishedProducts, isSupabaseConfigured, type ProductView } from "@/lib/products";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
+/** Rangée de produits — masquée si vide (les sections vivent avec les données). */
+function HomeRow({
+  id,
+  title,
+  sub,
+  more,
+  items,
+}: {
+  id?: string;
+  title: string;
+  sub: string;
+  more: string;
+  items: ProductView[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section id={id} className="mx-auto max-w-6xl px-5 py-12">
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+          <p className="mt-2 text-sm text-mist">{sub}</p>
+        </div>
+        <Link
+          href="/catalogue"
+          className="hidden text-sm text-mist transition hover:text-cloud sm:block"
+        >
+          {more}
+        </Link>
+      </div>
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((p) => (
+          <ProductCard key={p.slug} product={p} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Vendeurs avec au moins un code promo actif (section 8) — vide en mode démo. */
+async function promoSellerIds(): Promise<Set<string>> {
+  if (!isSupabaseConfigured()) return new Set();
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("zabelie_coupons")
+      .select("seller_id")
+      .eq("active", true)
+      .or("expires_at.is.null,expires_at.gt.now()")
+      .limit(200);
+    return new Set((data ?? []).map((c) => c.seller_id));
+  } catch {
+    return new Set();
+  }
+}
+
 export default async function HomePage() {
-  const [products, lang] = await Promise.all([
+  const [products, lang, promoSellers] = await Promise.all([
     getPublishedProducts(),
     getLang(),
+    promoSellerIds(),
   ]);
+
+  // Dérivations : une seule requête catalogue alimente toutes les sections.
+  const bySales = [...products].sort((a, b) => b.sales - a.sales);
+  const trending = bySales.slice(0, 6);
+  const newest = products.slice(0, 3); // requête déjà triée par date desc
+  const services = bySales.filter((p) => p.kind === "service").slice(0, 3);
+  const free = products.filter((p) => p.priceHTG === 0).slice(0, 3);
+  const promo = bySales
+    .filter((p) => p.creatorId && promoSellers.has(p.creatorId))
+    .slice(0, 3);
+
+  const categories = [...products.reduce((m, p) => {
+    if (p.category) m.set(p.category, (m.get(p.category) ?? 0) + 1);
+    return m;
+  }, new Map<string, number>())].sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  const sellerMap = new Map<string, { name: string; id: string | null; sales: number; rSum: number; rN: number }>();
+  for (const p of products) {
+    const s = sellerMap.get(p.creator) ?? { name: p.creator, id: p.creatorId, sales: 0, rSum: 0, rN: 0 };
+    s.sales += p.sales;
+    if (p.ratingAvg !== null) { s.rSum += p.ratingAvg * p.ratingCount; s.rN += p.ratingCount; }
+    sellerMap.set(p.creator, s);
+  }
+  const sellers = [...sellerMap.values()]
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 4)
+    .map((s) => ({ ...s, rating: s.rN > 0 ? Math.round((s.rSum / s.rN) * 10) / 10 : null }));
 
   const steps = [
     { n: "01", title: t(lang, "home.s1.t"), body: t(lang, "home.s1.b") },
@@ -52,7 +136,22 @@ export default async function HomePage() {
               {t(lang, "home.sub")}
             </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+            {/* Barre de recherche premium (GET, fonctionne sans JS) */}
+            <form action="/catalogue" className="mx-auto mt-8 flex max-w-xl gap-2 lg:mx-0">
+              <input
+                name="q"
+                placeholder={t(lang, "catalog.search.ph")}
+                className="min-w-0 flex-1 rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
+              />
+              <button
+                type="submit"
+                className="rounded-xl bg-cloud px-5 py-3 text-sm font-semibold text-ink transition hover:opacity-90"
+              >
+                {t(lang, "catalog.search.btn")}
+              </button>
+            </form>
+
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/vendre"
                 className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 sm:w-auto"
@@ -88,26 +187,159 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CATALOGUE PREVIEW */}
-      <section id="talents" className="mx-auto max-w-6xl px-5 py-16">
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {t(lang, "home.trends")}
-            </h2>
-            <p className="mt-2 text-sm text-mist">{t(lang, "home.trends.sub")}</p>
+      {/* 2. CATÉGORIES PRINCIPALES */}
+      {categories.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 py-8">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t(lang, "sec.cats")}
+          </h2>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {categories.map(([cat, n]) => (
+              <Link
+                key={cat}
+                href={`/catalogue?cat=${encodeURIComponent(cat)}`}
+                className="rounded-full border border-line bg-surface/60 px-4 py-2 text-sm text-cloud transition hover:border-brand/60"
+              >
+                {cat} <span className="text-mist">· {n}</span>
+              </Link>
+            ))}
           </div>
-          <Link
-            href="/catalogue"
-            className="hidden text-sm text-mist transition hover:text-cloud sm:block"
-          >
-            {t(lang, "home.all")}
-          </Link>
-        </div>
+        </section>
+      )}
 
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.slice(0, 6).map((p) => (
-            <ProductCard key={p.slug} product={p} />
+      {/* 3. PRODUITS TENDANCE */}
+      <HomeRow
+        id="talents"
+        title={t(lang, "home.trends")}
+        sub={t(lang, "home.trends.sub")}
+        more={t(lang, "home.all")}
+        items={trending}
+      />
+
+      {/* 4. NOUVEAUTÉS */}
+      <HomeRow
+        title={t(lang, "sec.new")}
+        sub={t(lang, "sec.new.sub")}
+        more={t(lang, "home.all")}
+        items={newest}
+      />
+
+      {/* 5. SERVICES POPULAIRES */}
+      <HomeRow
+        title={t(lang, "sec.services")}
+        sub={t(lang, "sec.services.sub")}
+        more={t(lang, "home.all")}
+        items={services}
+      />
+
+      {/* 6. MEILLEURS VENDEURS */}
+      {sellers.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 py-12">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t(lang, "sec.sellers")}
+          </h2>
+          <p className="mt-2 text-sm text-mist">{t(lang, "sec.sellers.sub")}</p>
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {sellers.map((s) => (
+              <Link
+                key={s.name}
+                href={s.id ? `/createur/${s.id}` : "/catalogue"}
+                className="rounded-2xl border border-line bg-surface/60 p-5 transition hover:border-brand/60"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand text-lg font-extrabold text-ink">
+                  {s.name.charAt(0)}
+                </span>
+                <p className="mt-3 truncate font-semibold">{s.name}</p>
+                <p className="mt-1 text-xs text-mist">
+                  {s.rating !== null && <>★ {s.rating} · </>}
+                  {s.sales} {t(lang, "sec.sellers.sales")}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 7. PRODUITS GRATUITS */}
+      <HomeRow
+        title={t(lang, "sec.free")}
+        sub={t(lang, "sec.free.sub")}
+        more={t(lang, "home.all")}
+        items={free}
+      />
+
+      {/* 8. EN PROMOTION (vendeurs à code promo actif) */}
+      <HomeRow
+        title={t(lang, "sec.promo")}
+        sub={t(lang, "sec.promo.sub")}
+        more={t(lang, "home.all")}
+        items={promo}
+      />
+
+      {/* 9. AVIS CLIENTS */}
+      <section className="mx-auto max-w-6xl px-5 py-12">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          {t(lang, "sec.reviews")}
+        </h2>
+        <p className="mt-2 text-sm text-mist">{t(lang, "sec.reviews.sub")}</p>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {([1, 2, 3] as const).map((i) => (
+            <figure
+              key={i}
+              className="rounded-2xl border border-line bg-surface/60 p-5"
+            >
+              <p className="text-accent">★★★★★</p>
+              <blockquote className="mt-3 text-sm leading-relaxed text-cloud">
+                « {t(lang, `testi.${i}.b` as Parameters<typeof t>[1])} »
+              </blockquote>
+              <figcaption className="mt-4 text-xs font-semibold text-mist">
+                {t(lang, `testi.${i}.n` as Parameters<typeof t>[1])}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* 10. POURQUOI CHOISIR ZABELIE DIGI */}
+      <section className="mx-auto max-w-6xl px-5 py-12">
+        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          {t(lang, "sec.why")}
+        </h2>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {([
+            ["🛡️", "why.1.t", "why.1.b"],
+            ["✅", "why.2.t", "why.2.b"],
+            ["🇭🇹", "why.3.t", "why.3.b"],
+            ["⚡", "why.4.t", "why.4.b"],
+          ] as const).map(([icon, tt, bb]) => (
+            <div key={tt} className="rounded-2xl border border-line bg-surface/40 p-6">
+              <span className="text-2xl">{icon}</span>
+              <h3 className="mt-3 font-semibold">{t(lang, tt)}</h3>
+              <p className="mt-2 text-sm text-mist">{t(lang, bb)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 11. FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-5 py-12">
+        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          {t(lang, "sec.faq")}
+        </h2>
+        <div className="mt-8 space-y-3">
+          {([1, 2, 3, 4, 5] as const).map((i) => (
+            <details
+              key={i}
+              className="group rounded-2xl border border-line bg-surface/40 px-5 py-4"
+            >
+              <summary className="cursor-pointer list-none font-semibold marker:content-none">
+                <span className="mr-2 text-accent transition group-open:rotate-90 inline-block">›</span>
+                {t(lang, `faq.q${i}` as Parameters<typeof t>[1])}
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-mist">
+                {t(lang, `faq.a${i}` as Parameters<typeof t>[1])}
+              </p>
+            </details>
           ))}
         </div>
       </section>
