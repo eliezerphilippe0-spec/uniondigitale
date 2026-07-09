@@ -9,6 +9,23 @@ export const dynamic = "force-dynamic";
 const BUCKET = "product-files";
 const MAX_BYTES = 50 * 1024 * 1024; // 50 Mo
 
+// Liste blanche des livrables numériques (audit sécurité §8.1). Le bucket est
+// privé et la livraison force le téléchargement (jamais de rendu navigateur),
+// mais on refuse quand même les formats exécutables/sans usage marchand : un
+// fichier vendu est un document, un média ou une archive — pas un .exe.
+const ALLOWED_EXTENSIONS = new Set([
+  // documents & ebooks
+  "pdf", "epub", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv",
+  // audio (beats, samples)
+  "mp3", "wav", "ogg", "flac", "aac", "m4a", "mid", "midi",
+  // vidéo (formations, templates)
+  "mp4", "mov", "webm", "mkv",
+  // images & design
+  "png", "jpg", "jpeg", "webp", "gif", "psd", "ai", "svg", "fig", "sketch",
+  // archives (packs, code source livré zippé)
+  "zip", "rar", "7z",
+]);
+
 /**
  * POST /api/products/asset  (multipart : productId, file)
  * Envoie le fichier livrable d'un produit dans le bucket privé et enregistre
@@ -55,6 +72,17 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: "Fichier trop volumineux (max 50 Mo)" },
       { status: 413 }
+    );
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return NextResponse.json(
+      {
+        error:
+          "Type de fichier non autorisé. Formats acceptés : documents (PDF, Office, ePub), audio, vidéo, images/design, archives (ZIP, RAR, 7z).",
+      },
+      { status: 422 }
     );
   }
 

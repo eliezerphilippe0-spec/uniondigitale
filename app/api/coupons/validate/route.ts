@@ -6,6 +6,7 @@ import {
   discountedPriceHtg,
   type CouponRow,
 } from "@/lib/zabelie-coupons";
+import { rateLimit, clientIp } from "@/lib/zabelie-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,12 @@ export async function POST(req: Request) {
   if (!code) return NextResponse.json({ valid: false });
 
   const admin = createAdminClient();
+
+  // Route publique : borne par IP contre la devinette de codes par force brute
+  // (20 essais/min laissent une marge confortable à un acheteur légitime).
+  if (!(await rateLimit(admin, `coupon_validate:${clientIp(req)}`, 20))) {
+    return NextResponse.json({ valid: false }, { status: 429 });
+  }
   const { data: product } = await admin
     .from("products")
     .select("id, price_htg, seller_id")

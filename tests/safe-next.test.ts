@@ -15,6 +15,7 @@ test("safeNext : rejette tout open redirect → repli sur /", () => {
   assert.equal(safeNext("/\\evil.com"), "/"); // backslash traité en slash
   assert.equal(safeNext("\\/evil.com"), "/");
   assert.equal(safeNext("javascript:alert(1)"), "/"); // pas un chemin
+  assert.equal(safeNext("@evil.com"), "/"); // userinfo-redirect (site+next)
   assert.equal(safeNext("produit/x"), "/"); // relatif sans slash initial
   assert.equal(safeNext(""), "/");
   assert.equal(safeNext(null), "/");

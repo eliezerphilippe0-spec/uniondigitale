@@ -11,6 +11,7 @@ import {
   type TopupLimits,
 } from "@/lib/zabelie-topup/limits";
 import { isTopupEnabled } from "@/lib/zabelie-topup/fulfill";
+import { rateLimit } from "@/lib/zabelie-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -80,6 +81,16 @@ export async function POST(req: Request) {
   }
 
   const admin = createAdminClient();
+
+  // Débit borné AVANT toute création (chaque commande déclenche une session
+  // MonCash payante) — complète les plafonds BRH, qui bornent les montants
+  // mais pas la cadence des appels eux-mêmes.
+  if (!(await rateLimit(admin, `topup:${user.id}`, 5))) {
+    return NextResponse.json(
+      { error: "Trop de tentatives — réessayez dans une minute." },
+      { status: 429 }
+    );
+  }
 
   // Produit actif — prix/coût figés côté serveur.
   const { data: product } = await admin
