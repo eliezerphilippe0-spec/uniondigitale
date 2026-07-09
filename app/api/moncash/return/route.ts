@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { retrieveTransactionPayment, isSuccessful } from "@/lib/moncash";
+import {
+  retrieveTransactionPayment,
+  isSuccessful,
+  redactPayment,
+} from "@/lib/moncash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +70,7 @@ export async function GET(req: Request) {
   const { data, error } = await admin.rpc("confirm_payment", {
     p_idempotency_key: orderId,
     p_provider_ref: payment.transactionId,
-    p_raw: payment as unknown as Record<string, unknown>,
+    p_raw: redactPayment(payment),
     p_amount: Math.round(payment.cost),
   });
 

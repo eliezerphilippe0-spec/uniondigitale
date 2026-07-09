@@ -1,6 +1,6 @@
 /**
  * Visuel hero conçu en code (CSS/SVG) — aucune image externe.
- * Composition : mesh de dégradés + motif géométrique africain + cartes
+ * Composition : mesh de dégradés + motif géométrique + cartes
  * "produits digitaux" flottantes en glassmorphism.
  */
 export function HeroVisual() {
@@ -10,7 +10,7 @@ export function HeroVisual() {
           ne pas réutiliser .bg-grain ici : c'est le wrapper de page) */}
       <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-accent/25 via-brand/10 to-transparent blur-2xl" />
 
-      {/* Motif géométrique africain (chevrons) en filigrane */}
+      {/* Motif géométrique (chevrons) en filigrane */}
       <svg
         className="absolute inset-0 h-full w-full opacity-[0.12]"
         viewBox="0 0 200 200"

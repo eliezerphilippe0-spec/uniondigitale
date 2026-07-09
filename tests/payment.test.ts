@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   isSuccessful,
+  redactPayment,
   normalizePayment,
   type MonCashPayment,
 } from "../lib/moncash";
@@ -12,6 +13,7 @@ import {
   amountMatches,
   withinRailCap,
   railCap,
+  railCountry,
   usdCentsFromHtg,
   formatUsd,
   zelleMemo,
@@ -29,6 +31,23 @@ test("isSuccessful : true uniquement si statut 'successful'", () => {
   assert.equal(isSuccessful({ ...base, status: "pending" }), false);
   assert.equal(isSuccessful({ ...base, status: "failed" }), false);
   assert.equal(isSuccessful(null), false);
+});
+
+test("redactPayment : retire l'identifiant du payeur (minimisation RGPD)", () => {
+  const p: MonCashPayment = {
+    reference: "o1",
+    transactionId: "t1",
+    cost: 100,
+    message: "ok",
+    payer: "50912345678",
+    status: "successful",
+  };
+  const r = redactPayment(p);
+  assert.equal("payer" in r, false); // plus d'identifiant payeur
+  assert.equal(r.payer_present, true); // trace de présence seulement
+  assert.equal(r.transactionId, "t1"); // audit/réconciliation préservés
+  assert.equal(r.cost, 100);
+  assert.equal(r.status, "successful");
 });
 
 test("normalizePayment : format réel MonCash (snake_case + succès par message)", () => {
@@ -84,6 +103,12 @@ test("plafonds : MonCash 25k, NatCash 20k", () => {
   assert.equal(withinRailCap(20001, "natcash"), false);
   // Rail inconnu → pas de plafond appliqué (true).
   assert.equal(withinRailCap(999999, "inconnu"), true);
+});
+
+test("railCountry : rails haïtiens → HT, inconnu → null", () => {
+  assert.equal(railCountry("moncash"), "HT");
+  assert.equal(railCountry("natcash"), "HT");
+  assert.equal(railCountry("inconnu"), null);
 });
 
 test("usdCentsFromHtg : conversion figée au checkout (rails diaspora)", () => {

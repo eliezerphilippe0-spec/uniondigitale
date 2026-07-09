@@ -11,9 +11,9 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 ## 1. Supabase
 
 1. Créer un projet sur https://supabase.com.
-2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`) :
-   - via CLI : `supabase link --project-ref <ref>` puis `supabase db push` ;
-   - ou manuellement : exécuter `0001 → … → 0012` dans le SQL Editor (ou coller `supabase/schema.sql` en une fois).
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **17 fichiers**) :
+   - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour) → *Run* ;
+   - ou via CLI : `supabase link --project-ref <ref>` puis `supabase db push`.
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
 4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
    **Redirect URLs** : `https://<domaine>/auth/callback`.
@@ -21,6 +21,14 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (secret — jamais côté client)
+6. **Devenir admin** (après inscription via `/connexion`) — impossible depuis
+   l'app (trigger de sécurité `0015`), à faire dans le **SQL Editor** :
+   ```sql
+   update profiles set role = 'admin'
+   where id = (select id from auth.users where email = 'ton-email@exemple.com');
+   ```
+7. **Advisors** : *Database → Advisors* → corriger tout warning de sécurité
+   restant (l'audit du code était statique ; la prod peut en révéler d'autres).
 
 ### Test d'idempotence (recommandé avant prod)
 ```bash

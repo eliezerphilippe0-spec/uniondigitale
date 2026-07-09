@@ -26,6 +26,8 @@ export type Profile = {
   bio: string | null;
   avatar_url: string | null;
   tier: CreatorTier;
+  country_code: string | null;
+  region_code: string | null;
   created_at: string;
 };
 

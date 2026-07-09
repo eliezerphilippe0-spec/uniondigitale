@@ -3,9 +3,9 @@
 Version condensée « toujours en contexte ». Le détail est dans `docs/`.
 
 ## C'est quoi
-**Zabelie Digi** = marketplace de **produits digitaux + talents africains**
+**Zabelie Digi** = marketplace de **produits digitaux + talents haïtiens**
 (inspirée de **Chariow** et **Talent gn**), avec paiement **mobile money haïtien** et
-wallet vendeur. Objectif : **plateforme ultra-moderne**.
+wallet vendeur. Marché ciblé : **Haïti**. Objectif : **plateforme ultra-moderne**.
 
 **Naming (tranché)** : le nom officiel et UNIQUE est « **Zabelie Digi** » —
 tout ancien nom de travail est éliminé (décision porteur, anti-confusion).

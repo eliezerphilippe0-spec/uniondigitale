@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/payment-utils";
+import {
+  backfillCountry,
+  countryFromRequest,
+} from "@/lib/geo/country-backfill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +22,15 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+  }
+
+  // Compte suspendu (modération) : action bloquée même si la session est
+  // encore active (le ban auth ne coupe la session qu'au refresh du token).
+  if (await getSuspension(user.id)) {
+    return NextResponse.json(
+      { error: "Compte suspendu — action non autorisée." },
+      { status: 403 }
+    );
   }
 
   let body: {
@@ -58,6 +72,10 @@ export async function POST(req: Request) {
       role: "creator",
     });
   }
+
+  // Backfill best-effort du pays VENDEUR (dashboard /admin/geo) via géo-IP, si
+  // vide. Non bloquant, ne remplace jamais un pays déjà renseigné au profil.
+  await backfillCountry(admin, user.id, countryFromRequest(req));
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 

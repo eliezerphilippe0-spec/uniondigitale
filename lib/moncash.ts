@@ -209,3 +209,14 @@ export async function retrieveTransactionPayment(
 export function isSuccessful(p: MonCashPayment | null): boolean {
   return p?.status === "successful";
 }
+
+/**
+ * Minimisation RGPD avant stockage dans payments.raw : on conserve ce qui sert à
+ * la réconciliation/l'audit (référence, transaction, montant, statut, message)
+ * mais on RETIRE l'identifiant du payeur (téléphone/compte), donnée personnelle
+ * inutile à la vérité du paiement. On garde juste un booléen de présence.
+ */
+export function redactPayment(p: MonCashPayment): Record<string, unknown> {
+  const { payer: _payer, ...rest } = p;
+  return { ...rest, payer_present: Boolean(_payer) };
+}

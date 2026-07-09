@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 /**
- * Logo Zabelie Digi — monogramme "Z" géométrique inspiré des motifs
- * africains (chevrons), rampe or → orange → brand du thème (SVG inline :
- * les variables CSS des tokens résolvent dans le DOM).
+ * Logo Zabelie Digi — monogramme "Z" géométrique (chevrons), rampe
+ * or → orange → brand du thème (SVG inline : les variables CSS des tokens
+ * résolvent dans le DOM).
  */
 export function BrandMark({
   size = 32,

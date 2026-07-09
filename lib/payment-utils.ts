@@ -64,6 +64,21 @@ export function withinRailCap(amountHTG: number, rail: string): boolean {
 }
 
 /**
+ * Pays implicite d'un rail de paiement (ISO-3166 alpha-2). MonCash et NatCash
+ * sont des mobile money HAÏTIENS : payer via ce rail implique un compte en Haïti.
+ * Sert au backfill best-effort de profiles.country_code (dashboard /admin/geo) —
+ * jamais d'écrasement d'un pays déjà renseigné par l'utilisateur.
+ */
+export const RAIL_COUNTRY: Record<string, string> = {
+  moncash: "HT",
+  natcash: "HT",
+};
+
+export function railCountry(rail: string): string | null {
+  return RAIL_COUNTRY[rail] ?? null;
+}
+
+/**
  * Conversion HTG → cents USD pour les rails diaspora (Stripe/Zelle).
  * `htgPerUsd` = taux configuré (env USD_HTG_RATE, ex. 132 HTG pour 1 USD).
  * Le montant USD est FIGÉ au checkout (payments.expected_usd_cents) puis

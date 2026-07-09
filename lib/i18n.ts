@@ -20,7 +20,7 @@ const fr = {
   "nav.dashboard": "Tableau de bord",
   "nav.logout": "Déconnexion",
   "footer.tagline":
-    "La marketplace des produits digitaux et talents africains. Paiement mobile money, livraison instantanée.",
+    "La marketplace des produits digitaux et talents haïtiens. Paiement mobile money, livraison instantanée.",
   "footer.explore": "Explorer",
   "footer.sell": "Vendre",
   "footer.become": "Devenir créateur",
@@ -29,13 +29,13 @@ const fr = {
   "footer.rights": "Tous droits réservés.",
 
   // Accueil
-  "home.badge": "La marketplace digitale africaine",
+  "home.badge": "La marketplace digitale haïtienne",
   "home.h1.a": "Vendez vos",
   "home.h1.b": "produits digitaux",
   "home.h1.c": "et vos",
   "home.h1.d": "talents",
   "home.sub":
-    "Templates, formations, beats, mentorat… Publiez, encaissez via mobile money et livrez instantanément. Pensé pour le contexte africain.",
+    "Templates, formations, beats, mentorat… Publiez, encaissez via mobile money et livrez instantanément. Pensé pour le contexte haïtien.",
   "home.cta.sell": "Commencer à vendre",
   "home.cta.browse": "Explorer le catalogue",
   "home.stat1": "digital & talents",
@@ -232,7 +232,7 @@ const ht: Record<I18nKey, string> = {
   "nav.dashboard": "Tablo bò",
   "nav.logout": "Dekonekte",
   "footer.tagline":
-    "Makètplas pwodwi dijital ak talan afriken yo. Peman mobile money, livrezon nan menm moman.",
+    "Makètplas pwodwi dijital ak talan ayisyen yo. Peman mobile money, livrezon nan menm moman.",
   "footer.explore": "Eksplore",
   "footer.sell": "Vann",
   "footer.become": "Vin kreyatè",
@@ -240,7 +240,7 @@ const ht: Record<I18nKey, string> = {
   "footer.natcash": "NatCash — talè konsa",
   "footer.rights": "Tout dwa rezève.",
 
-  "home.badge": "Makètplas dijital afriken an",
+  "home.badge": "Makètplas dijital ayisyen an",
   "home.h1.a": "Vann",
   "home.h1.b": "pwodwi dijital ou yo",
   "home.h1.c": "ak",

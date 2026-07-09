@@ -7,7 +7,7 @@
 
 ## 1. Objectif produit
 
-Permettre à un créateur africain de **vendre un produit digital ou un service** et
+Permettre à un créateur haïtien de **vendre un produit digital ou un service** et
 d'être **payé via mobile money haïtien** de façon fiable, puis de **retirer ses gains**.
 Permettre à un acheteur de **payer et recevoir instantanément** son achat.
 

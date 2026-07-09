@@ -6,7 +6,7 @@
 
 ## Le modèle Chariow (store-builder)
 
-Chariow permet à un créateur africain de monter une **boutique de produits
+Chariow permet à un créateur de monter une **boutique de produits
 digitaux en un lien** (ebooks, formations, templates), avec checkout mobile
 money (rails d'Afrique de l'Ouest/Centrale) et livraison automatique. Le
 vendeur **apporte son propre trafic** (WhatsApp, Instagram, TikTok).

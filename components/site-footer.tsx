@@ -51,6 +51,15 @@ export async function SiteFooter() {
               {t(lang, "pay.ok.cta")}
             </Link>
           </div>
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-cloud">Légal</p>
+            <Link
+              href="/confidentialite"
+              className="text-mist hover:text-cloud"
+            >
+              Confidentialité
+            </Link>
+          </div>
         </div>
       </div>
       <div className="border-t border-line py-5 text-center text-xs text-mist">

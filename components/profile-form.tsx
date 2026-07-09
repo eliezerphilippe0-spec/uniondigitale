@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { COUNTRIES } from "@/lib/geo/countries";
+import { HT_DEPARTMENTS } from "@/lib/geo/haiti";
 
 export function ProfileForm({
   initial,
 }: {
-  initial: { display_name: string; bio: string; avatar_url: string };
+  initial: {
+    display_name: string;
+    bio: string;
+    avatar_url: string;
+    country_code: string;
+    region_code: string;
+  };
 }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
@@ -55,6 +63,42 @@ export function ProfileForm({
         value={form.avatar_url}
         onChange={(e) => set("avatar_url", e.target.value)}
       />
+      <select
+        className={input}
+        value={form.country_code}
+        onChange={(e) => {
+          const country = e.target.value;
+          // Le département n'existe qu'en Haïti : on le réinitialise sinon.
+          setForm((f) => ({
+            ...f,
+            country_code: country,
+            region_code: country === "HT" ? f.region_code : "",
+          }));
+        }}
+        aria-label="Pays"
+      >
+        <option value="">Pays (optionnel)</option>
+        {COUNTRIES.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      {form.country_code === "HT" && (
+        <select
+          className={input}
+          value={form.region_code}
+          onChange={(e) => set("region_code", e.target.value)}
+          aria-label="Département"
+        >
+          <option value="">Département (optionnel)</option>
+          {HT_DEPARTMENTS.map((d) => (
+            <option key={d.code} value={d.code}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+      )}
       <textarea
         className={input}
         rows={3}

@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/moncash";
 import { createStripeCheckout, isStripeEnabled } from "@/lib/stripe";
 import { isZelleEnabled } from "@/lib/zelle";
-import { withinRailCap, railCap, usdCentsFromHtg } from "@/lib/payment-utils";
+import {
+  withinRailCap,
+  railCap,
+  usdCentsFromHtg,
+  railCountry,
+} from "@/lib/payment-utils";
 import {
   normalizeCouponCode,
   couponApplies,
   discountedPriceHtg,
   type CouponRow,
 } from "@/lib/zabelie-coupons";
+import {
+  backfillCountry,
+  countryFromRequest,
+} from "@/lib/geo/country-backfill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +74,15 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+  }
+
+  // Compte suspendu (modération) : action bloquée même si la session est
+  // encore active (le ban auth ne coupe la session qu'au refresh du token).
+  if (await getSuspension(user.id)) {
+    return NextResponse.json(
+      { error: "Compte suspendu — action non autorisée." },
+      { status: 403 }
+    );
   }
 
   const admin = createAdminClient();
@@ -127,6 +146,15 @@ export async function POST(req: Request) {
       { status: 422 }
     );
   }
+
+  // Backfill best-effort du pays ACHETEUR (dashboard /admin/geo), uniquement si
+  // vide. Priorité au signal fort du rail (MonCash → compte haïtien), repli sur
+  // la géo-IP (rails diaspora Stripe/Zelle → pays du payeur). Non bloquant.
+  await backfillCountry(
+    admin,
+    user.id,
+    railCountry(rail) ?? countryFromRequest(req),
+  );
 
   // Rails USD : montant figé MAINTENANT (garde-fou vérifié en base ensuite).
   let expectedUsdCents: number | null = null;
