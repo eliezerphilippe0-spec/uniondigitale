@@ -45,10 +45,11 @@ communauté) adapté au contexte de paiement haïtien (MonCash/NatCash/BRH).**
 
 - **Zabelie** (projet 1) : marketplace de produits physiques.
 - **Zabelie Digi** (projet 2, ce projet) : produits **digitaux** + talents/services.
-  Nom officiel tranché — l'ex-nom de travail « Zabelie Talent » est retiré.
-  Le repo GitHub `uniondigitale` est une étiquette technique, à renommer
-  `zabelie-*` par le porteur (la branche git `claude/zabelie-talent-*` garde
-  son nom historique).
+  Nom officiel et unique : « Zabelie Digi » — tout ancien nom de travail est
+  éliminé (décision porteur, anti-confusion). Le repo GitHub `uniondigitale`
+  est une étiquette technique, à renommer `zabelie-*` par le porteur ; le nom
+  de la branche git de travail est un identifiant technique sans signification
+  produit.
 
 Les deux marques partagent la racine « Zabelie », **mais Zabelie Digi est un
 projet totalement à part** : aucune fusion — auth, wallet, schéma ou code — avec
