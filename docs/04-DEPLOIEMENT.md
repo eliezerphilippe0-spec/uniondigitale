@@ -11,8 +11,8 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 ## 1. Supabase
 
 1. Créer un projet sur https://supabase.com.
-2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **17 fichiers** `0001 → … → 0017`) :
-   - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour des 17 migrations) → *Run* ;
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **17 fichiers**) :
+   - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour) → *Run* ;
    - ou via CLI : `supabase link --project-ref <ref>` puis `supabase db push`.
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
 4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
@@ -70,7 +70,7 @@ Non configurés = invisibles au checkout (MonCash seul). Pour les activer :
 
 ## 3. Vercel
 
-1. Importer le dépôt, brancher `claude/zabelie-talent-context-85ph4j` (ou `main`).
+1. Importer le dépôt, brancher **`main`** (le tronc — toutes les PR y fusionnent).
 2. **Environment Variables** : recopier tout `.env.example` (clés Supabase,
    MonCash, `NEXT_PUBLIC_SITE_URL=https://<domaine>`, `RECONCILE_SECRET`,
    `CRON_SECRET`).
@@ -89,7 +89,7 @@ Non configurés = invisibles au checkout (MonCash seul). Pour les activer :
 
 ## 4. Checklist de mise en prod
 
-- [ ] Migrations `0001→0009` appliquées, bucket `product-files` privé.
+- [ ] Migrations `0001→0012` appliquées, bucket `product-files` privé.
 - [ ] Test SQL d'idempotence : OK.
 - [ ] Variables d'env Supabase (dont `SUPABASE_SERVICE_ROLE_KEY`) sur Vercel.
 - [ ] Auth : redirect URL `/auth/callback` configurée côté Supabase.

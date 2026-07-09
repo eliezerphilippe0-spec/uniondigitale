@@ -7,10 +7,11 @@ Version condensée « toujours en contexte ». Le détail est dans `docs/`.
 (inspirée de **Chariow** et **Talent gn**), avec paiement **mobile money haïtien** et
 wallet vendeur. Marché ciblé : **Haïti**. Objectif : **plateforme ultra-moderne**.
 
-**Naming (tranché)** : nom officiel « **Zabelie Digi** » (ex-nom de travail
-« Zabelie Talent », retiré). Le repo GitHub `uniondigitale` est une étiquette
-technique **à renommer en `zabelie-*`** par le porteur — seule la branche git
-`claude/zabelie-talent-*` garde son nom historique.
+**Naming (tranché)** : le nom officiel et UNIQUE est « **Zabelie Digi** » —
+tout ancien nom de travail est éliminé (décision porteur, anti-confusion).
+Le repo GitHub `uniondigitale` est une étiquette technique **à renommer en
+`zabelie-*`** par le porteur ; le nom de la branche git de travail est un
+identifiant technique historique, sans signification produit.
 
 ⚠️ **À ne pas confondre avec Zabelie (projet 1)**, la marketplace de produits
 **physiques**. Ce projet-ci est le **deuxième**, dédié au **digital**.
