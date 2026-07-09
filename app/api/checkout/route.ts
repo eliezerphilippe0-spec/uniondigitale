@@ -21,6 +21,7 @@ import {
   backfillCountry,
   countryFromRequest,
 } from "@/lib/geo/country-backfill";
+import { rateLimit } from "@/lib/zabelie-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -86,6 +87,15 @@ export async function POST(req: Request) {
   }
 
   const admin = createAdminClient();
+
+  // Débit borné AVANT tout effet (consommation coupon, session MonCash/Stripe
+  // payante) : 10 checkouts/min par compte suffisent largement à un humain.
+  if (!(await rateLimit(admin, `checkout:${user.id}`, 10))) {
+    return NextResponse.json(
+      { error: "Trop de tentatives — réessayez dans une minute." },
+      { status: 429 }
+    );
+  }
 
   // Produit publié uniquement, prix = source de vérité serveur.
   const { data: product, error: prodErr } = await admin
