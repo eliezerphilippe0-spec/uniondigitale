@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0012).
+-- Zabelie Digi — schéma complet (concaténation 0001→0017).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
@@ -6,6 +6,7 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- 0001_schema.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Schéma initial (Vague 1)
 -- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Digi, fusion future
 -- possible via profiles.zabelie1_user_id (nullable + unique).
@@ -136,6 +137,7 @@ create index payouts_wallet_idx on payouts (wallet_id);
 -- ═══════════════════════════════════════════════════════════════════
 -- 0002_rls.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Row Level Security (Vague 1)
 -- Principe : lecture publique du catalogue ; chacun gère ses propres données ;
 -- les paiements/wallet ne sont JAMAIS écrits côté client (service role + RPC).
@@ -226,6 +228,7 @@ create policy "payouts_owner_read"
 -- ═══════════════════════════════════════════════════════════════════
 -- 0003_payment_functions.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Logique de paiement idempotente (EPIC 4)
 -- docs/03-PAIEMENTS.md. À appeler UNIQUEMENT côté serveur (webhook MonCash
 -- vérifié serveur-à-serveur, ou réconciliateur). Jamais depuis le navigateur.
@@ -347,6 +350,7 @@ revoke all on function confirm_payment(text, text, jsonb, integer) from public, 
 -- ═══════════════════════════════════════════════════════════════════
 -- 0004_storage.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Storage (Vague 1)
 -- Bucket PRIVÉ pour les fichiers livrables. L'accès se fait exclusivement par
 -- URL signée délivrée côté serveur APRÈS paiement confirmé (app/api/download).
@@ -360,6 +364,7 @@ on conflict (id) do nothing;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0005_commission.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Commission par tier (EPIC 4 / EPIC 5)
 -- Le vendeur est crédité du NET ; la plateforme prélève une commission selon le
 -- tier. C'est le modèle économique : sans ça, le ledger est faux à chaque vente.
@@ -515,6 +520,7 @@ revoke all on function confirm_payment(text, text, jsonb, integer) from public, 
 -- ═══════════════════════════════════════════════════════════════════
 -- 0006_escrow_maturation.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Escrow & maturation J+7 + remboursements (EPIC 5)
 -- Fenêtre anti-fraude : le NET du vendeur est d'abord EN ATTENTE (pending), puis
 -- DISPONIBLE (available, retirable) après 7 jours. Un remboursement avant
@@ -736,6 +742,7 @@ revoke all on function refund_order(uuid) from public, anon, authenticated;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0007_standalone.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
 -- Aucune fusion prévue avec Zabelie 1 ni aucun autre projet. On retire la
 -- passerelle dormante prévue « au cas où » par l'ancienne V-9.
@@ -747,6 +754,7 @@ alter table profiles drop column if exists zabelie1_user_id;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0008_reviews.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Avis d'acheteurs VÉRIFIÉS (différenciateur confiance vs Chariow)
 -- Règle dure : seul un acheteur ayant une commande PAYÉE peut laisser un avis,
 -- et UN SEUL avis par commande (contrainte UNIQUE en base, pas seulement en API).
@@ -794,6 +802,7 @@ create policy "reviews_public_read"
 -- ═══════════════════════════════════════════════════════════════════
 -- 0009_rails_diaspora.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Rails diaspora : Stripe (carte) + Zelle (V-10)
 -- Décision produit : ouvrir les achats USD de la diaspora. Le LEDGER RESTE EN
 -- HTG (net vendeur, commission, escrow inchangés — calculés sur amount_htg).
@@ -943,6 +952,7 @@ revoke all on function confirm_payment(text, text, jsonb, integer, integer)
 -- ═══════════════════════════════════════════════════════════════════
 -- 0010_topup.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Service de recharge téléphonique (topup) Digicel/Natcom (V-11)
 -- Positionnement BRH (Circulaire 121) : Zabelie Digi est un REVENDEUR de
 -- recharge télécom, JAMAIS un émetteur de monnaie électronique.
@@ -1225,6 +1235,7 @@ insert into zabelie_topup_products
 -- ═══════════════════════════════════════════════════════════════════
 -- 0011_security_hardening.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Durcissement sécurité (advisors Supabase, post-migration prod)
 -- 1. RLS manquant sur 2 tables financières (niveau ERROR au linter) : sans RLS,
 --    l'API REST Supabase (PostgREST) les expose aux clients authentifiés.
@@ -1248,6 +1259,7 @@ alter function zabelie_topup_ledger_guard() set search_path = public;
 -- ═══════════════════════════════════════════════════════════════════
 -- 0012_coupons.sql
 -- ═══════════════════════════════════════════════════════════════════
+
 -- Zabelie Digi — Codes promo vendeur (V-13, inspiration Chariow adaptée Haïti)
 -- Le vendeur anime ses ventes lui-même (« PROMO50 sur WhatsApp jusqu'à
 -- dimanche »). Règles dures respectées : la réduction est calculée CÔTÉ
@@ -1332,3 +1344,272 @@ begin
 end;
 $$;
 revoke all on function zabelie_claim_notification(uuid) from public, anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0013_geo_analytics.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Géo-analytics back-office (Vague 1)
+-- Objectif : dashboard interne « d'où viennent nos clients/talents », AGRÉGÉ
+-- PAR PAYS uniquement. Aucune position individuelle, aucune coordonnée en base.
+--
+-- Choix privacy (cf. décision produit « dashboard interne, granularité pays ») :
+--   • On stocke un simple code pays ISO-3166 alpha-2 sur profiles.
+--   • Les vues n'exposent QUE des comptes agrégés (jamais un identifiant).
+--   • Accès révoqué à anon/authenticated : seul le service role (back-office
+--     admin, garde role='admin' en app) peut lire ces agrégats.
+
+-- ───────────────────────── country_code ───────────────────────
+-- ISO-3166-1 alpha-2 en MAJUSCULES (ex: 'HT', 'SN'), NULL tant que non renseigné.
+alter table profiles
+  add column if not exists country_code text
+  check (country_code is null or country_code ~ '^[A-Z]{2}$');
+
+create index if not exists profiles_country_idx on profiles (country_code);
+
+-- ───────────────────── vue : talents/clients par pays ─────────
+-- Une ligne par (pays, rôle) avec un simple compteur. '??' = non renseigné.
+create or replace view analytics_geo_users as
+  select
+    coalesce(country_code, '??') as country_code,
+    role,
+    count(*)::int                as users
+  from profiles
+  group by 1, 2;
+
+-- ───────────────────── vue : ventes par pays (acheteur) ───────
+-- GMV et nombre de commandes honorées, ventilés par pays de l'ACHETEUR.
+create or replace view analytics_geo_sales as
+  select
+    coalesce(b.country_code, '??')      as country_code,
+    count(*)::int                       as orders,
+    coalesce(sum(o.amount_htg), 0)::bigint as gmv_htg
+  from orders o
+  join profiles b on b.id = o.buyer_id
+  where o.status in ('paid', 'delivered')
+  group by 1;
+
+-- ───────────────────────── verrouillage accès ────────────────
+-- Les vues sont en « definer rights » (contournent la RLS des tables sources) :
+-- on ferme donc explicitement l'accès public/API. Lecture réservée au back-office.
+revoke all on analytics_geo_users, analytics_geo_sales from anon, authenticated;
+grant  select on analytics_geo_users, analytics_geo_sales to service_role;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0014_haiti_departments.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Zoom Haïti par département (back-office /admin/geo)
+-- Marché ciblé : Haïti. On veut voir OÙ sont les TALENTS (créateurs) à l'échelle
+-- des 10 départements, en restant agrégé (jamais une position individuelle).
+--
+-- Cohérent avec 0007 : region_code n'a de sens que si country_code = 'HT'.
+
+-- ───────────────────────── region_code ───────────────────────
+-- Département haïtien au format ISO-3166-2 (ex: 'HT-OU' = Ouest), NULL sinon.
+alter table profiles
+  add column if not exists region_code text
+  check (region_code is null or region_code ~ '^HT-[A-Z]{2}$');
+
+create index if not exists profiles_region_idx on profiles (region_code);
+
+-- ───────────────── vue : talents Haïti par département ────────
+-- Une ligne par département avec compteurs. '??' = pays Haïti mais département
+-- non renseigné. Seuls les profils localisés en Haïti sont pris en compte.
+create or replace view analytics_geo_ht as
+  select
+    coalesce(region_code, '??') as region_code,
+    count(*) filter (where role = 'creator')::int as creators,
+    count(*)::int                                  as users
+  from profiles
+  where country_code = 'HT'
+  group by 1;
+
+-- ───────────────────────── verrouillage accès ────────────────
+revoke all on analytics_geo_ht from anon, authenticated;
+grant  select on analytics_geo_ht to service_role;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0015_profiles_hardening.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Durcissement RLS de `profiles` (audit sécurité)
+-- Corrige trois failles issues d'un même angle mort : les policies de `profiles`
+-- s'appliquent PAR LIGNE, jamais PAR COLONNE. Ajouter une colonne sensible à une
+-- table dont la policy est `using(true)` / sans `with check` l'expose ou la rend
+-- modifiable automatiquement.
+--
+--   [1] Auto-promotion admin : un utilisateur pouvait PATCH son propre profil
+--       (role='admin') via la clé anon publique, en contournant /api/profile.
+--   [2] Fraude commission : idem avec tier='elite' (commission 10 % → 6 %).
+--   [3] Fuite de localisation : country_code/region_code (0007/0008) étaient
+--       lisibles publiquement au niveau individuel via la policy public_read.
+
+-- ─────────────────── [1][2] role & tier non modifiables côté client ───────────
+-- Un BEFORE trigger neutralise toute tentative d'escalade : seul le service_role
+-- (back-office / RPC) peut fixer role et tier. Les sessions anon/authenticated
+-- se voient forcer les valeurs par défaut (INSERT) ou l'ancienne valeur (UPDATE),
+-- SANS bloquer la mise à jour légitime des autres colonnes (nom, bio, pays…).
+create or replace function protect_profile_privileges()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Rôles privilégiés (service_role via PostgREST, migrations) : aucun garde-fou.
+  if current_user in (
+    'service_role', 'postgres', 'supabase_admin', 'supabase_auth_admin'
+  ) then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    new.role := 'buyer';       -- pas d'auto-attribution admin/creator à l'inscription
+    new.tier := 'standard';    -- pas d'auto-attribution elite
+  elsif tg_op = 'UPDATE' then
+    new.role := old.role;      -- role figé côté client
+    new.tier := old.tier;      -- tier figé côté client
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_profile_privileges on profiles;
+create trigger trg_protect_profile_privileges
+  before insert or update on profiles
+  for each row execute function protect_profile_privileges();
+
+-- Défense en profondeur : la mise à jour reste bornée à sa propre ligne.
+drop policy if exists "profiles_self_update" on profiles;
+create policy "profiles_self_update"
+  on profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+-- ─────────────────── [3] lecture publique restreinte aux colonnes sûres ───────
+-- La RLS ne filtre pas les colonnes : on le fait via des GRANTs colonne. On révoque
+-- le SELECT « toutes colonnes » à anon/authenticated et on ne rouvre que le strict
+-- nécessaire au catalogue public et à l'app. country_code / region_code restent
+-- lisibles UNIQUEMENT par le service_role (dashboard /admin/geo).
+revoke select on profiles from anon, authenticated;
+grant  select (id, role, display_name, bio, avatar_url, tier, created_at)
+  on profiles to anon, authenticated;
+-- Les écritures self (nom, bio, avatar, pays, département) restent permises : on
+-- ne révoque PAS les privilèges UPDATE/INSERT — seul le SELECT est restreint.
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0016_gdpr_retention.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Rétention / minimisation (audit RGPD)
+-- Le payload opérateur (payments.raw) n'est utile qu'à la réconciliation d'un
+-- paiement encore 'pending'. Une fois le paiement clôturé (confirmed/failed) et
+-- passé un délai d'audit, on efface raw : minimisation (Art. 5(1)(c)) + limitation
+-- de conservation (Art. 5(1)(e)). L'identifiant du payeur n'est déjà plus écrit
+-- (redactPayment côté app) ; cette purge nettoie aussi l'historique existant.
+
+create or replace function purge_payment_raw(p_days integer default 90)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_count integer;
+begin
+  update payments
+     set raw = null
+   where raw is not null
+     and status in ('confirmed', 'failed')
+     and coalesce(confirmed_at, created_at) < now() - make_interval(days => p_days);
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+-- Réservé au service role (cron / back-office), jamais exposé au client.
+revoke all on function purge_payment_raw(integer) from public, anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- 0017_seller_suspension.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Suspension réversible de compte (modération admin)
+-- Sanction de modération SANS AUCUNE ÉCRITURE MONÉTAIRE (cadre BRH : Zabelie
+-- n'est pas dépositaire — on ne gèle, ne débite, ne fige jamais un solde dû ;
+-- l'escrow continue de mûrir normalement). La suspension agit sur :
+--   • l'accès (ban auth réversible, côté app),
+--   • la visibilité catalogue (policy produits ci-dessous),
+--   • le décaissement futur (les retraits — déjà bloqués en Vague 1 — devront
+--     vérifier suspended_at is null).
+-- La remédiation financière d'une fraude passe par refund_order (moyen
+-- d'origine + checkpoint humain), commande par commande — jamais par ici.
+
+-- ───────────────────────── colonnes ───────────────────────────
+alter table profiles
+  add column if not exists suspended_at     timestamptz,
+  add column if not exists suspended_reason text,
+  add column if not exists suspended_by     uuid references profiles (id);
+
+-- NB : ces colonnes ne sont volontairement PAS ajoutées au GRANT SELECT colonne
+-- de 0015 → invisibles à anon/authenticated via l'API REST. Seul le service
+-- role (back-office, écran « compte suspendu ») les lit.
+
+-- ─────────────── trigger : suspension non modifiable côté client ──────────────
+-- Sans ça, profiles_self_update permettrait à un suspendu de se dé-suspendre
+-- via PostgREST. Même mécanique que role/tier (0015).
+create or replace function protect_profile_privileges()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Rôles privilégiés (service_role via PostgREST, migrations) : aucun garde-fou.
+  if current_user in (
+    'service_role', 'postgres', 'supabase_admin', 'supabase_auth_admin'
+  ) then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    new.role := 'buyer';       -- pas d'auto-attribution admin/creator à l'inscription
+    new.tier := 'standard';    -- pas d'auto-attribution elite
+    new.suspended_at     := null;
+    new.suspended_reason := null;
+    new.suspended_by     := null;
+  elsif tg_op = 'UPDATE' then
+    new.role := old.role;      -- role figé côté client
+    new.tier := old.tier;      -- tier figé côté client
+    new.suspended_at     := old.suspended_at;     -- suspension figée côté client
+    new.suspended_reason := old.suspended_reason;
+    new.suspended_by     := old.suspended_by;
+  end if;
+  return new;
+end;
+$$;
+-- (le trigger trg_protect_profile_privileges de 0015 pointe déjà sur cette fonction)
+
+-- ──────────── catalogue : produits d'un vendeur suspendu masqués ──────────────
+-- SECURITY DEFINER : la policy products est évaluée pour anon/authenticated,
+-- qui n'ont pas le SELECT sur suspended_at (grants colonne 0015). Le helper
+-- contourne proprement, sans réexposer la colonne.
+create or replace function seller_is_active(p_seller uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from profiles
+     where id = p_seller and suspended_at is null
+  );
+$$;
+revoke all on function seller_is_active(uuid) from public;
+grant execute on function seller_is_active(uuid) to anon, authenticated, service_role;
+
+-- Réversible par design : à la réactivation (suspended_at → NULL), les produits
+-- réapparaissent SANS re-publication. Le vendeur continue de voir ses propres
+-- produits (policy products_seller_read_own intacte).
+drop policy if exists "products_public_read_published" on products;
+create policy "products_public_read_published"
+  on products for select
+  using (status = 'published' and seller_is_active(seller_id));
