@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0017).
+-- Zabelie Digi — schéma complet (concaténation 0001→0018).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
@@ -1613,3 +1613,12 @@ drop policy if exists "products_public_read_published" on products;
 create policy "products_public_read_published"
   on products for select
   using (status = 'published' and seller_is_active(seller_id));
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0018_fix_search_path.sql
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- Zabelie Digi — Fige search_path sur protect_profile_privileges (advisor WARN)
+-- Incohérence avec le reste du codebase (purge_payment_raw, zabelie_coupon_consume…
+-- ont tous `set search_path = public`) : cette fonction trigger l'avait omis.
+alter function protect_profile_privileges() set search_path = public;

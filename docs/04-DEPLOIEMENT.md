@@ -11,7 +11,7 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 ## 1. Supabase
 
 1. Créer un projet sur https://supabase.com.
-2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **17 fichiers**) :
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **18 fichiers**) :
    - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour) → *Run* ;
    - ou via CLI : `supabase link --project-ref <ref>` puis `supabase db push`.
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/safe-next";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,12 +8,15 @@ export const dynamic = "force-dynamic";
 /**
  * GET /auth/callback?code=...
  * Échange le code d'authentification (confirmation e-mail / OAuth) contre une
- * session, puis redirige.
+ * session, puis redirige. `next` passe par safeNext (anti open-redirect) —
+ * sans ce garde-fou, `next=@evil.com` résout en `${site}@evil.com`, une URL
+ * valide dont l'hôte est evil.com (userinfo-redirect), un lien de phishing
+ * crédible car il part d'un domaine de confiance.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/";
+  const next = safeNext(url.searchParams.get("next"));
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? url.origin;
 
   if (code) {
