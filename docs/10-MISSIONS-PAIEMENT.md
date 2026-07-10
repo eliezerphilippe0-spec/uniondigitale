@@ -135,12 +135,31 @@ created → funding_pending → funded → delivered → approved → released
   livraison confirmée) signale un litige au lieu d'approuver. Gèle le jalon
   — **aucune transition automatique** tant qu'un admin n'a pas tranché
   (même philosophie que `refund_order` : checkpoint humain, pas de logique
-  auto de résolution de dispute).
+  auto de résolution de dispute). **Le passage en `disputed` suspend le
+  compteur d'auto-approbation** (voir ci-dessous) — il ne l'ignore pas
+  silencieusement : une ligne `mission_ledger` explicite trace le gel
+  (`counter_paused`, avec la date et l'auteur du signalement), et une autre
+  trace la reprise si l'admin renvoie le jalon en `delivered` sans trancher.
+  Un litige ne doit jamais se transformer en auto-approbation surprise parce
+  que le délai a couru pendant que quelqu'un l'examinait.
 - **Auto-approbation par délai** : si l'acheteur ne réagit pas N jours après
   passage en `delivered` (proposition : 14 jours, à valider porteur), le
   jalon passe automatiquement en `approved` puis `released` — évite un
   argent bloqué indéfiniment par une simple inaction. Nécessite un job cron,
   même modèle que `mature_wallets`/`expire_points_batch_job`.
+  - **Notification vendeur à J+11** (3 jours avant l'auto-approbation, proposition
+    à valider porteur) : un e-mail informe le vendeur que le jalon approche de
+    l'auto-approbation — utile en pratique (le vendeur peut relancer l'acheteur)
+    et rassurant (l'auto-approbation n'est jamais une surprise totale). Même
+    mécanique que les e-mails transactionnels existants (`lib/zabelie-notify.ts`),
+    best-effort, ne bloque jamais le cron si l'envoi échoue.
+  - **Le compteur est suspendu, pas ignoré, en cas de litige** : si le jalon
+    passe en `disputed` avant J+14, le job cron ne doit **pas** le traiter — le
+    filtre du job exclut explicitement `disputed`, et la reprise (si l'admin
+    renvoie le jalon en `delivered`) redémarre un délai neuf de 14 jours à
+    partir de la date de reprise, jamais un reliquat du compteur initial (plus
+    simple à raisonner, et plus juste pour l'acheteur qui vient de rouvrir la
+    discussion).
 
 Chaque transition = une ligne dans `mission_ledger` (**append-only**, même
 garde-fou que `zabelie_topup_ledger` et `points_ledger`).
@@ -197,7 +216,13 @@ commission à inventer.
       jalon, comme il bloque déjà le checkout produit et la publication.
 - [ ] Test SQL dédié couvrant : financement → rejeu idempotent, montant
       falsifié rejeté, transition interdite refusée, litige gèle la
-      libération, auto-approbation après délai, ledger immuable.
+      libération, auto-approbation après délai, ledger immuable, **compteur
+      suspendu par un litige ne déclenche jamais l'auto-approbation pendant
+      le gel, et repart à 14 jours pleins (pas un reliquat) à la reprise**.
+- [ ] Notification vendeur à J+11 : best-effort (échec d'envoi n'empêche
+      jamais le cron de continuer), testée comme `zabelie_claim_notification`
+      (marqueur idempotent — un jalon ne doit recevoir qu'un seul e-mail de
+      rappel, même si le job tourne plusieurs fois avant J+14).
 
 ---
 
