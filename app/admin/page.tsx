@@ -8,6 +8,7 @@ import { AdminZelleConfirmButton } from "@/components/admin-zelle-confirm-button
 import {
   AdminTopupZelleButton,
   AdminTopupRefundButton,
+  AdminTopupSyncButton,
 } from "@/components/admin-topup-buttons";
 import { formatHaitiPhone } from "@/lib/zabelie-topup/phone";
 import { formatUsd, zelleMemo } from "@/lib/payment-utils";
@@ -432,6 +433,20 @@ export default async function AdminPage() {
           </ul>
         </section>
       )}
+
+      {/* Recharges — catalogue Reloadly */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Recharges — catalogue</h2>
+        <p className="mt-1 text-xs text-mist">
+          Remplit les dénominations et les <code>operatorId</code> Digicel/Natcom
+          depuis Reloadly (coûtant = valeur faciale par défaut, à affiner
+          ensuite). À lancer une fois les clés Reloadly posées, avant d&apos;ouvrir{" "}
+          <code>/rechaj</code>.
+        </p>
+        <div className="mt-4">
+          <AdminTopupSyncButton />
+        </div>
+      </section>
 
       {/* Réconciliation paiements */}
       <section className="mt-10">
