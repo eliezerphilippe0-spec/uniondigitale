@@ -20,6 +20,8 @@ export type ProductView = {
   ratingCount: number;
   accent: string;
   blurb: string;
+  deliveryDays: number | null;    // 'service' uniquement — page Fiverr
+  serviceIncludes: string[];      // 'service' uniquement — checklist « inclus »
 };
 
 const ACCENTS = [
@@ -60,6 +62,8 @@ const sampleAsView = (): ProductView[] =>
     ratingCount: 0,
     accent: p.accent,
     blurb: p.blurb,
+    deliveryDays: null,
+    serviceIncludes: [],
   }));
 
 type Row = {
@@ -75,6 +79,8 @@ type Row = {
   rating_sum: number;
   seller_id: string;
   seller: { display_name: string } | { display_name: string }[] | null;
+  delivery_days: number | null;
+  service_includes: string[] | null;
 };
 
 function rowAsView(r: Row): ProductView {
@@ -96,11 +102,13 @@ function rowAsView(r: Row): ProductView {
     ratingCount: r.rating_count ?? 0,
     accent: accentFor(r.slug),
     blurb: r.description ?? "",
+    deliveryDays: r.delivery_days,
+    serviceIncludes: r.service_includes ?? [],
   };
 }
 
 const SELECT =
-  "id, slug, title, description, kind, category, price_htg, sales_count, rating_count, rating_sum, seller_id, seller:profiles!products_seller_id_fkey(display_name)";
+  "id, slug, title, description, kind, category, price_htg, sales_count, rating_count, rating_sum, seller_id, delivery_days, service_includes, seller:profiles!products_seller_id_fkey(display_name)";
 
 export type ProductFilters = {
   q?: string;

@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0019).
+-- Zabelie Digi — schéma complet (concaténation 0001→0020).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
@@ -1678,3 +1678,10 @@ end;
 $$;
 revoke all on function zabelie_rate_limit(text, integer, integer)
   from public, anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0020_service_fields.sql
+-- ═══════════════════════════════════════════════════════════════════════════
+
+    check (delivery_days is null or delivery_days > 0),
+  add column service_includes text[];
