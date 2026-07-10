@@ -11,9 +11,10 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 ## 1. Supabase
 
 1. Créer un projet sur https://supabase.com.
-2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **19 fichiers**) :
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **19 fichiers déployables** — `0001`→`0019`) :
    - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour) → *Run* ;
    - ou via CLI : `supabase link --project-ref <ref>` puis `supabase db push`.
+   > ⚠️ `0020_points_rewards` est un **brouillon** (programme de fidélité) **exclu du déploiement** tant qu'un avis BRH n'a pas validé le principe d'un solde de points acheteur. Ne pas l'appliquer, et retirer son bloc de `schema.sql` avant un `Run` global tant que la décision n'est pas prise.
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
 4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
    **Redirect URLs** : `https://<domaine>/auth/callback`.
