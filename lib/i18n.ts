@@ -18,6 +18,7 @@ const fr = {
   "nav.login": "Connexion",
   "nav.sell": "Vendre",
   "nav.dashboard": "Tableau de bord",
+  "nav.pro": "Facturation",
   "nav.logout": "Déconnexion",
   "footer.tagline":
     "La marketplace des produits digitaux et talents haïtiens. Paiement mobile money, livraison instantanée.",
@@ -232,6 +233,7 @@ const ht: Record<I18nKey, string> = {
   "nav.login": "Konekte",
   "nav.sell": "Vann",
   "nav.dashboard": "Tablo bò",
+  "nav.pro": "Fè m peye",
   "nav.logout": "Dekonekte",
   "footer.tagline":
     "Makètplas pwodwi dijital ak talan ayisyen yo. Peman mobile money, livrezon nan menm moman.",

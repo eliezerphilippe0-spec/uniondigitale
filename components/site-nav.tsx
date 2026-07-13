@@ -47,6 +47,12 @@ export async function SiteNav() {
               >
                 {t(lang, "nav.dashboard")}
               </Link>
+              <Link
+                href="/pro"
+                className="hidden text-sm text-mist transition hover:text-cloud sm:block"
+              >
+                {t(lang, "nav.pro")}
+              </Link>
               <SignOutButton className="hidden text-sm text-mist transition hover:text-cloud sm:block" />
               <Link
                 href="/vendre"

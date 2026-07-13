@@ -40,6 +40,38 @@ export async function GET(req: Request) {
   const orderId = payment.reference;
   const admin = createAdminClient();
 
+  // Facture Zabelie Business (V-13) ? Référence `biz:<invoiceId>:<nonce>`.
+  // Traité EN PREMIER : cette référence n'est pas un UUID, donc elle ne doit
+  // pas atteindre les requêtes qui filtrent des colonnes id de type uuid.
+  // Crédit IMMÉDIAT du pro (sans escrow), idempotent sur la référence complète.
+  if (orderId.startsWith("biz:")) {
+    const invoiceId = orderId.split(":")[1] ?? "";
+    const { data: bizPay, error: bizErr } = await admin.rpc(
+      "zabelie_biz_confirm_invoice_payment",
+      {
+        p_invoice: invoiceId,
+        p_provider: "moncash",
+        p_provider_ref: payment.transactionId,
+        p_amount: Math.round(payment.cost),
+        p_idempotency: orderId,
+      }
+    );
+    // Token pour rediriger le client vers le portail de SA facture.
+    const { data: inv } = await admin
+      .from("zabelie_biz_invoices")
+      .select("public_token")
+      .eq("id", invoiceId)
+      .maybeSingle();
+    const back = inv?.public_token
+      ? `${site}/facture/${inv.public_token}`
+      : `${site}/paiement/en-attente`;
+    if (bizErr || !bizPay) {
+      // Erreur transitoire ou montant refusé → le réconciliateur reprendra.
+      return NextResponse.redirect(back);
+    }
+    return NextResponse.redirect(`${back}?paye=1`);
+  }
+
   // Recharge téléphonique (V-11) ? Même vérité serveur-à-serveur, pipeline
   // dédié : confirmation idempotente puis fulfillment immédiat.
   const { data: topupOrder } = await admin

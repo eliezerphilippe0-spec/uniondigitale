@@ -31,6 +31,11 @@ const PUBLIC_ROUTES: Record<string, RegExp> = {
   // Prévisualisation de code promo : publique par choix (l'acheteur n'est pas
   // encore connecté), bornée par IP contre la force brute.
   "coupons/validate/route.ts": /rateLimit\(/,
+  // Portail client d'une facture Business : payer sans login. La facture est
+  // résolue SERVEUR par token opaque, le montant (reste dû) est calculé en base
+  // — jamais du client ; bornée par token contre l'abus. Confirmation réelle =
+  // serveur-à-serveur dans moncash/return (INVARIANT 2).
+  "facture/[token]/pay/route.ts": /rateLimit\(/,
 };
 
 function collectRoutes(dir: string): string[] {
