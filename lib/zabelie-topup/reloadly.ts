@@ -88,10 +88,38 @@ export function mapReloadlyStatus(s: string | undefined | null): TopupStatus {
 type ReloadlyOperator = {
   operatorId: number;
   name: string;
-  denominationType: "FIXED" | "RANGE";
+  denominationType?: "FIXED" | "RANGE";
   localFixedAmounts?: number[];
+  localMinAmount?: number | null;
+  localMaxAmount?: number | null;
   supportsLocalAmounts?: boolean;
 };
+
+// Échelle de dénominations HTG par défaut (miroir du seed 0010) — pour les
+// opérateurs « en plage » (RANGE) qui n'exposent pas de montants fixes.
+const DEFAULT_HTG_LADDER = [25, 50, 100, 250, 500, 1000];
+
+/**
+ * Dénominations HTG à cataloguer pour un opérateur Reloadly.
+ *   • montants FIXES exposés → on les prend tels quels ;
+ *   • sinon (opérateur RANGE) → échelle standard, bornée à [min, max] local.
+ * Sans ce repli, un opérateur en plage produirait 0 produit (catalogue vide).
+ * Exporté pour test unitaire (fonction pure, aucun appel réseau).
+ */
+export function reloadlyDenominations(op: {
+  localFixedAmounts?: number[] | null;
+  localMinAmount?: number | null;
+  localMaxAmount?: number | null;
+}): number[] {
+  const fixed = (op.localFixedAmounts ?? [])
+    .map((a) => Math.round(a))
+    .filter((a) => a > 0);
+  if (fixed.length > 0) return fixed;
+
+  const min = op.localMinAmount ?? 0;
+  const max = op.localMaxAmount ?? Number.POSITIVE_INFINITY;
+  return DEFAULT_HTG_LADDER.filter((a) => a >= min && a <= max);
+}
 
 function matchesOperator(name: string, operator: TopupOperator): boolean {
   const n = name.toLowerCase();
@@ -123,15 +151,15 @@ export const reloadlyProvider: TopupProvider = {
     const products: TopupProduct[] = [];
     for (const op of ops) {
       if (!matchesOperator(op.name, operator)) continue;
-      for (const amount of op.localFixedAmounts ?? []) {
+      for (const amount of reloadlyDenominations(op)) {
         products.push({
           operator,
           providerProductId: String(op.operatorId),
           label: `${op.name} ${amount} HTG`,
-          faceValueHtg: Math.round(amount),
+          faceValueHtg: amount,
           // Coûtant réel = montant local converti au taux + frais Reloadly ;
           // à affiner via le rapport de commissions (OPS_TODO).
-          costHtg: Math.round(amount),
+          costHtg: amount,
         });
       }
     }
