@@ -262,9 +262,15 @@ seule fonction exposée) — jamais un accès table direct, jamais l'ID interne.
 
 ---
 
-## 9. Décisions ouvertes (à trancher avant de coder)
-1. **Commission Business** : même barème que Digi (10 %/6 % J+7) ou spécifique ?
-   *(défaut proposé : identique — un seul barème, plus simple.)*
+## 9. Décisions (⚑ = tranchées par le porteur)
+1. ⚑ **Commission Business = 7 % fixe** (décision porteur 2026-07-13), J+7 comme
+   Digi. Taux fixe unique (pas de paliers), donc plus simple que
+   `commission_rate_bps(tier)`. **À stocker en config base** (table type
+   `zabelie_biz_config` ou réutilisation d'un pattern « clé/valeur » comme
+   `zabelie_topup_limits`), pas en dur dans la fonction → ajustable sans
+   migration. ⚠️ Nuance à afficher clairement au pro : 7 % se situe entre les
+   paliers Digi (Standard 10 % / Elite 6 %) — un vendeur Elite paie donc un peu
+   plus sur ses factures Business que sur ses ventes produit. Choix assumé.
 2. **Généralisation de l'escrow (§1)** : OK pour toucher `escrow_entries`/
    `platform_earnings` en prod (avec migration + tests + revue) ? C'est le seul
    point sensible. *(Alternative plus lourde : pipeline escrow Business séparé.)*
