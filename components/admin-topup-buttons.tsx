@@ -59,6 +59,53 @@ export function AdminTopupZelleButton({
 }
 
 /**
+ * Synchronise le catalogue `zabelie_topup_products` depuis Reloadly
+ * (operatorId + dénominations + coûtant réels) — un clic, aucun SQL.
+ */
+export function AdminTopupSyncButton() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function sync() {
+    setLoading(true);
+    setMsg(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/topup/sync-catalog", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Échec de la synchronisation.");
+        return;
+      }
+      setMsg(
+        `Catalogue synchronisé : ${data.inserted} ajouté(s), ${data.updated} mis à jour.`
+      );
+      router.refresh();
+    } catch {
+      setError("Connexion impossible.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <button
+        onClick={sync}
+        disabled={loading}
+        className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-cloud transition hover:border-cloud/50 disabled:opacity-60"
+      >
+        {loading ? "Synchronisation…" : "Synchroniser le catalogue Reloadly"}
+      </button>
+      {msg && <p className="mt-2 text-xs text-success-text">{msg}</p>}
+      {error && <p className="mt-2 text-xs text-danger-text">{error}</p>}
+    </div>
+  );
+}
+
+/**
  * Enregistre un remboursement de recharge EXÉCUTÉ MANUELLEMENT via le moyen
  * de paiement d'origine (checkpoint humain BRH — l'app ne bouge pas l'argent).
  */
