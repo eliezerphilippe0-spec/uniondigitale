@@ -31,6 +31,11 @@ réconciliation topup détectés par le cron doivent aussi être consignés ici.
 - [x] Migrations `0001` → `0019` appliquées sur Supabase (dont `0009`/`0010`
       topup) — `supabase/schema.sql` reste la concaténation à jour si besoin
       de rejouer sur un nouvel environnement.
+- [ ] **Appliquer `0020` → `0022`** sur la prod Supabase (page service, points,
+      Zabelie Business). Base déjà en prod → **ne pas recoller `schema.sql`** :
+      suivre le pas-à-pas `docs/14-MIGRATIONS-SUPABASE.md` (migrations nouvelles
+      uniquement, une par une, dans l'ordre). Sans ça, `/pro` et `/facture/...`
+      ne fonctionneront pas.
 - [ ] Zelle : `USD_HTG_RATE`, `ZELLE_RECIPIENT`, `ZELLE_RECIPIENT_NAME`.
 - [ ] Stripe (optionnel) : nécessite une entité US — voir `docs/04 §2 bis`.
 
