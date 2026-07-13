@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     kind?: "fichier" | "service";
     category?: string;
     priceHTG?: number;
+    deliveryDays?: number | null;
+    serviceIncludes?: string[];
   };
   try {
     body = await req.json();
@@ -53,6 +55,30 @@ export async function POST(req: Request) {
       { error: "Champs requis : titre, type, prix valide." },
       { status: 400 }
     );
+  }
+
+  // Champs page service (Fiverr) — affichage seulement, pas de prix. Ignorés
+  // silencieusement pour un produit 'fichier' (n'a pas de sens hors service).
+  let deliveryDays: number | null = null;
+  let serviceIncludes: string[] = [];
+  if (kind === "service") {
+    if (body.deliveryDays !== undefined && body.deliveryDays !== null) {
+      const d = Number(body.deliveryDays);
+      if (!Number.isInteger(d) || d < 1 || d > 365) {
+        return NextResponse.json(
+          { error: "Délai de livraison : entre 1 et 365 jours." },
+          { status: 400 }
+        );
+      }
+      deliveryDays = d;
+    }
+    if (Array.isArray(body.serviceIncludes)) {
+      serviceIncludes = body.serviceIncludes
+        .filter((s): s is string => typeof s === "string")
+        .map((s) => s.trim().slice(0, 140))
+        .filter(Boolean)
+        .slice(0, 10); // borné : une checklist, pas un roman
+    }
   }
 
   const admin = createAdminClient();
@@ -89,6 +115,8 @@ export async function POST(req: Request) {
       kind,
       category: category ?? null,
       price_htg: Math.round(price),
+      delivery_days: deliveryDays,
+      service_includes: serviceIncludes.length > 0 ? serviceIncludes : null,
       status: "published",
     })
     .select("slug")
