@@ -1,8 +1,11 @@
 -- ============================================================================
--- 0020 — Zabelie Points & Rewards (programme de fidélité NON monétaire)
+-- 0021 — Zabelie Points & Rewards (programme de fidélité NON monétaire)
 -- ============================================================================
--- ⚠️ BROUILLON — NE PAS DÉPLOYER sans retour BRH sur le PRINCIPE MÊME d'un
---    programme de fidélité acheteur (docs/02-DECISIONS, décision porteur).
+-- DÉGELÉ par décision porteur (2026-07-11), éclairée par l'analyse de risque
+-- documentée dans docs/BRH-question-fidelite.md §Analyse : les points ne sont
+-- PAS « émis contre remise de fonds » (définition monnaie électronique,
+-- Circ. 121) — jamais achetés, jamais remboursables, circuit fermé. Le mémo
+-- juridique reste recommandé en parallèle (pas un prérequis de déploiement).
 --
 -- Principe : JAMAIS de solde en gourdes stocké côté acheteur. Les points n'ont
 -- aucune valeur cash directe — ils ne se convertissent qu'en coupons de remise
