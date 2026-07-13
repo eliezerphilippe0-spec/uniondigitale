@@ -10,7 +10,10 @@ import {
   fulfillmentBackoffMs,
   DEFAULT_TOPUP_LIMITS,
 } from "../lib/zabelie-topup/limits";
-import { mapReloadlyStatus } from "../lib/zabelie-topup/reloadly";
+import {
+  mapReloadlyStatus,
+  reloadlyDenominations,
+} from "../lib/zabelie-topup/reloadly";
 
 test("normalizeHaitiPhone : formats acceptés → 509XXXXXXXX", () => {
   assert.equal(normalizeHaitiPhone("37123456"), "50937123456");
@@ -87,4 +90,34 @@ test("mapReloadlyStatus : statuts fournisseur → statuts internes", () => {
   assert.equal(mapReloadlyStatus("REFUNDED"), "failed");
   assert.equal(mapReloadlyStatus(undefined), "unknown");
   assert.equal(mapReloadlyStatus("WEIRD"), "unknown");
+});
+
+test("reloadlyDenominations : montants FIXES pris tels quels", () => {
+  assert.deepEqual(
+    reloadlyDenominations({ localFixedAmounts: [50, 100, 250] }),
+    [50, 100, 250]
+  );
+  // arrondi + rejet des montants nuls/négatifs
+  assert.deepEqual(
+    reloadlyDenominations({ localFixedAmounts: [99.6, 0, -5] }),
+    [100]
+  );
+});
+
+test("reloadlyDenominations : opérateur en PLAGE → échelle standard bornée", () => {
+  // Sans montants fixes : échelle par défaut complète (pas de bornes).
+  assert.deepEqual(
+    reloadlyDenominations({ localFixedAmounts: [] }),
+    [25, 50, 100, 250, 500, 1000]
+  );
+  // Bornée à [min, max] local : ne garde que ce qui rentre dans la plage.
+  assert.deepEqual(
+    reloadlyDenominations({ localMinAmount: 50, localMaxAmount: 500 }),
+    [50, 100, 250, 500]
+  );
+  // La garde clé : un opérateur RANGE ne doit JAMAIS donner 0 produit.
+  assert.ok(
+    reloadlyDenominations({ localMinAmount: 20, localMaxAmount: 2000 }).length > 0,
+    "un opérateur en plage doit produire au moins une dénomination"
+  );
 });
