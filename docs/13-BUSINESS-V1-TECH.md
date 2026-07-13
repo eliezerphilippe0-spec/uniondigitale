@@ -1,20 +1,35 @@
 # Zabelie Business — Vague 1 « Fè m peye » : cadrage technique (prêt à coder)
 
-> **📋 DESIGN TECHNIQUE — AUCUN CODE ÉCRIT.** Niveau « prêt à implémenter » :
-> schéma exact, RLS, fonctions, intégration au money-path, plan de test.
-> Suite de `docs/12-BUSINESS.md` (§7, Vague 1). À valider avant migration.
-> Aucune migration appliquée. Numéro de migration à figer au moment de coder
-> (le prochain libre après le dernier réellement mergé).
+> **✅ IMPLÉMENTÉ — migration `0022_business_v1.sql` + `supabase/tests/business_v1.test.sql`.**
+> Ce document reste le cadrage de conception ; les sections ci-dessous décrivent
+> l'exploration initiale. **Deux décisions du porteur (2026-07-13) ont divergé de
+> la recommandation d'origine** et priment sur tout ce qui suit :
+>
+> 1. **Commission = 10 % fixe** (pas 7 %), stockée en config (`zabelie_biz_config`,
+>    ajustable sans migration). Alignée sur le palier Digi Standard → pas d'écart
+>    à expliquer au pro. À revalider selon le coût réel du rail MonCash.
+> 2. **SANS escrow / SANS rétention** (pas de fenêtre J+7) : le pro est crédité
+>    **immédiatement** sur son solde disponible (`wallets.balance_htg`). La
+>    généralisation d'`escrow_entries`/`platform_earnings` décrite en §1 a donc
+>    été **écartée** → migration **100 % additive**, aucune table money-path en
+>    prod touchée. Compromis assumé : pas de fenêtre anti-litige de 7 jours.
 
 **Périmètre strict de la Vague 1** : espace pro + **facture off-marketplace** +
-**portail client par token** + **paiement MonCash** + crédit du pro (commission
-+ escrow J+7, réutilisés) + relances. **PAS** de vitrine publique (Vague 2),
-**PAS** de rendez-vous/acompte (Vague 3), **PAS** de rétention/escrow inter-
-utilisateurs (BRH — cf. `docs/12` §6).
+**portail client par token** + **paiement MonCash** + crédit **immédiat** du pro
+(commission 10 %, **sans escrow**) + relances. **PAS** de vitrine publique
+(Vague 2), **PAS** de rendez-vous/acompte (Vague 3), **PAS** de rétention/escrow
+inter-utilisateurs (BRH — cf. `docs/12` §6).
 
 ---
 
 ## 1. Décision d'architecture centrale : comment l'argent d'une facture entre dans le ledger unique
+
+> ⚠️ **SECTION HISTORIQUE — approche NON retenue.** Le porteur a tranché « sans
+> escrow » : la migration `0022` **ne généralise pas** `escrow_entries`/
+> `platform_earnings` et **ne touche aucune table money-path existante**. Elle
+> crédite directement `wallets.balance_htg` via `wallet_transactions` (le seul
+> objet partagé, dont `order_id` est déjà nullable). Le reste de cette section
+> documente l'alternative escrow qui avait été explorée — conservée pour trace.
 
 Le money-path Digi crédite un vendeur ainsi (dans `confirm_payment`, `0009`) :
 `paiement confirmé → commission calculée → NET en escrow J+7 → wallet.pending`
@@ -173,13 +188,14 @@ DRAFT ─(send_invoice)─► SENT ─(paiement confirmé)─► PAID
 |---|---|---|
 | `zabelie_biz_upsert_item(invoice, label, qty, unit_price)` | Ajoute/maj une ligne **en DRAFT uniquement** ; recalcule `line_total = qty*unit_price` puis `subtotal/total` de la facture | prix jamais du client au sens « total » ; refuse si statut ≠ draft |
 | `zabelie_biz_send_invoice(invoice)` | DRAFT→SENT, fige, génère token | refuse si total = 0 ou statut ≠ draft |
-| `zabelie_biz_confirm_invoice_payment(invoice, provider_ref, amount, raw)` | **Cœur money-path.** Idempotent (clé `biz_invoice_credit:<payment_id>`), vérifie `amount`, incrémente `paid_htg`, passe `partially_paid`/`paid`, crédite le NET (après commission tier) en **escrow J+7** + `platform_earnings`, écrit `wallet_transactions` | miroir exact de `confirm_payment` ; montant vérifié en base ; anti-rejeu sur `provider_ref` |
+| `zabelie_biz_confirm_invoice_payment(invoice, provider, provider_ref, amount, idempotency)` | **Cœur money-path.** Idempotent (clé `idempotency_key` unique + ligne `biz_invoice_credit:<payment_id>` au ledger), vérifie `amount` (sur-paiement refusé), incrémente `paid_htg`, passe `partially_paid`/`paid`, calcule la commission 10 % depuis la config et crédite le NET **immédiatement** sur `wallets.balance_htg` (**sans escrow**), écrit `wallet_transactions` | montant vérifié en base ; anti-rejeu sur `idempotency_key` ; **ne touche pas** `escrow_entries`/`platform_earnings` |
 | `zabelie_biz_get_invoice_by_token(token)` | Vue **portail client sans login** : renvoie uniquement colonnes sûres (montants, statut, items, nom du pro) — jamais d'IDs internes ni de données d'autres factures | exposée à `anon` en lecture, mais ne prend qu'un token opaque ; aucune autre fonction Business n'est exposée |
 | `zabelie_biz_void_invoice(invoice)` | → VOID si `paid_htg=0` | refuse si déjà encaissée |
 
-> Le crédit du pro **réutilise la maturation existante** : `escrow_entries`
-> (généralisé §1) + `mature_wallets` (inchangé). Zéro nouvelle logique de
-> maturation.
+> Le crédit du pro est **immédiat et disponible** (`wallets.balance_htg`), sans
+> passer par `escrow_entries`/`mature_wallets` : décision « sans rétention »
+> (cf. bandeau en tête + §9). Le seul objet money-path partagé est
+> `wallet_transactions` (dont `order_id` est déjà nullable).
 
 ---
 
@@ -250,33 +266,37 @@ seule fonction exposée) — jamais un accès table direct, jamais l'ID interne.
 - **B1** total recalculé serveur : injecter un `line_total`/`total` faux → la
   fonction l'écrase par `qty*unit_price`.
 - **B2** facture `sent` non éditable : `upsert_item` sur une facture envoyée → refus.
-- **B3** confirmation idempotente : 3× `confirm_invoice_payment` → un seul
-  crédit escrow, un seul `platform_earnings`, `paid_htg` correct.
-- **B4** montant falsifié → rejet (miroir du scénario money-path).
-- **B5** partiel → `partially_paid`, solde → `paid`.
+- **B3** confirmation idempotente : rejeu de la même `idempotency_key` → un seul
+  paiement, un seul crédit `wallet_transactions`, solde inchangé, `paid_htg` correct.
+- **B4** montant falsifié (sur-paiement) → rejet.
+- **B5** partiel → `partially_paid`, solde → `paid` ; commission 10 % et net crédités.
 - **B6** void interdit si `paid_htg>0`.
-- **B7** portail token : `get_invoice_by_token` ne renvoie jamais une autre
-  facture ; `award`/écritures refusées au rôle `authenticated`.
-- **B8** escrow généralisé : `mature_wallets` fait mûrir un crédit **facture**
-  comme un crédit **commande** (les tests money-path existants restent verts).
+- **B7** portail token : `get_invoice_by_token` ne renvoie qu'une vue sûre (pas
+  d'ID interne), `draft` invisible, token inconnu → `null`.
+- **B8** anti self-write : `confirm_invoice_payment` refusé au rôle `authenticated`.
+>
+> ✅ Réalisé dans `supabase/tests/business_v1.test.sql` — B1–B8 verts, et les
+> tests money-path existants restent verts (migration additive).
 
 ---
 
-## 9. Décisions (⚑ = tranchées par le porteur)
-1. ⚑ **Commission Business = 7 % fixe** (décision porteur 2026-07-13), J+7 comme
-   Digi. Taux fixe unique (pas de paliers), donc plus simple que
-   `commission_rate_bps(tier)`. **À stocker en config base** (table type
-   `zabelie_biz_config` ou réutilisation d'un pattern « clé/valeur » comme
-   `zabelie_topup_limits`), pas en dur dans la fonction → ajustable sans
-   migration. ⚠️ Nuance à afficher clairement au pro : 7 % se situe entre les
-   paliers Digi (Standard 10 % / Elite 6 %) — un vendeur Elite paie donc un peu
-   plus sur ses factures Business que sur ses ventes produit. Choix assumé.
-2. **Généralisation de l'escrow (§1)** : OK pour toucher `escrow_entries`/
-   `platform_earnings` en prod (avec migration + tests + revue) ? C'est le seul
-   point sensible. *(Alternative plus lourde : pipeline escrow Business séparé.)*
-3. **Paiement partiel** : autorisé au client librement, ou seulement des jalons
-   définis par le pro ? *(défaut : libre au MVP, plus simple.)*
-4. **Numéro de facture lisible** (ex. `FCT-000123`) en plus de l'UUID ? *(utile
-   pour l'usage réel — proposé : oui, séquence par pro.)*
+## 9. Décisions (toutes tranchées — reflétées dans `0022`)
+1. ✅ **Commission Business = 10 % fixe** (décision porteur 2026-07-13). Taux
+   unique (pas de paliers), stocké en config `zabelie_biz_config.commission_bps`
+   (= 1000), **ajustable sans migration**, figé sur chaque paiement (`rate_bps`).
+   Aligné sur le palier Digi Standard (10 %) → aucun écart à expliquer au pro.
+   Défaut de départ, à revalider selon le coût réel du rail MonCash.
+   *(La piste « 7 % » explorée plus haut a été écartée : moins lisible, marge
+   nette trop mince après frais de rail.)*
+2. ✅ **SANS escrow / SANS rétention.** La généralisation d'`escrow_entries`/
+   `platform_earnings` (§1) est **abandonnée** : le net est crédité immédiatement
+   sur `wallets.balance_htg`. Aucune table money-path en prod n'est touchée
+   (migration additive). Compromis assumé : pas de fenêtre anti-litige J+7.
+3. ✅ **Paiement partiel** : libre au client (plusieurs versements jusqu'au total ;
+   sur-paiement refusé en base). Retenu pour la simplicité du MVP.
+4. ✅ **Numéro de facture lisible** `FCT-000123` : oui, séquence atomique par pro
+   (`zabelie_biz_professionals.next_invoice_seq`), générée à l'envoi.
 
-> Rien n'est codé tant que (1)–(4) ne sont pas tranchés, en particulier (2).
+> Statut : implémenté et couvert par `business_v1.test.sql` (B1–B8). Reste à
+> câbler l'UI et le webhook MonCash serveur→serveur qui appelle
+> `zabelie_biz_confirm_invoice_payment`.
