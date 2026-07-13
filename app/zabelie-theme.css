@@ -58,10 +58,11 @@
 
   /* ── Typographie ──
      Titres : Manrope ExtraBold (800) · Texte : Inter · Boutons : Inter SemiBold.
-     Poids chargés : Inter 400/500/600/700 — Manrope 800. */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+     Polices AUTO-HÉBERGÉES via next/font (layout.tsx) → variables --font-inter
+     / --font-manrope. Repli système immédiat le temps du swap. */
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto,
     sans-serif;
-  --font-heading: "Manrope", "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-manrope), var(--font-inter), system-ui, sans-serif;
   --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", monospace;
 
   --radius-xl: 1.25rem;
