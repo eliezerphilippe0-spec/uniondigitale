@@ -5,13 +5,15 @@ réconciliation topup détectés par le cron doivent aussi être consignés ici.
 
 ## Recharge téléphonique (V-11)
 
-- [ ] Créer le compte **Reloadly** (sandbox gratuit) → renseigner
-      `RELOADLY_CLIENT_ID` / `RELOADLY_CLIENT_SECRET` / `RELOADLY_MODE=sandbox`
-      sur Vercel. **Jamais de clés dans le chat/le repo.**
-- [ ] Synchroniser le catalogue : récupérer les `operatorId` Reloadly
-      (Digicel/Natcom Haïti) et les **coûtants réels**, puis mettre à jour
-      `zabelie_topup_products` (`provider_product_id`, `cost_htg`,
-      `price_htg` = coûtant + ~5 %).
+- [x] Compte **Reloadly** créé (sandbox).
+- [ ] Renseigner `RELOADLY_CLIENT_ID` / `RELOADLY_CLIENT_SECRET` /
+      `RELOADLY_MODE=sandbox` sur Vercel — **environnement Preview
+      uniquement** pour l'instant. **Jamais de clés dans le chat/le repo.**
+- [ ] Synchroniser le catalogue : bouton **« Synchroniser le catalogue
+      Reloadly »** dans `/admin` (plus de SQL manuel — récupère les
+      `operatorId`/dénominations automatiquement). Les **coûtants réels**
+      restent à affiner ensuite via le rapport de commissions Reloadly (le
+      bouton pose un coûtant = valeur faciale en attendant).
 - [ ] Vérifier les préfixes opérateurs (portabilité) : la détection
       `lib/zabelie-topup/phone.ts` pré-remplit seulement, l'acheteur confirme.
 - [ ] **Checkpoint humain avant production** : bascule `RELOADLY_MODE=production`
@@ -19,18 +21,16 @@ réconciliation topup détectés par le cron doivent aussi être consignés ici.
       recharge testée sur vos propres numéros).
 - [ ] Consigner ici tout écart remonté par le cron (`/api/reconcile`,
       champ `topup.discrepancies`).
-- [ ] **Après migrations 0009+0010** : dérouler la vérification post-migration
-      (`docs/07-TOPUP.md §4.1–4.2` : trigger append-only actif, RLS, seeds,
-      fonctions non exposées, banc d'essai SQL en rollback).
 - [ ] **Avant d'ouvrir `/rechaj`** : bout-en-bout sandbox complet
       (`docs/07-TOPUP.md §4.3`) sur un déploiement Preview — la page s'active
       dès que les clés Reloadly sont posées, donc pas de clés en Production
-      avant la fin des 6 points.
+      avant la fin de cette liste.
 
 ## Paiements (rappels)
 
-- [ ] Appliquer les migrations `0009` + `0010` sur Supabase
-      (`supabase/schema.sql` = tout-en-un).
+- [x] Migrations `0001` → `0019` appliquées sur Supabase (dont `0009`/`0010`
+      topup) — `supabase/schema.sql` reste la concaténation à jour si besoin
+      de rejouer sur un nouvel environnement.
 - [ ] Zelle : `USD_HTG_RATE`, `ZELLE_RECIPIENT`, `ZELLE_RECIPIENT_NAME`.
 - [ ] Stripe (optionnel) : nécessite une entité US — voir `docs/04 §2 bis`.
 
