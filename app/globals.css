@@ -1,7 +1,6 @@
-/* Typo (Google Fonts) : Manrope 800 (titres) + Inter 400/500/600/700 (texte,
-   boutons SemiBold). Upgrade perf recommandé : self-host (déposer les .woff2
-   dans public/fonts/ + @font-face ici, puis supprimer cet @import distant). */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap");
+/* Typo AUTO-HÉBERGÉE via next/font (voir app/layout.tsx) : Manrope 800 (titres)
+   + Inter 400/500/600/700/800 (texte, boutons). Plus de requête tierce bloquante
+   vers Google Fonts — gain net sur 3G. */
 @import "tailwindcss";
 @import "./zabelie-theme.css"; /* SOURCE UNIQUE des design tokens */
 
