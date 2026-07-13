@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0022).
+-- Zabelie Digi — schéma complet (concaténation 0001→0023).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql. Régénéré par
 -- scripts/build-schema.mjs (ne pas éditer ce fichier à la main).
@@ -2563,4 +2563,25 @@ $$;
 -- Exposée au portail public (lecture d'une facture par token opaque uniquement).
 revoke all on function zabelie_biz_get_invoice_by_token(text) from public;
 grant execute on function zabelie_biz_get_invoice_by_token(text) to anon, authenticated, service_role;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0023_harden_points_trigger.sql
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ============================================================================
+-- 0023 — Durcissement : révocation d'EXECUTE sur la fonction-trigger fidélité
+-- ============================================================================
+-- L'advisor sécurité Supabase (lint 0028/0029) signale que
+-- `fn_points_ledger_update_balance()` (trigger de maj du solde de points, 0021)
+-- est SECURITY DEFINER et exposée à anon/authenticated via /rest/v1/rpc.
+--
+-- Non exploitable en pratique (Postgres refuse d'appeler une fonction
+-- « returns trigger » hors contexte trigger), mais on aligne cette fonction sur
+-- la règle du projet : AUCUNE fonction SECURITY DEFINER n'est exécutable par le
+-- client. Le trigger continue de s'exécuter normalement — le déclenchement d'un
+-- trigger ne dépend pas du privilège EXECUTE (il tourne au nom du propriétaire).
+-- ============================================================================
+
+revoke all on function fn_points_ledger_update_balance()
+  from public, anon, authenticated;
 
