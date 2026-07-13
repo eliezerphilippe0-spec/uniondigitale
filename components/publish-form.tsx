@@ -13,6 +13,8 @@ export function PublishForm() {
     category: "",
     priceHTG: "",
     description: "",
+    deliveryDays: "",
+    serviceIncludes: "",
   });
 
   function set<K extends keyof typeof form>(k: K, v: string) {
@@ -27,7 +29,19 @@ export function PublishForm() {
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, priceHTG: Number(form.priceHTG) }),
+        body: JSON.stringify({
+          title: form.title,
+          kind: form.kind,
+          category: form.category,
+          description: form.description,
+          priceHTG: Number(form.priceHTG),
+          deliveryDays: form.deliveryDays ? Number(form.deliveryDays) : null,
+          // Un élément par ligne — le serveur reborne (10 max, 140 car.).
+          serviceIncludes: form.serviceIncludes
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -87,6 +101,29 @@ export function PublishForm() {
         value={form.description}
         onChange={(e) => set("description", e.target.value)}
       />
+      {form.kind === "service" && (
+        <div className="space-y-3 rounded-xl border border-line/60 p-4">
+          <p className="text-xs text-mist">
+            Page service (façon Fiverr) — optionnel, mais rassure l&apos;acheteur.
+          </p>
+          <input
+            className={input}
+            type="number"
+            min={1}
+            max={365}
+            placeholder="Délai de livraison (en jours)"
+            value={form.deliveryDays}
+            onChange={(e) => set("deliveryDays", e.target.value)}
+          />
+          <textarea
+            className={input}
+            rows={3}
+            placeholder={"Ce qui est inclus — un élément par ligne\nEx. 3 révisions\nFichier source livré"}
+            value={form.serviceIncludes}
+            onChange={(e) => set("serviceIncludes", e.target.value)}
+          />
+        </div>
+      )}
       <button
         type="submit"
         disabled={loading}

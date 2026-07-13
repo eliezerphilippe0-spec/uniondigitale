@@ -11,10 +11,10 @@ Mise en production de la Vague 1 : **Supabase** (base + storage) → **MonCash**
 ## 1. Supabase
 
 1. Créer un projet sur https://supabase.com.
-2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, `0001`→`0021` sur cette branche) :
+2. Appliquer les migrations **dans l'ordre** (`supabase/migrations/`, **21 fichiers** — `0001`→`0021`) :
    - le plus simple : **SQL Editor** → coller **tout `supabase/schema.sql`** (concaténation à jour) → *Run* ;
    - ou via CLI : `supabase link --project-ref <ref>` puis `supabase db push`.
-   > ℹ️ `0021_points_rewards` (programme de fidélité) : **dégelé** par décision porteur (2026-07-11), analyse de risque dans `docs/BRH-question-fidelite.md`. Le numéro `0020` est réservé à `service_fields` (PR #14) — fusionner #14 avant cette branche.
+   > ℹ️ `0021_points_rewards` (programme de fidélité) : **dégelé** par décision porteur (2026-07-11), analyse de risque dans `docs/BRH-question-fidelite.md`.
 3. Vérifier la création du bucket privé **`product-files`** (migration `0004`).
 4. Auth → activer l'**e-mail/mot de passe**. Renseigner l'**URL du site** et les
    **Redirect URLs** : `https://<domaine>/auth/callback`.
@@ -90,7 +90,7 @@ Non configurés = invisibles au checkout (MonCash seul). Pour les activer :
 
 ## 4. Checklist de mise en prod
 
-- [ ] Migrations `0001→0019` appliquées, bucket `product-files` privé.
+- [ ] Migrations `0001→0020` appliquées, bucket `product-files` privé.
 - [ ] Test SQL d'idempotence : OK.
 - [ ] Variables d'env Supabase (dont `SUPABASE_SERVICE_ROLE_KEY`) sur Vercel.
 - [ ] Auth : redirect URL `/auth/callback` configurée côté Supabase.

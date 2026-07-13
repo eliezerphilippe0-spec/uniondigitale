@@ -1,11 +1,12 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0021 ; 0020 = service_fields, PR #14 — fusionner #14 d'abord).
+-- Zabelie Digi — schéma complet (concaténation 0001→0021).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
--- Source de vérité = supabase/migrations/*.sql (ne pas éditer ce fichier à la main).
+-- Source de vérité = supabase/migrations/*.sql. Régénéré par
+-- scripts/build-schema.mjs (ne pas éditer ce fichier à la main).
 -- NE PAS exécuter _bootstrap.sql sur Supabase (réservé au Postgres nu en CI).
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0001_schema.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Schéma initial (Vague 1)
 -- Décision D-3 (V-9) : comptes/wallet PROPRES à Zabelie Digi, fusion future
@@ -134,9 +135,9 @@ create table payouts (
 );
 create index payouts_wallet_idx on payouts (wallet_id);
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0002_rls.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Row Level Security (Vague 1)
 -- Principe : lecture publique du catalogue ; chacun gère ses propres données ;
@@ -225,9 +226,9 @@ create policy "payouts_owner_read"
             where w.id = payouts.wallet_id and w.owner_id = auth.uid())
   );
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0003_payment_functions.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Logique de paiement idempotente (EPIC 4)
 -- docs/03-PAIEMENTS.md. À appeler UNIQUEMENT côté serveur (webhook MonCash
@@ -347,9 +348,9 @@ $$;
 revoke all on function confirm_payment(text, text, jsonb, integer) from public, anon, authenticated;
 -- Exécutable uniquement via service role (webhook / réconciliateur).
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0004_storage.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Storage (Vague 1)
 -- Bucket PRIVÉ pour les fichiers livrables. L'accès se fait exclusivement par
@@ -361,9 +362,9 @@ insert into storage.buckets (id, name, public)
 values ('product-files', 'product-files', false)
 on conflict (id) do nothing;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0005_commission.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Commission par tier (EPIC 4 / EPIC 5)
 -- Le vendeur est crédité du NET ; la plateforme prélève une commission selon le
@@ -517,9 +518,9 @@ $$;
 
 revoke all on function confirm_payment(text, text, jsonb, integer) from public, anon, authenticated;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0006_escrow_maturation.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Escrow & maturation J+7 + remboursements (EPIC 5)
 -- Fenêtre anti-fraude : le NET du vendeur est d'abord EN ATTENTE (pending), puis
@@ -739,9 +740,9 @@ end;
 $$;
 revoke all on function refund_order(uuid) from public, anon, authenticated;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0007_standalone.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — projet TOTALEMENT INDÉPENDANT (décision utilisateur, ferme).
 -- Aucune fusion prévue avec Zabelie 1 ni aucun autre projet. On retire la
@@ -751,9 +752,9 @@ revoke all on function refund_order(uuid) from public, anon, authenticated;
 
 alter table profiles drop column if exists zabelie1_user_id;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0008_reviews.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Avis d'acheteurs VÉRIFIÉS (différenciateur confiance vs Chariow)
 -- Règle dure : seul un acheteur ayant une commande PAYÉE peut laisser un avis,
@@ -799,9 +800,9 @@ alter table product_reviews enable row level security;
 create policy "reviews_public_read"
   on product_reviews for select using (true);
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0009_rails_diaspora.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Rails diaspora : Stripe (carte) + Zelle (V-10)
 -- Décision produit : ouvrir les achats USD de la diaspora. Le LEDGER RESTE EN
@@ -949,9 +950,9 @@ $$;
 revoke all on function confirm_payment(text, text, jsonb, integer, integer)
   from public, anon, authenticated;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0010_topup.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Service de recharge téléphonique (topup) Digicel/Natcom (V-11)
 -- Positionnement BRH (Circulaire 121) : Zabelie Digi est un REVENDEUR de
@@ -1232,9 +1233,9 @@ insert into zabelie_topup_products
   ('natcom',  'Rechaj Natcom 500 HTG',   500,  500,  525),
   ('natcom',  'Rechaj Natcom 1000 HTG',  1000, 1000, 1050);
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0011_security_hardening.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Durcissement sécurité (advisors Supabase, post-migration prod)
 -- 1. RLS manquant sur 2 tables financières (niveau ERROR au linter) : sans RLS,
@@ -1256,9 +1257,9 @@ alter function commission_rate_bps(creator_tier) set search_path = public;
 alter function apply_review_aggregates() set search_path = public;
 alter function zabelie_topup_ledger_guard() set search_path = public;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0012_coupons.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Codes promo vendeur (V-13, inspiration Chariow adaptée Haïti)
 -- Le vendeur anime ses ventes lui-même (« PROMO50 sur WhatsApp jusqu'à
@@ -1345,9 +1346,9 @@ end;
 $$;
 revoke all on function zabelie_claim_notification(uuid) from public, anon, authenticated;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0013_geo_analytics.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Géo-analytics back-office (Vague 1)
 -- Objectif : dashboard interne « d'où viennent nos clients/talents », AGRÉGÉ
@@ -1395,9 +1396,9 @@ create or replace view analytics_geo_sales as
 revoke all on analytics_geo_users, analytics_geo_sales from anon, authenticated;
 grant  select on analytics_geo_users, analytics_geo_sales to service_role;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0014_haiti_departments.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Zoom Haïti par département (back-office /admin/geo)
 -- Marché ciblé : Haïti. On veut voir OÙ sont les TALENTS (créateurs) à l'échelle
@@ -1429,9 +1430,9 @@ create or replace view analytics_geo_ht as
 revoke all on analytics_geo_ht from anon, authenticated;
 grant  select on analytics_geo_ht to service_role;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0015_profiles_hardening.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Durcissement RLS de `profiles` (audit sécurité)
 -- Corrige trois failles issues d'un même angle mort : les policies de `profiles`
@@ -1496,9 +1497,9 @@ grant  select (id, role, display_name, bio, avatar_url, tier, created_at)
 -- Les écritures self (nom, bio, avatar, pays, département) restent permises : on
 -- ne révoque PAS les privilèges UPDATE/INSERT — seul le SELECT est restreint.
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0016_gdpr_retention.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Rétention / minimisation (audit RGPD)
 -- Le payload opérateur (payments.raw) n'est utile qu'à la réconciliation d'un
@@ -1529,9 +1530,9 @@ $$;
 -- Réservé au service role (cron / back-office), jamais exposé au client.
 revoke all on function purge_payment_raw(integer) from public, anon, authenticated;
 
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 -- 0017_seller_suspension.sql
--- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- Zabelie Digi — Suspension réversible de compte (modération admin)
 -- Sanction de modération SANS AUCUNE ÉCRITURE MONÉTAIRE (cadre BRH : Zabelie
@@ -1627,6 +1628,13 @@ alter function protect_profile_privileges() set search_path = public;
 -- 0019_rate_limits.sql
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- Zabelie Digi — Limitation de débit en base (audit sécurité §6)
+-- Compteur à FENÊTRE FIXE dans Postgres : fiable en serverless (pas de mémoire
+-- process qui se vide à chaque déploiement Vercel), pas de service externe à
+-- opérer. Protège les routes qui coûtent de l'argent à chaque appel
+-- (checkout → session MonCash/Stripe, recharge) et la devinette de codes promo.
+
+create table zabelie_rate_limits (
   key          text not null,        -- ex. 'checkout:<user_id>' / 'coupon_validate:<ip>'
   window_start timestamptz not null,
   hits         integer not null default 0,
@@ -1680,9 +1688,24 @@ revoke all on function zabelie_rate_limit(text, integer, integer)
   from public, anon, authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- 0021_points_rewards.sql   (dégelé — décision porteur 2026-07-11)
+-- 0020_service_fields.sql
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- Zabelie Digi — Page service façon Fiverr (délai + inclus)
+-- Champs d'AFFICHAGE uniquement, ajoutés à products existant : aucune nouvelle
+-- logique financière, aucun nouveau prix. price_htg reste l'unique source de
+-- vérité du montant (inchangé), vérifiée au checkout comme avant.
+
+alter table products
+  add column delivery_days integer
+    check (delivery_days is null or delivery_days > 0),
+  add column service_includes text[];
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0021_points_rewards.sql
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ============================================================================
 -- 0021 — Zabelie Points & Rewards (programme de fidélité NON monétaire)
 -- ============================================================================
 -- DÉGELÉ par décision porteur (2026-07-11), éclairée par l'analyse de risque
@@ -2129,3 +2152,4 @@ begin
 end;
 $$;
 revoke all on function expire_coupons_job() from public, anon, authenticated;
+

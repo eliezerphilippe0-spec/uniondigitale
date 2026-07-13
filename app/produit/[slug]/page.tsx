@@ -105,12 +105,33 @@ export default async function ProductPage({
             <span className="rounded-full border border-line px-3 py-1 text-xs text-mist">
               {product.category}
             </span>
+            {product.kind === "service" && product.deliveryDays && (
+              <span className="rounded-full border border-line px-3 py-1 text-xs text-accent">
+                ⏱ {t(lang, "product.delivery.days", { days: String(product.deliveryDays) })}
+              </span>
+            )}
           </div>
 
           <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight">
             {product.title}
           </h1>
           <p className="mt-3 text-mist">{product.blurb}</p>
+
+          {product.kind === "service" && product.serviceIncludes.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-line bg-surface/40 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-mist">
+                {t(lang, "product.includes")}
+              </p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {product.serviceIncludes.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-0.5 text-accent">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-mist">
             {product.creatorId ? (
