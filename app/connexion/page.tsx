@@ -13,11 +13,18 @@ function ConnexionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = safeNext(searchParams.get("next"));
+  // BL-121 : /auth/callback redirige ici avec ?erreur=lien_expire quand le
+  // lien de confirmation est expiré/déjà consommé — message clair d'entrée.
+  const erreur = searchParams.get("erreur");
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(
+    erreur === "lien_expire"
+      ? "Ce lien de confirmation a expiré ou a déjà été utilisé. Connectez-vous, ou créez à nouveau votre compte pour recevoir un nouveau lien."
+      : null
+  );
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -99,6 +106,7 @@ function ConnexionForm() {
             <input
               type="text"
               placeholder="Nom d'affichage"
+              aria-label="Nom d'affichage"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
@@ -108,6 +116,7 @@ function ConnexionForm() {
             type="email"
             required
             placeholder="E-mail"
+            aria-label="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"
@@ -117,6 +126,7 @@ function ConnexionForm() {
             required
             minLength={6}
             placeholder="Mot de passe"
+            aria-label="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-xl border border-line bg-ink/40 px-4 py-3 text-sm outline-none focus:border-violet"

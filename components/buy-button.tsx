@@ -8,6 +8,12 @@ export type BuyOption = {
   label: string;
 };
 
+export type ErrorLabels = {
+  generic: string;
+  network: string;
+  provider: string; // code provider_unavailable renvoyé par l'API (BL-114)
+};
+
 export type CouponLabels = {
   have: string;
   placeholder: string;
@@ -31,6 +37,7 @@ export function BuyButton({
   othersLabel,
   loadingLabel = "Redirection…",
   coupon,
+  errors,
 }: {
   productId: string;
   options: BuyOption[];
@@ -39,6 +46,8 @@ export function BuyButton({
   loadingLabel?: string;
   /** Libellés i18n du champ code promo (absent = champ masqué). */
   coupon?: CouponLabels;
+  /** Libellés i18n des erreurs (BL-113 : l'échec aussi doit parler KR). */
+  errors?: ErrorLabels;
 }) {
   const router = useRouter();
   const [loadingRail, setLoadingRail] = useState<string | null>(null);
@@ -104,7 +113,11 @@ export function BuyButton({
           setError(coupon.invalid);
           return;
         }
-        setError(data.error ?? "Une erreur est survenue.");
+        setError(
+          data.code === "provider_unavailable" && errors
+            ? errors.provider
+            : (data.error ?? errors?.generic ?? "Une erreur est survenue.")
+        );
         return;
       }
       // Redirection vers le rail (URL absolue opérateur ou page interne).
@@ -114,7 +127,7 @@ export function BuyButton({
         window.location.href = data.redirectUrl;
       }
     } catch {
-      setError("Connexion impossible. Réessayez.");
+      setError(errors?.network ?? "Connexion impossible. Réessayez.");
     } finally {
       setLoadingRail(null);
     }
@@ -144,6 +157,7 @@ export function BuyButton({
               setCouponError(false);
             }}
             placeholder={coupon.placeholder}
+            aria-label={coupon.placeholder}
             maxLength={24}
             className="min-w-0 flex-1 rounded-xl border border-line bg-surface/60 px-3 py-2 text-sm uppercase text-cloud placeholder:normal-case placeholder:text-mist/60 focus:border-brand/60 focus:outline-none"
           />

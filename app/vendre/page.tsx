@@ -50,7 +50,7 @@ export default async function VendrePage() {
     return (
       <Shell subtitle="Connecte-toi pour publier un produit.">
         <Link
-          href="/connexion"
+          href="/connexion?next=/vendre"
           className="inline-block rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink"
         >
           Se connecter

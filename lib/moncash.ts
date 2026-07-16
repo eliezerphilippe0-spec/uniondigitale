@@ -37,7 +37,13 @@ function config() {
   return { clientId, clientSecret, mode, ...bases(mode) };
 }
 
+// BL-122 (C-4c) : cache du token client_credentials en mémoire de module —
+// avant, CHAQUE appel MonCash (create/retrieve/réconciliateur) redemandait un
+// token. Marge de 60 s avant l'expiration annoncée ; un échec vide le cache.
+let tokenCache: { token: string; expiresAt: number } | null = null;
+
 export async function getAccessToken(): Promise<string> {
+  if (tokenCache && Date.now() < tokenCache.expiresAt) return tokenCache.token;
   const { clientId, clientSecret, rest } = config();
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
@@ -55,8 +61,13 @@ export async function getAccessToken(): Promise<string> {
   if (!res.ok) {
     throw new Error(`MonCash oauth: ${res.status} ${await res.text()}`);
   }
-  const data = (await res.json()) as { access_token?: string };
+  const data = (await res.json()) as {
+    access_token?: string;
+    expires_in?: number;
+  };
   if (!data.access_token) throw new Error("MonCash oauth: access_token absent.");
+  const ttl = Math.max(0, (data.expires_in ?? 0) - 60) * 1000;
+  tokenCache = ttl > 0 ? { token: data.access_token, expiresAt: Date.now() + ttl } : null;
   return data.access_token;
 }
 

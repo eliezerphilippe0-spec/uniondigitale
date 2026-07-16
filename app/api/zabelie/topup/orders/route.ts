@@ -211,8 +211,13 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ redirectUrl, orderId: order.id });
   } catch (e) {
+    // BL-114 (C-3) : détail opérateur loggé serveur, jamais renvoyé au client.
+    console.error("topup: échec opérateur", e);
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Erreur de paiement" },
+      {
+        error: "Paiement momentanément indisponible. Réessayez dans un instant.",
+        code: "provider_unavailable",
+      },
       { status: 502 }
     );
   }

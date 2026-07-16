@@ -230,6 +230,9 @@ export async function POST(req: Request) {
     expected_usd_cents: expectedUsdCents,
   });
   if (payErr) {
+    // BL-122 (C-4a) : un order sans ligne payment serait invisible du
+    // réconciliateur (il scanne payments) — on le retire, best-effort.
+    await admin.from("orders").delete().eq("id", order.id);
     return NextResponse.json(
       { error: "Création paiement échouée" },
       { status: 500 }
@@ -272,8 +275,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ redirectUrl, orderId: order.id });
   } catch (e) {
+    // BL-114 (C-3, pattern erreurs typées façon Stripe) : le détail opérateur
+    // (statut HTTP, corps brut MonCash) reste dans les logs serveur — jamais
+    // renvoyé au client (fuite d'infos + intraduisible FR/KR).
+    console.error("checkout: échec opérateur", e);
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Erreur de paiement" },
+      {
+        error: "Paiement momentanément indisponible. Réessayez dans un instant.",
+        code: "provider_unavailable",
+      },
       { status: 502 }
     );
   }

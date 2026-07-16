@@ -69,6 +69,7 @@ export function PublishForm() {
       <input
         className={input}
         placeholder="Titre du produit"
+        aria-label="Titre du produit"
         value={form.title}
         onChange={(e) => set("title", e.target.value)}
         required
@@ -76,6 +77,7 @@ export function PublishForm() {
       <div className="flex gap-3">
         <select
           className={input}
+          aria-label="Type de produit"
           value={form.kind}
           onChange={(e) => set("kind", e.target.value)}
         >
@@ -86,6 +88,7 @@ export function PublishForm() {
             toujours atteignable via une puce (fini le texte libre invisible). */}
         <select
           className={input}
+          aria-label="Catégorie"
           value={form.category}
           onChange={(e) => set("category", e.target.value)}
           required
@@ -103,6 +106,7 @@ export function PublishForm() {
         type="number"
         min={0}
         placeholder="Prix (HTG)"
+        aria-label="Prix (HTG)"
         value={form.priceHTG}
         onChange={(e) => set("priceHTG", e.target.value)}
         required
@@ -111,6 +115,7 @@ export function PublishForm() {
         className={input}
         rows={4}
         placeholder="Description"
+        aria-label="Description"
         value={form.description}
         onChange={(e) => set("description", e.target.value)}
       />
@@ -125,6 +130,7 @@ export function PublishForm() {
             min={1}
             max={365}
             placeholder="Délai de livraison (en jours)"
+            aria-label="Délai de livraison (en jours)"
             value={form.deliveryDays}
             onChange={(e) => set("deliveryDays", e.target.value)}
           />
@@ -132,6 +138,7 @@ export function PublishForm() {
             className={input}
             rows={3}
             placeholder={"Ce qui est inclus — un élément par ligne\nEx. 3 révisions\nFichier source livré"}
+            aria-label="Ce qui est inclus"
             value={form.serviceIncludes}
             onChange={(e) => set("serviceIncludes", e.target.value)}
           />

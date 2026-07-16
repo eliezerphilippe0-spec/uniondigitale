@@ -86,7 +86,7 @@ export function HaitiMap({ rows }: { rows: HtRow[] }) {
                 <path
                   d={dep.d}
                   fill={fill}
-                  stroke="#0a0a0f"
+                  stroke="var(--color-ink)"
                   strokeWidth="1.2"
                 />
                 <title>
@@ -106,7 +106,7 @@ export function HaitiMap({ rows }: { rows: HtRow[] }) {
                 dominantBaseline="central"
                 fontSize="15"
                 fontWeight="800"
-                fill="#ffffff"
+                fill="var(--color-cloud)"
                 style={{ pointerEvents: "none" }}
               >
                 {v}

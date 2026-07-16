@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { SiteNav } from "@/components/site-nav";
+import { CopyField } from "@/components/copy-field";
 import { ZabelieTopupStatus } from "@/components/zabelie-topup-status";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,7 +37,7 @@ export default async function RechajOrderPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/connexion");
+  if (!user) redirect(`/connexion?next=/rechaj/${orderId}`); // BL-110
 
   const admin = createAdminClient();
   const { data: order } = await admin
@@ -92,7 +93,14 @@ export default async function RechajOrderPage({
             </div>
             <div>
               <dt className="text-xs text-mist">{t(lang, "zelle.to")}</dt>
-              <dd className="mt-1 font-semibold">{zelleRecipient().handle}</dd>
+              <dd className="mt-1 font-semibold">
+                {zelleRecipient().handle}
+                <CopyField
+                  value={zelleRecipient().handle}
+                  label={t(lang, "common.copy")}
+                  copiedLabel={t(lang, "common.copied")}
+                />
+              </dd>
             </div>
             <div>
               <dt className="text-xs text-mist">{t(lang, "zelle.name")}</dt>
@@ -102,6 +110,11 @@ export default async function RechajOrderPage({
               <dt className="text-xs text-mist">{t(lang, "zelle.memo")}</dt>
               <dd className="numeric mt-1 text-xl font-extrabold text-accent">
                 {zelleMemo(order.id)}
+                <CopyField
+                  value={zelleMemo(order.id)}
+                  label={t(lang, "common.copy")}
+                  copiedLabel={t(lang, "common.copied")}
+                />
               </dd>
               <p className="mt-1 text-xs text-mist">{t(lang, "zelle.memo.why")}</p>
             </div>

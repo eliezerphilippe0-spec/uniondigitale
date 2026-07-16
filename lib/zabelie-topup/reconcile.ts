@@ -9,7 +9,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { retrieveOrderPayment, isSuccessful } from "@/lib/moncash";
+import { retrieveOrderPayment, isSuccessful, redactPayment } from "@/lib/moncash";
 import { fulfillTopupOrder, getTopupProvider } from "./fulfill";
 
 export type TopupReconcileResult = {
@@ -50,7 +50,7 @@ export async function reconcileTopups(
         const { data, error } = await admin.rpc("zabelie_topup_confirm_payment", {
           p_order_id: o.id,
           p_payment_ref: mc.transactionId,
-          p_raw: mc as unknown as Record<string, unknown>,
+          p_raw: redactPayment(mc), // BL-115 : minimisation identique au marketplace
           p_amount: Math.round(mc.cost),
         });
         if (error) result.errors.push(`${o.id}: ${error.message}`);

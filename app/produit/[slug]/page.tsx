@@ -79,14 +79,8 @@ export default async function ProductPage({
           <div
             className={`aspect-[4/3] w-full rounded-3xl bg-gradient-to-br ${product.accent}`}
           />
-          <div className="mt-4 flex gap-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className={`h-16 flex-1 rounded-xl bg-gradient-to-br ${product.accent} opacity-50`}
-              />
-            ))}
-          </div>
+          {/* BL-119 (Gumroad — pas de galerie factice) : les 3 vignettes
+              décoratives qui mimaient une galerie inexistante ont été retirées. */}
         </div>
 
         {/* Infos + achat */}
@@ -183,7 +177,7 @@ export default async function ProductPage({
                 )}
               </p>
             )}
-            <div className="mt-5">
+            <div className="mt-5" id="acheter">
               <BuyButton
                 productId={product.id}
                 options={buildBuyOptions(lang, product.priceHTG)}
@@ -195,6 +189,11 @@ export default async function ProductPage({
                   apply: t(lang, "coupon.apply"),
                   applied: t(lang, "coupon.applied"),
                   invalid: t(lang, "coupon.invalid"),
+                }}
+                errors={{
+                  generic: t(lang, "error.generic"),
+                  network: t(lang, "error.network"),
+                  provider: t(lang, "error.provider"),
                 }}
               />
             </div>
