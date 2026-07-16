@@ -3,6 +3,23 @@
 Actions opérationnelles côté porteur (aucune n'est du code). Les écarts de
 réconciliation topup détectés par le cron doivent aussi être consignés ici.
 
+## Backlog revue Team Agents (BL-xxx) — 2026-07-15
+
+Source unique : `docs/REVUE-2026-07-15-team-agents.md` §4 (plan priorisé
+complet, constats §3). Rien n'est exécuté sans « go » porteur, tâche par tâche.
+
+- [x] **P0 (Critique/invariants) — FAIT (PR #29, 2026-07-16)** : BL-101
+      (réconciliateur : états terminaux, `zabelie_expire_stale_payment`),
+      BL-102 (products verrouillé), BL-103 (fichier exigé avant vente),
+      BL-104 (nav mobile), BL-105 (taxonomie fermée). Migration **0024
+      appliquée en prod** (vérifiée 4/4, scan sécurité inchangé).
+- [ ] **P1 (quick wins S)** : BL-110 → BL-125 (détail au rapport §4).
+- [ ] **P2 (chantiers M/L)** : BL-130 (parité i18n ~40 chaînes), BL-131 (reset
+      mdp), BL-132–135, BL-136 (achat invité — décision produit), BL-138.
+- [ ] **BL-137 — ALERTE BRH (décision porteur)** : plafond journalier topup
+      calculé en jour UTC (bascule 19-20 h locales) + contrôle non atomique —
+      arbitrer fuseau America/Port-au-Prince et/ou contrainte en base.
+
 ## Recharge téléphonique (V-11)
 
 - [x] Compte **Reloadly** créé (sandbox).
