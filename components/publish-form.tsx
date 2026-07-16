@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
 export function PublishForm() {
   const router = useRouter();
@@ -48,7 +49,10 @@ export function PublishForm() {
         setError(data.error ?? "Publication échouée.");
         return;
       }
-      router.push(`/produit/${data.slug}`);
+      // BL-103 : un produit « fichier » naît en brouillon (invisible au
+      // public tant que le livrable n'est pas uploadé) → on renvoie vers la
+      // liste « Mes produits » où se trouve le bouton d'upload.
+      router.push(data.status === "draft" ? "/vendre" : `/produit/${data.slug}`);
       router.refresh();
     } catch {
       setError("Connexion impossible.");
@@ -78,12 +82,21 @@ export function PublishForm() {
           <option value="fichier">Fichier digital</option>
           <option value="service">Service / prestation</option>
         </select>
-        <input
+        {/* BL-105 : liste fermée partagée avec le catalogue — un produit est
+            toujours atteignable via une puce (fini le texte libre invisible). */}
+        <select
           className={input}
-          placeholder="Catégorie"
           value={form.category}
           onChange={(e) => set("category", e.target.value)}
-        />
+          required
+        >
+          <option value="">— Catégorie —</option>
+          {PRODUCT_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
       <input
         className={input}

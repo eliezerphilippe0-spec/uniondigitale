@@ -100,13 +100,33 @@ export async function POST(req: Request) {
   // Produit publié uniquement, prix = source de vérité serveur.
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, title, price_htg, status, seller_id")
+    .select("id, title, price_htg, status, seller_id, kind")
     .eq("id", productId)
     .eq("status", "published")
     .single();
 
   if (prodErr || !product) {
     return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
+  }
+
+  // BL-103 (FRONT-2) : on ne vend JAMAIS un fichier sans livrable. Les
+  // nouveaux « fichier » naissent en brouillon jusqu'à l'upload, mais les
+  // produits publiés avant ce garde peuvent exister sans asset → refus clair
+  // plutôt qu'un acheteur MonCash floué (confiance = tout, sur ce marché).
+  if (product.kind === "fichier") {
+    const { count } = await admin
+      .from("product_assets")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", product.id);
+    if (!count) {
+      return NextResponse.json(
+        {
+          error: "Ce produit n'a pas encore de fichier à livrer.",
+          code: "produit_incomplet",
+        },
+        { status: 409 }
+      );
+    }
   }
 
   // Code promo (optionnel) : validation + consommation ATOMIQUE côté serveur.

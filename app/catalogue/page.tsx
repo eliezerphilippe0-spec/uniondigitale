@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { getPublishedProducts } from "@/lib/products";
@@ -12,15 +13,8 @@ export const metadata = {
   title: "Catalogue — Zabelie Digi",
 };
 
-const CATEGORIES = [
-  "Tout",
-  "Photo",
-  "Business",
-  "Musique",
-  "Design",
-  "Carrière",
-  "Marketing",
-];
+// BL-105 : mêmes libellés que la publication (source unique, lib/product-categories).
+const CATEGORIES = ["Tout", ...PRODUCT_CATEGORIES];
 
 export default async function CataloguePage({
   searchParams,

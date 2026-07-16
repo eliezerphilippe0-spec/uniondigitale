@@ -11,7 +11,8 @@ export async function SiteNav() {
 
   return (
     <header className="sticky top-0 z-50">
-      <div className="mx-auto mt-4 flex max-w-6xl items-center justify-between rounded-2xl glass px-5 py-3">
+      <div className="mx-auto mt-4 max-w-6xl rounded-2xl glass px-5 py-3">
+        <div className="flex items-center justify-between">
         <BrandLogo />
 
         <nav className="hidden items-center gap-7 text-sm text-mist md:flex">
@@ -78,6 +79,24 @@ export async function SiteNav() {
             </>
           )}
         </div>
+        </div>
+
+        {/* BL-104 (FRONT-16) : sous 768 px la nav md était MASQUÉE sans repli —
+            Catalogue et Recharge devenaient inaccessibles depuis le header sur
+            le terrain principal (Android). Repli en liens simples : 0 KB de JS,
+            fonctionne sans hydratation sur bas de gamme (pattern Amazon mobile :
+            les destinations vitales restent visibles). */}
+        <nav className="mt-3 flex items-center justify-center gap-6 border-t border-line pt-3 text-sm text-mist md:hidden">
+          <Link href="/catalogue" className="py-1 transition hover:text-cloud">
+            {t(lang, "nav.catalog")}
+          </Link>
+          <Link href="/rechaj" className="py-1 transition hover:text-cloud">
+            {t(lang, "nav.topup")}
+          </Link>
+          <Link href="/#talents" className="py-1 transition hover:text-cloud">
+            {t(lang, "nav.talents")}
+          </Link>
+        </nav>
       </div>
     </header>
   );
