@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeCategory } from "@/lib/product-categories";
 import { createClient } from "@/lib/supabase/server";
 import { getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -113,13 +114,18 @@ export async function POST(req: Request) {
       title,
       description: description ?? null,
       kind,
-      category: category ?? null,
+      // BL-105 : whitelist serveur — jamais de texte libre en base.
+      category: normalizeCategory(category),
       price_htg: Math.round(price),
       delivery_days: deliveryDays,
       service_includes: serviceIncludes.length > 0 ? serviceIncludes : null,
-      status: "published",
+      // BL-103 (Gumroad — le fichier est exigé avant la mise en vente) : un
+      // produit « fichier » naît en BROUILLON, invisible au public, et sera
+      // publié automatiquement au premier upload du livrable (asset route).
+      // Un service (pas de fichier à livrer) se publie immédiatement.
+      status: kind === "service" ? "published" : "draft",
     })
-    .select("slug")
+    .select("slug, status")
     .single();
 
   if (error || !product) {
@@ -129,5 +135,5 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ slug: product.slug });
+  return NextResponse.json({ slug: product.slug, status: product.status });
 }

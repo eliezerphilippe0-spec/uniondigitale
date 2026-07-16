@@ -40,7 +40,7 @@ function liveDeps(): ReconcileDeps {
       // l'admin. Interroger MonCash pour ces rails serait toujours « pending ».
       const { data, error } = await admin
         .from("payments")
-        .select("idempotency_key, order_id")
+        .select("idempotency_key, order_id, created_at")
         .eq("status", "pending")
         .eq("rail", "moncash")
         .order("created_at", { ascending: true })
@@ -49,6 +49,15 @@ function liveDeps(): ReconcileDeps {
       return data ?? [];
     },
     retrieve: (orderId) => retrieveOrderPayment(orderId),
+    // BL-101 : état terminal pour les pending abandonnés (>48 h, MonCash 404
+    // ou non confirmé) — la fonction SQL re-vérifie âge et statut en base.
+    expire: async (idempotencyKey, reason) => {
+      const { error } = await admin.rpc("zabelie_expire_stale_payment", {
+        p_idempotency_key: idempotencyKey,
+        p_reason: reason,
+      });
+      return error ? { error: error.message } : {};
+    },
     confirm: async ({ idempotencyKey, providerRef, amount, raw }) => {
       const { data, error } = await admin.rpc("confirm_payment", {
         p_idempotency_key: idempotencyKey,

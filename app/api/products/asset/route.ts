@@ -91,7 +91,7 @@ export async function POST(req: Request) {
   // Propriété du produit.
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, seller_id, kind")
+    .select("id, seller_id, kind, status")
     .eq("id", productId)
     .single();
   if (prodErr || !product || product.seller_id !== user.id) {
@@ -121,6 +121,16 @@ export async function POST(req: Request) {
   });
   if (insErr) {
     return NextResponse.json({ error: insErr.message }, { status: 500 });
+  }
+
+  // BL-103 : le livrable est là → le brouillon devient publiable. On ne touche
+  // qu'aux brouillons (jamais un produit archivé par la modération).
+  if (product.status === "draft") {
+    await admin
+      .from("products")
+      .update({ status: "published" })
+      .eq("id", product.id)
+      .eq("status", "draft");
   }
 
   return NextResponse.json({ ok: true, file_name: safeName });
