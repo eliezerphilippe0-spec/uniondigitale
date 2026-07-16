@@ -156,10 +156,24 @@ export async function getPublishedProducts(
     query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
   }
 
-  const { data, error } = await query.order("created_at", { ascending: false });
+  // BL-116 (C-6, pattern Amazon — liste toujours bornée) : sans LIMIT, le HTML
+  // du catalogue croissait linéairement avec l'offre (3G). 60 = ~2 écrans.
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .limit(60);
 
-  if (error || !data) return filterSample(sampleAsView(), filters);
-  return (data as unknown as Row[]).map(rowAsView);
+  if (error || !data) {
+    // BL-116 : le repli « produits de démo » est réservé au mode NON configuré
+    // (géré plus haut). En prod, masquer une panne derrière des produits
+    // inachetables détruirait la confiance → on remonte l'erreur.
+    throw new Error(`catalogue indisponible: ${error?.message ?? "réponse vide"}`);
+  }
+  return (data as unknown as Row[]).map((r) => {
+    const v = rowAsView(r);
+    // Blurb tronqué SERVEUR : la description intégrale n'a rien à faire dans
+    // une carte de liste (poids page).
+    return { ...v, blurb: v.blurb.length > 160 ? v.blurb.slice(0, 157) + "…" : v.blurb };
+  });
 }
 
 export async function getProductView(

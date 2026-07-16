@@ -27,6 +27,9 @@ type Labels = {
   amountLabel: string;
   receives: string; // contient {face}
   loading: string;
+  errorGeneric: string;
+  errorNetwork: string;
+  errorProvider: string;
 };
 
 /**
@@ -90,13 +93,17 @@ export function ZabelieTopupForm({
       }
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Une erreur est survenue.");
+        setError(
+          data.code === "provider_unavailable"
+            ? labels.errorProvider
+            : (data.error ?? labels.errorGeneric)
+        );
         return;
       }
       if (String(data.redirectUrl).startsWith("/")) router.push(data.redirectUrl);
       else window.location.href = data.redirectUrl;
     } catch {
-      setError("Connexion impossible. Réessayez.");
+      setError(labels.errorNetwork);
     } finally {
       setLoadingRail(null);
     }

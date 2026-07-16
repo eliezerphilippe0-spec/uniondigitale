@@ -28,6 +28,12 @@
   /* ⚠️ blanc chaud : #f4eee8, sans voile rosé */
   /* --text-muted #b3a39b : mesuré 4.82:1 sur surface-brown → conservé tel quel */
 
+  /* ⚠️ RÈGLE (QA-A4, revue 2026-07-15) : les tokens de BASE ci-dessous
+     (--color-success/warning/danger/info et --color-brand) servent aux
+     pastilles/fonds/graphiques (seuil 3:1) — NE JAMAIS les utiliser comme
+     COULEUR DE TEXTE sur surfaces teintées : 7 paires mesurées sous 4.5:1.
+     Pour du texte : toujours les variantes `*-text`, et `text-ink` sur les
+     CTA --brand. Vérif : node scripts/zabelie-contrast.mjs. */
   /* ── États sémantiques (statuts commande, paiement MonCash, escrow J+7) ──
      Base = pastilles/graphiques (seuil 3:1). Variantes -text = texte de badge
      sur fond teinté 15 % (seuil 4.5:1, corrigées par scripts/zabelie-contrast). */

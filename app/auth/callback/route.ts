@@ -21,7 +21,13 @@ export async function GET(req: Request) {
 
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      // BL-121 (C-13) : lien expiré ou déjà consommé (double-clic, préfetch
+      // d'antivirus de messagerie) → message clair au lieu d'un atterrissage
+      // silencieusement déconnecté.
+      return NextResponse.redirect(`${site}/connexion?erreur=lien_expire`);
+    }
   }
   return NextResponse.redirect(`${site}${next}`);
 }

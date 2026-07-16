@@ -81,6 +81,9 @@ export default async function RechajPage() {
                 amountLabel: t(lang, "topup.amount.label"),
                 receives: t(lang, "topup.receives"),
                 loading: t(lang, "pay.redirect"),
+                errorGeneric: t(lang, "error.generic"),
+                errorNetwork: t(lang, "error.network"),
+                errorProvider: t(lang, "error.provider"),
               }}
             />
           )}

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
+import { getLang } from "@/lib/i18n-server";
 
 // Polices AUTO-HÉBERGÉES par Next (sous-ensemble latin, servies depuis notre
 // domaine) — supprime la requête tierce bloquante vers Google Fonts, gain net
@@ -49,13 +50,16 @@ export const viewport: Viewport = {
   themeColor: "#17123a",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // BL-112 : lang suit la langue de session (lecteurs d'écran + SEO) — figé
+  // sur "fr" auparavant, le Kreyòl était prononcé avec les règles du français.
+  const lang = await getLang();
   return (
-    <html lang="fr" className={`${inter.variable} ${manrope.variable}`}>
+    <html lang={lang} className={`${inter.variable} ${manrope.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

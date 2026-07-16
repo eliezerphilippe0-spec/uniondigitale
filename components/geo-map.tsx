@@ -105,16 +105,16 @@ export function GeoMap({ rows }: { rows: GeoRow[] }) {
         >
           <defs>
             <linearGradient id="bubble" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7c5cff" />
-              <stop offset="100%" stopColor="#e0408f" />
+              <stop offset="0%" stopColor="var(--color-accent-gold)" />
+              <stop offset="100%" stopColor="var(--color-brand)" />
             </linearGradient>
           </defs>
 
           {/* Océan / fond */}
-          <rect x="0" y="0" width={W} height={H} fill="#101018" />
+          <rect x="0" y="0" width={W} height={H} fill="var(--color-ink)" />
 
           {/* Terres */}
-          <g fill="#1e1e29" stroke="#2b2b37" strokeWidth="0.4">
+          <g fill="var(--color-surface)" stroke="var(--color-ink-soft)" strokeWidth="0.4">
             {LAND.map((l, i) => (
               <path key={i} d={l.d} />
             ))}
@@ -134,7 +134,7 @@ export function GeoMap({ rows }: { rows: GeoRow[] }) {
                     r={radius}
                     fill="url(#bubble)"
                     fillOpacity="0.9"
-                    stroke="#0a0a0f"
+                    stroke="var(--color-ink)"
                     strokeWidth="1"
                   />
                   <text
@@ -144,7 +144,7 @@ export function GeoMap({ rows }: { rows: GeoRow[] }) {
                     dominantBaseline="central"
                     fontSize={Math.max(9, radius * 0.7)}
                     fontWeight="700"
-                    fill="#ffffff"
+                    fill="var(--color-cloud)"
                     style={{ pointerEvents: "none" }}
                   >
                     {label}

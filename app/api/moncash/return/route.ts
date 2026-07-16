@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/zabelie-rate-limit";
 import {
   retrieveTransactionPayment,
   isSuccessful,
@@ -24,6 +25,15 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${site}/paiement/echec?raison=transaction_absente`);
   }
 
+  // BL-122 (C-4b) : endpoint public — chaque hit coûte 2 appels MonCash
+  // (token + retrieve). Borne par IP pour couper l'amplification.
+  const admin = createAdminClient();
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "inconnue";
+  if (!(await rateLimit(admin, `mcreturn:${ip}`, 20))) {
+    return NextResponse.redirect(`${site}/paiement/en-attente`);
+  }
+
   let payment;
   try {
     payment = await retrieveTransactionPayment(transactionId);
@@ -33,12 +43,27 @@ export async function GET(req: Request) {
   }
 
   if (!isSuccessful(payment) || !payment) {
-    return NextResponse.redirect(`${site}/paiement/echec?raison=non_confirme`);
+    // BL-111 (Stripe « Try again ») : si la référence est une commande
+    // marketplace, on passe le slug produit pour un CTA « Réessayer » direct.
+    const ref = payment?.reference ?? "";
+    let produit = "";
+    if (ref && !ref.startsWith("biz:")) {
+      const { data: o } = await admin
+        .from("orders")
+        .select("products(slug)")
+        .eq("id", ref)
+        .maybeSingle();
+      const prod = o?.products as unknown as { slug?: string } | { slug?: string }[] | null;
+      const slug = Array.isArray(prod) ? prod[0]?.slug : prod?.slug;
+      if (slug) produit = `&produit=${encodeURIComponent(slug)}`;
+    }
+    return NextResponse.redirect(
+      `${site}/paiement/echec?raison=non_confirme${produit}`
+    );
   }
 
   // payment.reference = notre order.id = idempotency_key du paiement.
   const orderId = payment.reference;
-  const admin = createAdminClient();
 
   // Facture Zabelie Business (V-13) ? Référence `biz:<invoiceId>:<nonce>`.
   // Traité EN PREMIER : cette référence n'est pas un UUID, donc elle ne doit
@@ -85,7 +110,7 @@ export async function GET(req: Request) {
       {
         p_order_id: orderId,
         p_payment_ref: payment.transactionId,
-        p_raw: payment as unknown as Record<string, unknown>,
+        p_raw: redactPayment(payment), // BL-115 : minimisation (n° payeur retiré)
         p_amount: Math.round(payment.cost),
       }
     );
@@ -112,7 +137,15 @@ export async function GET(req: Request) {
   }
   if (data?.status === "failed") {
     // Montant incohérent : paiement rejeté, aucune livraison.
-    return NextResponse.redirect(`${site}/paiement/echec?raison=montant`);
+    const { data: o } = await admin
+      .from("orders")
+      .select("products(slug)")
+      .eq("id", orderId)
+      .maybeSingle();
+    const prod = o?.products as unknown as { slug?: string } | { slug?: string }[] | null;
+    const slug = Array.isArray(prod) ? prod[0]?.slug : prod?.slug;
+    const produit = slug ? `&produit=${encodeURIComponent(slug)}` : "";
+    return NextResponse.redirect(`${site}/paiement/echec?raison=montant${produit}`);
   }
 
   // E-mails livraison acheteur + 🎉 vendeur (best-effort, idempotent en base).

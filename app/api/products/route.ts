@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizeCategory } from "@/lib/product-categories";
+import { rateLimit } from "@/lib/zabelie-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { getSuspension } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -49,11 +50,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "JSON invalide" }, { status: 400 });
   }
 
-  const { title, description, kind, category } = body;
+  const { kind, category } = body;
   const price = Number(body.priceHTG);
-  if (!title || !kind || !Number.isFinite(price) || price < 0) {
+  // BL-117 (C-11) : mêmes gardes que les routes d'argent — bornes de taille
+  // (anti-spam du catalogue public) et prix ≥ 1 (un CreatePayment MonCash à
+  // 0 HTG finit en 502 confus côté acheteur).
+  const title = typeof body.title === "string" ? body.title.trim().slice(0, 140) : "";
+  const description =
+    typeof body.description === "string" ? body.description.slice(0, 5000) : null;
+  if (!title || !kind || !Number.isFinite(price) || price < 1) {
     return NextResponse.json(
-      { error: "Champs requis : titre, type, prix valide." },
+      { error: "Champs requis : titre, type, prix valide (≥ 1 HTG)." },
       { status: 400 }
     );
   }
@@ -84,6 +91,14 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
 
+  // BL-117 : cadence bornée comme checkout/topup (10 créations/min).
+  if (!(await rateLimit(admin, `products:${user.id}`, 10))) {
+    return NextResponse.json(
+      { error: "Trop de publications — réessayez dans une minute." },
+      { status: 429 }
+    );
+  }
+
   // S'assure que le profil existe et passe en rôle créateur.
   const { data: existing } = await admin
     .from("profiles")
@@ -112,7 +127,7 @@ export async function POST(req: Request) {
       seller_id: user.id,
       slug,
       title,
-      description: description ?? null,
+      description,
       kind,
       // BL-105 : whitelist serveur — jamais de texte libre en base.
       category: normalizeCategory(category),

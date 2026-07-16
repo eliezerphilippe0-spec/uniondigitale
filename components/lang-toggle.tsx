@@ -18,7 +18,7 @@ export function LangToggle({ current }: { current: Lang }) {
       onClick={() => set(lang)}
       title={title}
       aria-pressed={current === lang}
-      className={`rounded-md px-1.5 py-0.5 transition ${
+      className={`rounded-md px-3 py-2 transition ${
         current === lang ? "bg-cloud font-semibold text-ink" : "text-mist hover:text-cloud"
       }`}
     >
@@ -26,8 +26,10 @@ export function LangToggle({ current }: { current: Lang }) {
     </button>
   );
 
+  // BL-124 : zones tactiles élargies (~40 px) — c'était ~22×18 px sur LE
+  // bouton de bascule de langue, sur Android bas de gamme.
   return (
-    <div className="flex items-center gap-0.5 rounded-lg border border-line p-0.5 text-[11px]">
+    <div className="flex items-center gap-0.5 rounded-lg border border-line p-0.5 text-xs">
       {btn("fr", "FR", "Français")}
       {btn("ht", "KR", "Kreyòl ayisyen")}
     </div>

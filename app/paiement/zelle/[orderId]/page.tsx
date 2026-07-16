@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { CopyField } from "@/components/copy-field";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { zelleRecipient, isZelleEnabled } from "@/lib/zelle";
@@ -29,7 +30,7 @@ export default async function ZellePage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/connexion");
+  if (!user) redirect(`/connexion?next=/paiement/zelle/${orderId}`); // BL-110
 
   const admin = createAdminClient();
   const { data: payment } = await admin
@@ -75,7 +76,14 @@ export default async function ZellePage({
           </div>
           <div>
             <dt className="text-xs text-mist">{t(lang, "zelle.to")}</dt>
-            <dd className="mt-1 font-semibold">{recipient.handle}</dd>
+            <dd className="mt-1 font-semibold">
+              {recipient.handle}
+              <CopyField
+                value={recipient.handle}
+                label={t(lang, "common.copy")}
+                copiedLabel={t(lang, "common.copied")}
+              />
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-mist">{t(lang, "zelle.name")}</dt>
@@ -85,6 +93,11 @@ export default async function ZellePage({
             <dt className="text-xs text-mist">{t(lang, "zelle.memo")}</dt>
             <dd className="numeric mt-1 text-xl font-extrabold text-accent">
               {memo}
+              <CopyField
+                value={memo}
+                label={t(lang, "common.copy")}
+                copiedLabel={t(lang, "common.copied")}
+              />
             </dd>
             <p className="mt-1 text-xs text-mist">{t(lang, "zelle.memo.why")}</p>
           </div>
