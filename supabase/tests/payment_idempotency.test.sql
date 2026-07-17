@@ -12,6 +12,11 @@
 --   C. Commission Elite (6 %) : net 940 sur 1000.
 --   D. Rail USD (Zelle/Stripe, 0009) : montant USD reçu ≠ figé → REJET.
 --   E. Rail USD, montant exact : confirmation + crédit net HTG, idempotente.
+--   F. BL-133 (0027) : coupon consommé PAR confirm_payment, pas avant ; rejeu
+--      idempotent → une seule consommation.
+--   G. BL-133 : quota déjà épuisé au moment de la confirmation (course perdue
+--      entre deux checkouts) → paiement CONFIRMÉ quand même (déjà facturé au
+--      prix remisé), consommation en best-effort silencieux.
 
 begin;
 
@@ -110,6 +115,50 @@ select confirm_payment('00000000-0000-0000-0000-0000000000b5', 'ZELLE:ref-e',
                        '{}'::jsonb, null, 2000);
 select confirm_payment('00000000-0000-0000-0000-0000000000b5', 'ZELLE:ref-e',
                        '{}'::jsonb, null, 2000);
+
+-- ═══════════ Scénario F : coupon consommé PAR confirm_payment, rejoué ═══════════
+-- Vendeur dédié (…0003) : son wallet n'est vérifié par AUCUNE assertion en
+-- valeur absolue ailleurs dans ce fichier (seulement E, scoping par
+-- idempotency_key) — évite de fausser les agrégats pending_htg de A/B (…0001).
+insert into zabelie_coupons (id, seller_id, code, percent, max_uses)
+  values ('00000000-0000-0000-0000-0000000000c1',
+          '00000000-0000-0000-0000-000000000003', 'BL133F', 20, 5);
+insert into products (id, seller_id, slug, title, kind, price_htg, status)
+  values ('00000000-0000-0000-0000-0000000000a6',
+          '00000000-0000-0000-0000-000000000003',
+          'produit-f', 'Produit F', 'fichier', 1000, 'published');
+insert into orders (id, buyer_id, product_id, amount_htg, status, coupon_id, coupon_code, discount_htg)
+  values ('00000000-0000-0000-0000-0000000000b6',
+          '00000000-0000-0000-0000-000000000003',
+          '00000000-0000-0000-0000-0000000000a6', 800, 'pending',
+          '00000000-0000-0000-0000-0000000000c1', 'BL133F', 200);
+insert into payments (order_id, rail, idempotency_key, status)
+  values ('00000000-0000-0000-0000-0000000000b6', 'moncash',
+          '00000000-0000-0000-0000-0000000000b6', 'pending');
+
+-- Rejoué 2× (retour navigateur + réconciliateur) : une seule consommation.
+select confirm_payment('00000000-0000-0000-0000-0000000000b6', 'TX6', '{}'::jsonb, 800);
+select confirm_payment('00000000-0000-0000-0000-0000000000b6', 'TX6', '{}'::jsonb, 800);
+
+-- ═══════════ Scénario G : quota déjà épuisé à la confirmation ═══════════
+insert into zabelie_coupons (id, seller_id, code, percent, max_uses, uses)
+  values ('00000000-0000-0000-0000-0000000000c2',
+          '00000000-0000-0000-0000-000000000003', 'BL133G', 20, 1, 1); -- déjà à quota
+insert into products (id, seller_id, slug, title, kind, price_htg, status)
+  values ('00000000-0000-0000-0000-0000000000a7',
+          '00000000-0000-0000-0000-000000000003',
+          'produit-g', 'Produit G', 'fichier', 1000, 'published');
+insert into orders (id, buyer_id, product_id, amount_htg, status, coupon_id, coupon_code, discount_htg)
+  values ('00000000-0000-0000-0000-0000000000b7',
+          '00000000-0000-0000-0000-000000000003',
+          '00000000-0000-0000-0000-0000000000a7', 800, 'pending',
+          '00000000-0000-0000-0000-0000000000c2', 'BL133G', 200);
+insert into payments (order_id, rail, idempotency_key, status)
+  values ('00000000-0000-0000-0000-0000000000b7', 'moncash',
+          '00000000-0000-0000-0000-0000000000b7', 'pending');
+
+-- Déjà facturé au prix remisé (800) → doit rester CONFIRMÉ malgré le quota épuisé.
+select confirm_payment('00000000-0000-0000-0000-0000000000b7', 'TX7', '{}'::jsonb, 800);
 
 -- ════════════════════════════ Assertions ════════════════════════════
 do $$
@@ -211,7 +260,20 @@ begin
   assert v_e_credit = 2376, format('E: crédit net HTG attendu 2376, obtenu %s', v_e_credit);
   assert v_e_txn_count = 1, format('E: une seule transaction attendue, obtenu %s', v_e_txn_count);
 
-  raise notice 'OK — A (net=%, commission=%, txns=%) ; B rejeté ; C Elite (net=%, commission=%) ; D USD rejeté ; E USD confirmé (net=%)',
+  -- F : coupon consommé PAR confirm_payment (pas au checkout), rejeu = 1 seule conso
+  assert (select uses from zabelie_coupons where id = '00000000-0000-0000-0000-0000000000c1') = 1,
+    'F: le coupon devait être consommé exactement une fois par confirm_payment (rejeu inclus)';
+  assert (select status from payments where idempotency_key = '00000000-0000-0000-0000-0000000000b6') = 'confirmed',
+    'F: le paiement remisé devait être confirmé';
+
+  -- G : quota déjà épuisé à la confirmation → paiement confirmé quand même,
+  -- consommation en best-effort silencieuse (uses reste à 1, pas 2).
+  assert (select status from payments where idempotency_key = '00000000-0000-0000-0000-0000000000b7') = 'confirmed',
+    'G: un paiement déjà facturé au prix remisé ne doit JAMAIS être rejeté pour un quota coupon épuisé';
+  assert (select uses from zabelie_coupons where id = '00000000-0000-0000-0000-0000000000c2') = 1,
+    'G: la consommation best-effort ne doit pas dépasser le quota (uses doit rester à 1)';
+
+  raise notice 'OK — A (net=%, commission=%, txns=%) ; B rejeté ; C Elite (net=%, commission=%) ; D USD rejeté ; E USD confirmé (net=%) ; F coupon consommé au confirm ; G paiement confirmé malgré quota épuisé',
     v_balance, v_commission, v_txn_count, v_c_balance, v_c_commission, v_e_credit;
 end $$;
 
