@@ -287,6 +287,25 @@ const fr = {
 
   "status.draft": "Brouillon",
   "status.published": "Publié",
+
+  // BL-131 (revue P2) — mot de passe oublié.
+  "auth.forgot": "Mot de passe oublié ?",
+  "forgot.title": "Mot de passe oublié",
+  "forgot.subtitle":
+    "Entrez votre e-mail, nous vous enverrons un lien pour créer un nouveau mot de passe.",
+  "forgot.submit": "Envoyer le lien",
+  "forgot.sending": "Envoi…",
+  "forgot.success":
+    "Si un compte existe avec cet e-mail, un lien de réinitialisation vient d'être envoyé. Vérifiez votre boîte de réception (et vos spams).",
+  "forgot.back": "← Retour à la connexion",
+  "reset.title": "Nouveau mot de passe",
+  "reset.subtitle": "Choisissez un nouveau mot de passe pour votre compte.",
+  "reset.confirm.ph": "Confirmer le mot de passe",
+  "reset.mismatch": "Les mots de passe ne correspondent pas.",
+  "reset.submit": "Mettre à jour le mot de passe",
+  "reset.submitting": "Mise à jour…",
+  "reset.success": "Mot de passe mis à jour. Vous pouvez maintenant vous connecter.",
+  "reset.invalid": "Ce lien n'est plus valide. Demandez un nouveau lien.",
 } as const;
 
 export type I18nKey = keyof typeof fr;
@@ -555,6 +574,24 @@ const ht: Record<I18nKey, string> = {
 
   "status.draft": "Poko pibliye",
   "status.published": "Pibliye",
+
+  "auth.forgot": "Modpas bliye ?",
+  "forgot.title": "Modpas bliye",
+  "forgot.subtitle":
+    "Antre imèl ou, n ap voye yon lyen pou ou kreye yon nouvo modpas.",
+  "forgot.submit": "Voye lyen an",
+  "forgot.sending": "N ap voye…",
+  "forgot.success":
+    "Si gen yon kont ak imèl sa a, yon lyen reyinisyalizasyon fèk voye. Tcheke bwat resepsyon ou (ak spam yo).",
+  "forgot.back": "← Tounen nan konekte a",
+  "reset.title": "Nouvo modpas",
+  "reset.subtitle": "Chwazi yon nouvo modpas pou kont ou.",
+  "reset.confirm.ph": "Konfime modpas la",
+  "reset.mismatch": "Modpas yo pa menm.",
+  "reset.submit": "Mete modpas la ajou",
+  "reset.submitting": "N ap mete ajou…",
+  "reset.success": "Modpas mete ajou. Ou ka konekte kounye a.",
+  "reset.invalid": "Lyen sa a pa bon ankò. Mande yon nouvo lyen.",
 };
 
 export const DICT: Record<Lang, Record<I18nKey, string>> = { fr, ht };

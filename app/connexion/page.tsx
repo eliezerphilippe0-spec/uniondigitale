@@ -27,6 +27,7 @@ export default async function ConnexionPage() {
           linkExpired: t(lang, "auth.link.expired"),
           backHome: t(lang, "auth.back.home"),
           errorGeneric: t(lang, "error.generic"),
+          forgot: t(lang, "auth.forgot"),
         }}
       />
     </>
