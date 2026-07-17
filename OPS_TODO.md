@@ -27,9 +27,16 @@ complet, constats §3). Rien n'est exécuté sans « go » porteur, tâche par t
       `orders`, 3 index créés — procédure manuelle, connecteur Supabase
       indisponible au moment de la fusion).
       BL-136 (achat invité — décision produit) reste non traité, volontairement.
-- [ ] **BL-137 — ALERTE BRH (décision porteur)** : plafond journalier topup
-      calculé en jour UTC (bascule 19-20 h locales) + contrôle non atomique —
-      arbitrer fuseau America/Port-au-Prince et/ou contrainte en base.
+- [x] **BL-137 — ALERTE BRH — FAIT (PR #42, 2026-07-17)** : arbitrage porteur
+      obtenu (fuseau + atomicité, les deux). Plafond journalier topup calculé
+      sur le jour **America/Port-au-Prince** (plus UTC) ; contrôle rendu
+      **atomique** (`zabelie_topup_reserve_order`, verrou par acheteur —
+      vérifie tous les plafonds ET crée la commande dans le même appel).
+      Migration **0029 appliquée en prod** (vérifiée : `prosecdef=true`,
+      `search_path=public`).
+
+Backlog Team Agents intégralement traité (P0 + P1 + P2 + alerte BRH). Seul
+BL-136 (achat invité) reste explicitement en attente d'une décision produit.
 
 ## Recharge téléphonique (V-11)
 
