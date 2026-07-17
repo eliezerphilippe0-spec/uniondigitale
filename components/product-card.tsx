@@ -2,7 +2,27 @@ import Link from "next/link";
 import { formatHTG } from "@/lib/sample-data";
 import type { ProductView } from "@/lib/products";
 
-export function ProductCard({ product }: { product: ProductView }) {
+export type ProductCardLabels = {
+  kindFile: string;
+  kindService: string;
+  by: string;
+  sales: string;
+};
+
+const FALLBACK_LABELS: ProductCardLabels = {
+  kindFile: "Fichier",
+  kindService: "Service",
+  by: "par",
+  sales: "ventes",
+};
+
+export function ProductCard({
+  product,
+  labels = FALLBACK_LABELS,
+}: {
+  product: ProductView;
+  labels?: ProductCardLabels;
+}) {
   return (
     <Link
       href={`/produit/${product.slug}`}
@@ -32,13 +52,13 @@ export function ProductCard({ product }: { product: ProductView }) {
           <rect width="100%" height="100%" fill={`url(#chev-${product.slug})`} />
         </svg>
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
-          {product.kind === "service" ? "Service" : "Fichier"}
+          {product.kind === "service" ? labels.kindService : labels.kindFile}
         </span>
         {(product.ratingAvg !== null || product.sales > 0) && (
           <span className="absolute right-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cloud backdrop-blur">
             {product.ratingAvg !== null
               ? `★ ${product.ratingAvg} (${product.ratingCount})`
-              : `${product.sales} ventes`}
+              : `${product.sales} ${labels.sales}`}
           </span>
         )}
       </div>
@@ -51,7 +71,7 @@ export function ProductCard({ product }: { product: ProductView }) {
         <p className="line-clamp-2 text-xs text-mist">{product.blurb}</p>
 
         <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="text-xs text-mist">par {product.creator}</span>
+          <span className="text-xs text-mist">{labels.by} {product.creator}</span>
           <span className="numeric text-sm font-bold text-gradient">
             {formatHTG(product.priceHTG)}
           </span>

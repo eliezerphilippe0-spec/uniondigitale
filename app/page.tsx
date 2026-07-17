@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { formatHTG } from "@/lib/sample-data";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
+import type { ProductCardLabels } from "@/components/product-card";
 
 export const dynamic = "force-dynamic";
 
@@ -19,12 +20,14 @@ function HomeRow({
   sub,
   more,
   items,
+  cardLabels,
 }: {
   id?: string;
   title: string;
   sub: string;
   more: string;
   items: ProductView[];
+  cardLabels: ProductCardLabels;
 }) {
   if (items.length === 0) return null;
   return (
@@ -43,7 +46,7 @@ function HomeRow({
       </div>
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((p) => (
-          <ProductCard key={p.slug} product={p} />
+          <ProductCard key={p.slug} product={p} labels={cardLabels} />
         ))}
       </div>
     </section>
@@ -73,6 +76,13 @@ export default async function HomePage() {
     getLang(),
     promoSellerIds(),
   ]);
+
+  const cardLabels: ProductCardLabels = {
+    kindFile: t(lang, "card.kind.file"),
+    kindService: t(lang, "card.kind.service"),
+    by: t(lang, "product.by"),
+    sales: t(lang, "product.sales"),
+  };
 
   // Dérivations : une seule requête catalogue alimente toutes les sections.
   const bySales = [...products].sort((a, b) => b.sales - a.sales);
@@ -273,6 +283,7 @@ export default async function HomePage() {
         sub={t(lang, "home.trends.sub")}
         more={t(lang, "home.all")}
         items={trending}
+        cardLabels={cardLabels}
       />
 
       {/* 4. NOUVEAUTÉS */}
@@ -281,6 +292,7 @@ export default async function HomePage() {
         sub={t(lang, "sec.new.sub")}
         more={t(lang, "home.all")}
         items={newest}
+        cardLabels={cardLabels}
       />
 
       {/* 5. SERVICES POPULAIRES */}
@@ -289,6 +301,7 @@ export default async function HomePage() {
         sub={t(lang, "sec.services.sub")}
         more={t(lang, "home.all")}
         items={services}
+        cardLabels={cardLabels}
       />
 
       {/* 6. MEILLEURS VENDEURS */}
@@ -325,6 +338,7 @@ export default async function HomePage() {
         sub={t(lang, "sec.free.sub")}
         more={t(lang, "home.all")}
         items={free}
+        cardLabels={cardLabels}
       />
 
       {/* 8. EN PROMOTION (vendeurs à code promo actif) */}
@@ -333,6 +347,7 @@ export default async function HomePage() {
         sub={t(lang, "sec.promo.sub")}
         more={t(lang, "home.all")}
         items={promo}
+        cardLabels={cardLabels}
       />
 
       {/* 9. AVIS CLIENTS */}

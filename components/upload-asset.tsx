@@ -3,15 +3,26 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+export type UploadAssetLabels = {
+  sending: string;
+  replace: string;
+  add: string;
+  saved: string;
+  error: string;
+  errorNetwork: string;
+};
+
 /**
  * Envoie le fichier livrable d'un produit vers /api/products/asset.
  */
 export function UploadAsset({
   productId,
   hasAsset,
+  labels,
 }: {
   productId: string;
   hasAsset: boolean;
+  labels: UploadAssetLabels;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,13 +44,13 @@ export function UploadAsset({
       });
       const data = await res.json();
       if (!res.ok) {
-        setMsg(data.error ?? "Envoi échoué.");
+        setMsg(data.error ?? labels.error);
         return;
       }
-      setMsg("Fichier enregistré.");
+      setMsg(labels.saved);
       router.refresh();
     } catch {
-      setMsg("Connexion impossible.");
+      setMsg(labels.errorNetwork);
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -59,7 +70,7 @@ export function UploadAsset({
         disabled={loading}
         className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-cloud transition hover:border-violet/50 disabled:opacity-60"
       >
-        {loading ? "Envoi…" : hasAsset ? "Remplacer le fichier" : "Ajouter le fichier"}
+        {loading ? labels.sending : hasAsset ? labels.replace : labels.add}
       </button>
       {msg && <p className="mt-1 text-xs text-mist">{msg}</p>}
     </div>

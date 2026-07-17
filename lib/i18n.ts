@@ -229,6 +229,64 @@ const fr = {
     "Les opportunités ne se trouvent pas, elles se créent. Oser Agir.",
   "founder.name": "Éliezer Philippe",
   "founder.role": "Fondateur, Zabelie Digi",
+
+  // BL-130 (revue P2) — parité i18n : connexion, vendre, publish-form,
+  // upload-asset, créateur, product-card.
+  "auth.tab.signin": "Connexion",
+  "auth.tab.signup": "Inscription",
+  "auth.name.ph": "Nom d'affichage",
+  "auth.email.ph": "E-mail",
+  "auth.password.ph": "Mot de passe",
+  "auth.signin.cta": "Se connecter",
+  "auth.signup.cta": "Créer mon compte",
+  "auth.signup.success":
+    "Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous.",
+  "auth.demo.mode":
+    "Mode démo : connectez le projet Supabase pour activer les comptes.",
+  "auth.link.expired":
+    "Ce lien de confirmation a expiré ou a déjà été utilisé. Connectez-vous, ou créez à nouveau votre compte pour recevoir un nouveau lien.",
+  "auth.back.home": "← Retour à l'accueil",
+
+  "sell.title": "Vendre sur Zabelie Digi",
+  "sell.demo.subtitle": "Mode démo — connecte Supabase pour publier de vrais produits.",
+  "sell.demo.body.pre": "La publication nécessite une base Supabase configurée (voir",
+  "sell.demo.body.post": ").",
+  "sell.login.subtitle": "Connecte-toi pour publier un produit.",
+  "sell.subtitle": "Publie un produit digital ou une prestation.",
+  "sell.mine.title": "Mes produits",
+
+  "publish.title.ph": "Titre du produit",
+  "publish.kind.aria": "Type de produit",
+  "publish.category.aria": "Catégorie",
+  "publish.category.empty": "— Catégorie —",
+  "publish.price.ph": "Prix (HTG)",
+  "publish.description.ph": "Description",
+  "publish.service.hint":
+    "Page service (façon Fiverr) — optionnel, mais rassure l'acheteur.",
+  "publish.deliveryDays.ph": "Délai de livraison (en jours)",
+  "publish.includes.ph":
+    "Ce qui est inclus — un élément par ligne\nEx. 3 révisions\nFichier source livré",
+  "publish.submit": "Publier le produit",
+  "publish.submitting": "Publication…",
+  "publish.error.generic": "Publication échouée.",
+  "publish.footer.hint":
+    "L'envoi du fichier livrable se fera depuis la fiche produit (étape suivante).",
+
+  "upload.sending": "Envoi…",
+  "upload.replace": "Remplacer le fichier",
+  "upload.add": "Ajouter le fichier",
+  "upload.saved": "Fichier enregistré.",
+  "upload.error": "Envoi échoué.",
+
+  "creator.products.label": "produit(s) en ligne",
+  "creator.share.text": "Découvre la boutique de {name} sur Zabelie Digi :",
+  "creator.empty": "Aucun produit publié pour l'instant.",
+
+  "card.kind.file": "Fichier",
+  "card.kind.service": "Service",
+
+  "status.draft": "Brouillon",
+  "status.published": "Publié",
 } as const;
 
 export type I18nKey = keyof typeof fr;
@@ -440,6 +498,63 @@ const ht: Record<I18nKey, string> = {
     "Opòtinite yo pa jwenn, se kreye yo kreye. Oze Aji.",
   "founder.name": "Éliezer Philippe",
   "founder.role": "Fondatè, Zabelie Digi",
+
+  // ⚠️ Kreyòl à faire relire par un locuteur natif (règle du fichier).
+  "auth.tab.signin": "Konekte",
+  "auth.tab.signup": "Enskripsyon",
+  "auth.name.ph": "Non ki pral parèt",
+  "auth.email.ph": "Imèl",
+  "auth.password.ph": "Modpas",
+  "auth.signin.cta": "Konekte",
+  "auth.signup.cta": "Kreye kont mwen",
+  "auth.signup.success":
+    "Kont kreye. Tcheke imèl ou pou konfime, epi konekte.",
+  "auth.demo.mode":
+    "Mòd demo : konekte pwojè Supabase pou aktive kont yo.",
+  "auth.link.expired":
+    "Lyen konfimasyon sa a ekspire oswa li deja itilize. Konekte, oswa kreye kont ou ankò pou resevwa yon nouvo lyen.",
+  "auth.back.home": "← Tounen sou paj akèy la",
+
+  "sell.title": "Vann sou Zabelie Digi",
+  "sell.demo.subtitle": "Mòd demo — konekte Supabase pou pibliye vrè pwodui.",
+  "sell.demo.body.pre": "Pou pibliye, ou bezwen yon baz Supabase konfigire (gade",
+  "sell.demo.body.post": ").",
+  "sell.login.subtitle": "Konekte pou pibliye yon pwodui.",
+  "sell.subtitle": "Pibliye yon pwodui dijital oswa yon sèvis.",
+  "sell.mine.title": "Pwodui mwen yo",
+
+  "publish.title.ph": "Tit pwodui a",
+  "publish.kind.aria": "Kalite pwodui",
+  "publish.category.aria": "Kategori",
+  "publish.category.empty": "— Kategori —",
+  "publish.price.ph": "Pri (HTG)",
+  "publish.description.ph": "Deskripsyon",
+  "publish.service.hint":
+    "Paj sèvis (menm jan ak Fiverr) — opsyonèl, men sa rasire achtè a.",
+  "publish.deliveryDays.ph": "Dele livrezon (an jou)",
+  "publish.includes.ph":
+    "Sa ki enkli — yon eleman pou chak liy\nEgz. 3 revizyon\nFichye sous livre",
+  "publish.submit": "Pibliye pwodui a",
+  "publish.submitting": "N ap pibliye…",
+  "publish.error.generic": "Pibliyasyon an echwe.",
+  "publish.footer.hint":
+    "Ou va voye fichye a apati paj pwodui a (pwochèn etap la).",
+
+  "upload.sending": "N ap voye…",
+  "upload.replace": "Ranplase fichye a",
+  "upload.add": "Ajoute fichye a",
+  "upload.saved": "Fichye anrejistre.",
+  "upload.error": "Anvwa a echwe.",
+
+  "creator.products.label": "pwodui an liy",
+  "creator.share.text": "Dekouvri boutik {name} sou Zabelie Digi :",
+  "creator.empty": "Poko gen pwodui pibliye.",
+
+  "card.kind.file": "Fichye",
+  "card.kind.service": "Sèvis",
+
+  "status.draft": "Poko pibliye",
+  "status.published": "Pibliye",
 };
 
 export const DICT: Record<Lang, Record<I18nKey, string>> = { fr, ht };
