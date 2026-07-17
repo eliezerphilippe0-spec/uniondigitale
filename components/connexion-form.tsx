@@ -22,6 +22,7 @@ export type ConnexionLabels = {
   linkExpired: string;
   backHome: string;
   errorGeneric: string;
+  forgot: string;
 };
 
 function ConnexionFormInner({ labels }: { labels: ConnexionLabels }) {
@@ -148,6 +149,14 @@ function ConnexionFormInner({ labels }: { labels: ConnexionLabels }) {
             {loading ? "…" : mode === "signin" ? labels.signinCta : labels.signupCta}
           </button>
         </form>
+
+        {mode === "signin" && (
+          <p className="mt-4 text-center text-xs">
+            <Link href="/mot-de-passe-oublie" className="text-mist hover:text-cloud">
+              {labels.forgot}
+            </Link>
+          </p>
+        )}
 
         {msg && <p className="mt-4 text-center text-xs text-mist">{msg}</p>}
       </div>
