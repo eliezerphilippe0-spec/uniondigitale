@@ -118,8 +118,12 @@ export async function GET(req: Request) {
       return NextResponse.redirect(`${site}/rechaj/${orderId}`);
     }
     if (confirmed?.status === "paid") {
+      // BL-135 (C-10) : 1 seule tentative ICI (0s de backoff sur une commande
+      // fraîchement payée) — jusqu'à 3 au total, le reste repris par le
+      // réconciliateur (même clé d'idempotence). Évite jusqu'à ~6s de sleeps
+      // synchrones dans ce handler serverless (retour navigateur 3G).
       const { fulfillTopupOrder } = await import("@/lib/zabelie-topup/fulfill");
-      await fulfillTopupOrder(admin, orderId).catch(() => undefined);
+      await fulfillTopupOrder(admin, orderId, undefined, 1).catch(() => undefined);
     }
     return NextResponse.redirect(`${site}/rechaj/${orderId}`);
   }
