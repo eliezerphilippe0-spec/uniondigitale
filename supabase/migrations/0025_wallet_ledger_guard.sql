@@ -8,7 +8,10 @@
 -- écriture compensatoire, jamais par modification.
 
 create or replace function zabelie_wallet_ledger_guard()
-returns trigger language plpgsql as $$
+returns trigger
+language plpgsql
+set search_path = public
+as $$
 begin
   raise exception 'wallet_transactions est APPEND-ONLY : % interdit (corriger par écriture compensatoire)', tg_op;
 end;
