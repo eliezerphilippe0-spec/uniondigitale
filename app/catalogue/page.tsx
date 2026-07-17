@@ -3,7 +3,7 @@ import { SiteNav } from "@/components/site-nav";
 import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
-import { getPublishedProducts } from "@/lib/products";
+import { getPublishedProductsPage } from "@/lib/products";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
 
@@ -19,22 +19,28 @@ const CATEGORIES = ["Tout", ...PRODUCT_CATEGORIES];
 export default async function CataloguePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<{ q?: string; cat?: string; page?: string }>;
 }) {
-  const { q, cat } = await searchParams;
+  const { q, cat, page: pageRaw } = await searchParams;
   const activeCat = cat ?? "Tout";
-  const [products, lang] = await Promise.all([
-    getPublishedProducts({ q, category: activeCat }),
+  const page = Math.max(1, Number.parseInt(pageRaw ?? "1", 10) || 1);
+  const [{ items: products, hasMore }, lang] = await Promise.all([
+    getPublishedProductsPage({ q, category: activeCat, page }),
     getLang(),
   ]);
 
-  const catHref = (c: string) => {
+  // BL-134 (FRONT-19) : pagination par lien GET, 0 JS — préserve q/cat, change page.
+  const hrefFor = (opts: { cat?: string; page?: number }) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
+    const c = opts.cat ?? activeCat;
     if (c !== "Tout") params.set("cat", c);
+    const p = opts.page ?? 1;
+    if (p > 1) params.set("page", String(p));
     const qs = params.toString();
     return qs ? `/catalogue?${qs}` : "/catalogue";
   };
+  const catHref = (c: string) => hrefFor({ cat: c, page: 1 });
 
   return (
     <div className="bg-grain min-h-screen">
@@ -96,20 +102,32 @@ export default async function CataloguePage({
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
-              <ProductCard
-                key={p.slug}
-                product={p}
-                labels={{
-                  kindFile: t(lang, "card.kind.file"),
-                  kindService: t(lang, "card.kind.service"),
-                  by: t(lang, "product.by"),
-                  sales: t(lang, "product.sales"),
-                }}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((p) => (
+                <ProductCard
+                  key={p.slug}
+                  product={p}
+                  labels={{
+                    kindFile: t(lang, "card.kind.file"),
+                    kindService: t(lang, "card.kind.service"),
+                    by: t(lang, "product.by"),
+                    sales: t(lang, "product.sales"),
+                  }}
+                />
+              ))}
+            </div>
+            {hasMore && (
+              <div className="mt-10 text-center">
+                <Link
+                  href={hrefFor({ page: page + 1 })}
+                  className="inline-block rounded-xl border border-line bg-surface/60 px-6 py-3 text-sm font-semibold text-cloud transition hover:border-violet/50"
+                >
+                  {t(lang, "catalog.more")}
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </section>
 

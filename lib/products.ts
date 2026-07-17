@@ -115,6 +115,14 @@ export type ProductFilters = {
   category?: string;
 };
 
+// BL-134 (FRONT-19) : taille de page — « Voir plus » en GET, 0 JS.
+const CATALOGUE_PAGE_SIZE = 24;
+
+export type ProductPage = {
+  items: ProductView[];
+  hasMore: boolean;
+};
+
 function filterSample(
   items: ProductView[],
   filters?: ProductFilters
@@ -174,6 +182,68 @@ export async function getPublishedProducts(
     // une carte de liste (poids page).
     return { ...v, blurb: v.blurb.length > 160 ? v.blurb.slice(0, 157) + "…" : v.blurb };
   });
+}
+
+/**
+ * Catalogue paginé (BL-134) — utilisé par /catalogue. Un cran de plus que
+ * getPublishedProducts (page d'accueil, non paginée, cap fixe à 60) :
+ * pagination réelle + recherche qui couvre aussi le nom du créateur (un
+ * acheteur qui a suivi un talent sur WhatsApp tape son nom, pas un titre).
+ */
+export async function getPublishedProductsPage(
+  filters: ProductFilters & { page?: number }
+): Promise<ProductPage> {
+  const page = Math.max(1, filters.page ?? 1);
+  const offset = (page - 1) * CATALOGUE_PAGE_SIZE;
+
+  if (!isSupabaseConfigured()) {
+    const all = filterSample(sampleAsView(), filters);
+    return {
+      items: all.slice(offset, offset + CATALOGUE_PAGE_SIZE),
+      hasMore: offset + CATALOGUE_PAGE_SIZE < all.length,
+    };
+  }
+
+  const supabase = await createClient();
+  let query = supabase
+    .from("products")
+    .select(SELECT)
+    .eq("status", "published");
+
+  if (filters.category && filters.category !== "Tout") {
+    query = query.eq("category", filters.category);
+  }
+
+  const q = filters.q?.trim().replace(/[%,()]/g, " ");
+  if (q) {
+    // BL-134 (C-7b) : la recherche couvre aussi le nom du créateur.
+    const { data: matchingSellers } = await supabase
+      .from("profiles")
+      .select("id")
+      .ilike("display_name", `%${q}%`)
+      .limit(50);
+    const sellerIds = (matchingSellers ?? []).map((s) => s.id);
+    const clauses = [`title.ilike.%${q}%`, `description.ilike.%${q}%`];
+    if (sellerIds.length > 0) clauses.push(`seller_id.in.(${sellerIds.join(",")})`);
+    query = query.or(clauses.join(","));
+  }
+
+  // Une ligne de plus que la page demandée : sait s'il y a une suite sans
+  // requête COUNT séparée (range() est inclusif aux deux bornes).
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + CATALOGUE_PAGE_SIZE);
+
+  if (error || !data) {
+    throw new Error(`catalogue indisponible: ${error?.message ?? "réponse vide"}`);
+  }
+  const rows = data as unknown as Row[];
+  const hasMore = rows.length > CATALOGUE_PAGE_SIZE;
+  const items = rows.slice(0, CATALOGUE_PAGE_SIZE).map((r) => {
+    const v = rowAsView(r);
+    return { ...v, blurb: v.blurb.length > 160 ? v.blurb.slice(0, 157) + "…" : v.blurb };
+  });
+  return { items, hasMore };
 }
 
 export async function getProductView(
