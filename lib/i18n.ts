@@ -70,6 +70,7 @@ const fr = {
   "catalog.search.btn": "Rechercher",
   "catalog.none": "Aucun résultat.",
   "catalog.reset": "Réinitialiser",
+  "catalog.more": "Voir plus",
 
   // Produit
   "product.back": "← Retour au catalogue",
@@ -366,6 +367,7 @@ const ht: Record<I18nKey, string> = {
   "catalog.search.btn": "Chèche",
   "catalog.none": "Pa gen rezilta.",
   "catalog.reset": "Rekòmanse",
+  "catalog.more": "Wè plis",
 
   "product.back": "← Tounen nan katalòg la",
   "product.kind.file": "Fichye dijital",
