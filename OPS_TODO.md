@@ -13,9 +13,20 @@ complet, constats §3). Rien n'est exécuté sans « go » porteur, tâche par t
       BL-102 (products verrouillé), BL-103 (fichier exigé avant vente),
       BL-104 (nav mobile), BL-105 (taxonomie fermée). Migration **0024
       appliquée en prod** (vérifiée 4/4, scan sécurité inchangé).
-- [ ] **P1 (quick wins S)** : BL-110 → BL-125 (détail au rapport §4).
-- [ ] **P2 (chantiers M/L)** : BL-130 (parité i18n ~40 chaînes), BL-131 (reset
-      mdp), BL-132–135, BL-136 (achat invité — décision produit), BL-138.
+- [x] **P1 (quick wins S) — FAIT (PR #31, 2026-07-17)** : BL-110 → BL-125
+      (détail au rapport §4). Migration **0025 appliquée en prod** (trigger
+      append-only `wallet_transactions`) ; correctif search_path en suivi
+      immédiat, migration **0026 appliquée en prod** (PR #32).
+- [x] **P2 (chantiers M/L) — FAIT (PRs #33-39, 2026-07-17)** :
+      BL-130 parité i18n (#33), BL-131 reset mdp (#34), BL-132 polling paiement
+      en attente (#35), BL-133 coupon consommé au paiement confirmé (#36,
+      migration 0027), BL-134 pagination + recherche + index catalogue (#37,
+      migration 0028), BL-135 fulfillment topup async (#38), BL-138 nettoyage
+      Storage (#39). Toutes les PR sont fusionnées dans `main`.
+      ⚠️ **Migrations 0027 et 0028 : SQL transmis au porteur, application en
+      base à confirmer** (connecteur Supabase indisponible au moment de la
+      fusion — même procédure manuelle que 0024/0025).
+      BL-136 (achat invité — décision produit) reste non traité, volontairement.
 - [ ] **BL-137 — ALERTE BRH (décision porteur)** : plafond journalier topup
       calculé en jour UTC (bascule 19-20 h locales) + contrôle non atomique —
       arbitrer fuseau America/Port-au-Prince et/ou contrainte en base.
