@@ -1,4 +1,4 @@
--- Zabelie Digi — schéma complet (concaténation 0001→0025).
+-- Zabelie Digi — schéma complet (concaténation 0001→0026).
 -- Généré pour un copier-coller unique dans le SQL Editor Supabase.
 -- Source de vérité = supabase/migrations/*.sql. Régénéré par
 -- scripts/build-schema.mjs (ne pas éditer ce fichier à la main).
@@ -2687,7 +2687,10 @@ revoke all on function zabelie_expire_stale_payment(text, text)
 -- écriture compensatoire, jamais par modification.
 
 create or replace function zabelie_wallet_ledger_guard()
-returns trigger language plpgsql as $$
+returns trigger
+language plpgsql
+set search_path = public
+as $$
 begin
   raise exception 'wallet_transactions est APPEND-ONLY : % interdit (corriger par écriture compensatoire)', tg_op;
 end;
@@ -2699,6 +2702,33 @@ create trigger zabelie_wallet_ledger_immutable
 
 -- Cohérence 0023 : une fonction-trigger n'est pas appelable hors trigger, mais
 -- on la révoque quand même (règle projet : rien d'exécutable côté client).
+revoke all on function zabelie_wallet_ledger_guard()
+  from public, anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0026_fix_wallet_guard_searchpath.sql
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ============================================================================
+-- 0026 — Correctif : search_path figé sur zabelie_wallet_ledger_guard (0025)
+-- ============================================================================
+-- L'advisor sécurité Supabase (lint 0011, function_search_path_mutable) a
+-- signalé que zabelie_wallet_ledger_guard (trigger BL-123, 0025) n'avait pas
+-- `set search_path = public` — écart par rapport à la règle du projet
+-- (cohérence avec 0018 fix_search_path et 0023 pour le trigger équivalent
+-- fn_points_ledger_update_balance). Comportement inchangé : create or replace
+-- ne recrée pas le trigger, juste la fonction.
+
+create or replace function zabelie_wallet_ledger_guard()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  raise exception 'wallet_transactions est APPEND-ONLY : % interdit (corriger par écriture compensatoire)', tg_op;
+end;
+$$;
+
 revoke all on function zabelie_wallet_ledger_guard()
   from public, anon, authenticated;
 
