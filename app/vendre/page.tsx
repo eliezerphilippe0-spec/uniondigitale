@@ -5,22 +5,26 @@ import { PublishForm } from "@/components/publish-form";
 import { UploadAsset } from "@/components/upload-asset";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/products";
+import { getLang } from "@/lib/i18n-server";
+import { t, type Lang } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vendre — Zabelie Digi" };
 
 function Shell({
   children,
+  lang,
   subtitle,
 }: {
   children: React.ReactNode;
+  lang: Lang;
   subtitle?: string;
 }) {
   return (
     <div className="bg-grain min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-lg px-5 py-16">
-        <h1 className="text-3xl font-extrabold tracking-tight">Vendre sur Zabelie Digi</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{t(lang, "sell.title")}</h1>
         {subtitle && <p className="mt-2 text-sm text-mist">{subtitle}</p>}
         <div className="mt-8">{children}</div>
       </main>
@@ -30,12 +34,15 @@ function Shell({
 }
 
 export default async function VendrePage() {
+  const lang = await getLang();
+
   if (!isSupabaseConfigured()) {
     return (
-      <Shell subtitle="Mode démo — connecte Supabase pour publier de vrais produits.">
+      <Shell lang={lang} subtitle={t(lang, "sell.demo.subtitle")}>
         <div className="glass rounded-2xl p-6 text-sm text-mist">
-          La publication nécessite une base Supabase configurée (voir
-          <code className="mx-1 text-cloud">supabase/README.md</code>).
+          {t(lang, "sell.demo.body.pre")}
+          <code className="mx-1 text-cloud">supabase/README.md</code>
+          {t(lang, "sell.demo.body.post")}
         </div>
       </Shell>
     );
@@ -48,12 +55,12 @@ export default async function VendrePage() {
 
   if (!user) {
     return (
-      <Shell subtitle="Connecte-toi pour publier un produit.">
+      <Shell lang={lang} subtitle={t(lang, "sell.login.subtitle")}>
         <Link
           href="/connexion?next=/vendre"
           className="inline-block rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink"
         >
-          Se connecter
+          {t(lang, "auth.signin.cta")}
         </Link>
       </Shell>
     );
@@ -74,16 +81,48 @@ export default async function VendrePage() {
     product_assets: { id: string }[];
   };
   const mine = (mineRaw ?? []) as unknown as MineRow[];
+  // BL-130 (FRONT-14) : `status` est un mot-clé technique brut ("published")
+  // — jamais affiché tel quel, toujours mappé sur un libellé FR/KR.
+  const statusLabel = (s: string) =>
+    s === "published" ? t(lang, "status.published") : t(lang, "status.draft");
+  const uploadLabels = {
+    sending: t(lang, "upload.sending"),
+    replace: t(lang, "upload.replace"),
+    add: t(lang, "upload.add"),
+    saved: t(lang, "upload.saved"),
+    error: t(lang, "upload.error"),
+    errorNetwork: t(lang, "error.network"),
+  };
 
   return (
-    <Shell subtitle="Publie un produit digital ou une prestation.">
+    <Shell lang={lang} subtitle={t(lang, "sell.subtitle")}>
       <div className="glass rounded-2xl p-6">
-        <PublishForm />
+        <PublishForm
+          labels={{
+            titlePh: t(lang, "publish.title.ph"),
+            kindAria: t(lang, "publish.kind.aria"),
+            kindFile: t(lang, "product.kind.file"),
+            kindService: t(lang, "product.kind.service"),
+            categoryAria: t(lang, "publish.category.aria"),
+            categoryEmpty: t(lang, "publish.category.empty"),
+            pricePh: t(lang, "publish.price.ph"),
+            descriptionPh: t(lang, "publish.description.ph"),
+            serviceHint: t(lang, "publish.service.hint"),
+            deliveryDaysPh: t(lang, "publish.deliveryDays.ph"),
+            includesPh: t(lang, "publish.includes.ph"),
+            includesAria: t(lang, "product.includes"),
+            submit: t(lang, "publish.submit"),
+            submitting: t(lang, "publish.submitting"),
+            errorGeneric: t(lang, "publish.error.generic"),
+            errorNetwork: t(lang, "error.network"),
+            footerHint: t(lang, "publish.footer.hint"),
+          }}
+        />
       </div>
 
       {mine.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-sm font-semibold text-cloud">Mes produits</h2>
+          <h2 className="text-sm font-semibold text-cloud">{t(lang, "sell.mine.title")}</h2>
           <ul className="mt-3 space-y-2">
             {mine.map((p) => (
               <li
@@ -97,15 +136,18 @@ export default async function VendrePage() {
                   >
                     {p.title}
                   </Link>
-                  <span className="text-xs text-mist">{p.status}</span>
+                  <span className="text-xs text-mist">{statusLabel(p.status)}</span>
                 </div>
                 {p.kind === "fichier" ? (
                   <UploadAsset
                     productId={p.id}
                     hasAsset={p.product_assets.length > 0}
+                    labels={uploadLabels}
                   />
                 ) : (
-                  <span className="shrink-0 text-xs text-mist">Service</span>
+                  <span className="shrink-0 text-xs text-mist">
+                    {t(lang, "product.kind.service")}
+                  </span>
                 )}
               </li>
             ))}

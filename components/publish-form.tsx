@@ -4,7 +4,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
-export function PublishForm() {
+export type PublishFormLabels = {
+  titlePh: string;
+  kindAria: string;
+  kindFile: string;
+  kindService: string;
+  categoryAria: string;
+  categoryEmpty: string;
+  pricePh: string;
+  descriptionPh: string;
+  serviceHint: string;
+  deliveryDaysPh: string;
+  includesPh: string;
+  includesAria: string;
+  submit: string;
+  submitting: string;
+  errorGeneric: string;
+  errorNetwork: string;
+  footerHint: string;
+};
+
+export function PublishForm({ labels }: { labels: PublishFormLabels }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +66,7 @@ export function PublishForm() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Publication échouée.");
+        setError(data.error ?? labels.errorGeneric);
         return;
       }
       // BL-103 : un produit « fichier » naît en brouillon (invisible au
@@ -55,7 +75,7 @@ export function PublishForm() {
       router.push(data.status === "draft" ? "/vendre" : `/produit/${data.slug}`);
       router.refresh();
     } catch {
-      setError("Connexion impossible.");
+      setError(labels.errorNetwork);
     } finally {
       setLoading(false);
     }
@@ -68,8 +88,8 @@ export function PublishForm() {
     <form onSubmit={submit} className="space-y-3">
       <input
         className={input}
-        placeholder="Titre du produit"
-        aria-label="Titre du produit"
+        placeholder={labels.titlePh}
+        aria-label={labels.titlePh}
         value={form.title}
         onChange={(e) => set("title", e.target.value)}
         required
@@ -77,23 +97,23 @@ export function PublishForm() {
       <div className="flex gap-3">
         <select
           className={input}
-          aria-label="Type de produit"
+          aria-label={labels.kindAria}
           value={form.kind}
           onChange={(e) => set("kind", e.target.value)}
         >
-          <option value="fichier">Fichier digital</option>
-          <option value="service">Service / prestation</option>
+          <option value="fichier">{labels.kindFile}</option>
+          <option value="service">{labels.kindService}</option>
         </select>
         {/* BL-105 : liste fermée partagée avec le catalogue — un produit est
             toujours atteignable via une puce (fini le texte libre invisible). */}
         <select
           className={input}
-          aria-label="Catégorie"
+          aria-label={labels.categoryAria}
           value={form.category}
           onChange={(e) => set("category", e.target.value)}
           required
         >
-          <option value="">— Catégorie —</option>
+          <option value="">{labels.categoryEmpty}</option>
           {PRODUCT_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -105,8 +125,8 @@ export function PublishForm() {
         className={input}
         type="number"
         min={0}
-        placeholder="Prix (HTG)"
-        aria-label="Prix (HTG)"
+        placeholder={labels.pricePh}
+        aria-label={labels.pricePh}
         value={form.priceHTG}
         onChange={(e) => set("priceHTG", e.target.value)}
         required
@@ -114,31 +134,29 @@ export function PublishForm() {
       <textarea
         className={input}
         rows={4}
-        placeholder="Description"
-        aria-label="Description"
+        placeholder={labels.descriptionPh}
+        aria-label={labels.descriptionPh}
         value={form.description}
         onChange={(e) => set("description", e.target.value)}
       />
       {form.kind === "service" && (
         <div className="space-y-3 rounded-xl border border-line/60 p-4">
-          <p className="text-xs text-mist">
-            Page service (façon Fiverr) — optionnel, mais rassure l&apos;acheteur.
-          </p>
+          <p className="text-xs text-mist">{labels.serviceHint}</p>
           <input
             className={input}
             type="number"
             min={1}
             max={365}
-            placeholder="Délai de livraison (en jours)"
-            aria-label="Délai de livraison (en jours)"
+            placeholder={labels.deliveryDaysPh}
+            aria-label={labels.deliveryDaysPh}
             value={form.deliveryDays}
             onChange={(e) => set("deliveryDays", e.target.value)}
           />
           <textarea
             className={input}
             rows={3}
-            placeholder={"Ce qui est inclus — un élément par ligne\nEx. 3 révisions\nFichier source livré"}
-            aria-label="Ce qui est inclus"
+            placeholder={labels.includesPh}
+            aria-label={labels.includesAria}
             value={form.serviceIncludes}
             onChange={(e) => set("serviceIncludes", e.target.value)}
           />
@@ -149,13 +167,10 @@ export function PublishForm() {
         disabled={loading}
         className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-ink transition hover:opacity-90 disabled:opacity-60"
       >
-        {loading ? "Publication…" : "Publier le produit"}
+        {loading ? labels.submitting : labels.submit}
       </button>
       {error && <p className="text-center text-xs text-danger-text">{error}</p>}
-      <p className="text-center text-xs text-mist">
-        L'envoi du fichier livrable se fera depuis la fiche produit (étape
-        suivante).
-      </p>
+      <p className="text-center text-xs text-mist">{labels.footerHint}</p>
     </form>
   );
 }

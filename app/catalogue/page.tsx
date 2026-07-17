@@ -98,7 +98,16 @@ export default async function CataloguePage({
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
-              <ProductCard key={p.slug} product={p} />
+              <ProductCard
+                key={p.slug}
+                product={p}
+                labels={{
+                  kindFile: t(lang, "card.kind.file"),
+                  kindService: t(lang, "card.kind.service"),
+                  by: t(lang, "product.by"),
+                  sales: t(lang, "product.sales"),
+                }}
+              />
             ))}
           </div>
         )}

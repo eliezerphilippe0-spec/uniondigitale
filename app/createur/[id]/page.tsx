@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { ProductCard } from "@/components/product-card";
 import { getCreator } from "@/lib/creators";
 import { ShareButtons } from "@/components/share-buttons";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +29,7 @@ export default async function CreatorPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const creator = await getCreator(id);
+  const [creator, lang] = await Promise.all([getCreator(id), getLang()]);
   if (!creator) notFound();
 
   const initials = creator.displayName.slice(0, 2).toUpperCase();
@@ -55,8 +57,7 @@ export default async function CreatorPage({
               {creator.displayName}
             </h1>
             <p className="mt-1 text-sm text-mist">
-              {creator.products.length} produit
-              {creator.products.length > 1 ? "s" : ""} en ligne
+              {creator.products.length} {t(lang, "creator.products.label")}
             </p>
           </div>
         </div>
@@ -69,18 +70,30 @@ export default async function CreatorPage({
         <div className="mt-6">
           <ShareButtons
             path={`/createur/${creator.id}`}
-            text={`Découvre la boutique de ${creator.displayName} sur Zabelie Digi :`}
+            text={t(lang, "creator.share.text", { name: creator.displayName })}
+            waLabel={t(lang, "share.wa")}
+            copyLabel={t(lang, "share.copy")}
+            copiedLabel={t(lang, "share.copied")}
           />
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-16">
         {creator.products.length === 0 ? (
-          <p className="text-sm text-mist">Aucun produit publié pour l'instant.</p>
+          <p className="text-sm text-mist">{t(lang, "creator.empty")}</p>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {creator.products.map((p) => (
-              <ProductCard key={p.slug} product={p} />
+              <ProductCard
+                key={p.slug}
+                product={p}
+                labels={{
+                  kindFile: t(lang, "card.kind.file"),
+                  kindService: t(lang, "card.kind.service"),
+                  by: t(lang, "product.by"),
+                  sales: t(lang, "product.sales"),
+                }}
+              />
             ))}
           </div>
         )}
