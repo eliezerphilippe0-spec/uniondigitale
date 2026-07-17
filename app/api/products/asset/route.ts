@@ -101,6 +101,16 @@ export async function POST(req: Request) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${user.id}/${product.id}/${safeName}`;
 
+  // BL-138 (C-12) : le chemin dépend du NOM du fichier — un remplacement avec
+  // un nom différent laissait l'ancien objet orphelin dans le bucket (upsert
+  // ne réécrit que sur un chemin identique). On retient l'ancien chemin pour
+  // le supprimer une fois le nouveau livrable en place.
+  const { data: oldAsset } = await admin
+    .from("product_assets")
+    .select("storage_path")
+    .eq("product_id", product.id)
+    .maybeSingle();
+
   const { error: upErr } = await admin.storage
     .from(BUCKET)
     .upload(path, file, {
@@ -121,6 +131,12 @@ export async function POST(req: Request) {
   });
   if (insErr) {
     return NextResponse.json({ error: insErr.message }, { status: 500 });
+  }
+
+  // Nettoyage best-effort de l'ancien objet (chemin différent uniquement) —
+  // une erreur ici ne doit jamais faire échouer un remplacement déjà réussi.
+  if (oldAsset?.storage_path && oldAsset.storage_path !== path) {
+    await admin.storage.from(BUCKET).remove([oldAsset.storage_path]).catch(() => undefined);
   }
 
   // BL-103 : le livrable est là → le brouillon devient publiable. On ne touche
