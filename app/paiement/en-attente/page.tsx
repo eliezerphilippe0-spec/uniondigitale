@@ -1,16 +1,26 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { OrderStatusPoll } from "@/components/order-status-poll";
 import { getLang } from "@/lib/i18n-server";
 import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Paiement en attente — Zabelie Digi" };
 
-export default async function EnAttentePage() {
-  const lang = await getLang();
+export default async function EnAttentePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ commande?: string }>;
+}) {
+  const [{ commande }, lang] = await Promise.all([searchParams, getLang()]);
   return (
     <div className="bg-grain min-h-screen">
       <SiteNav />
+      {/* BL-132 (FRONT-4) : quand l'orderId est connu (retour MonCash avec
+          erreur transitoire à la confirmation), on poll au lieu de laisser
+          l'acheteur planté sur une page statique — pattern /rechaj déjà en
+          place. Invisible : ne change rien tant que rien n'est tranché. */}
+      {commande && <OrderStatusPoll orderId={commande} />}
       <main className="mx-auto max-w-md px-5 py-24 text-center">
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-warning text-2xl text-ink">
           ⏳

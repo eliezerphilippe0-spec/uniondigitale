@@ -132,8 +132,10 @@ export async function GET(req: Request) {
   });
 
   if (error) {
-    // Erreur transitoire → le réconciliateur reprendra la main.
-    return NextResponse.redirect(`${site}/paiement/en-attente`);
+    // Erreur transitoire → le réconciliateur reprendra la main. BL-132 :
+    // orderId connu ici → la page en attente peut poller au lieu de rester
+    // statique (pattern /rechaj).
+    return NextResponse.redirect(`${site}/paiement/en-attente?commande=${orderId}`);
   }
   if (data?.status === "failed") {
     // Montant incohérent : paiement rejeté, aucune livraison.
