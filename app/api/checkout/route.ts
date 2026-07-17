@@ -129,11 +129,16 @@ export async function POST(req: Request) {
     }
   }
 
-  // Code promo (optionnel) : validation + consommation ATOMIQUE côté serveur.
+  // Code promo (optionnel) : validation en LECTURE côté serveur, prix figé.
   // L'acheteur qui saisit un code attend la remise — un code invalide est un
   // refus clair (422), jamais une facturation au prix plein en silence.
+  // BL-133 (C-2) : la consommation ATOMIQUE du quota n'a plus lieu ici —
+  // elle est déclenchée par confirm_payment, une fois le paiement CONFIRMÉ
+  // (sinon tout échec après coup — 3G coupée, session MonCash abandonnée —
+  // brûlait un usage pour une vente qui n'a jamais eu lieu).
   let finalPriceHtg = product.price_htg;
   let couponCode: string | null = null;
+  let couponId: string | null = null;
   let discountHtg = 0;
   if (typeof couponInput === "string" && couponInput.trim()) {
     const code = normalizeCouponCode(couponInput);
@@ -155,15 +160,11 @@ export async function POST(req: Request) {
     if (!coupon || !couponApplies(coupon as CouponRow, product.id, product.seller_id)) {
       return rejected();
     }
-    // Réserve une utilisation (atomique : plafond revérifié en base).
-    const { data: consumed } = await admin.rpc("zabelie_coupon_consume", {
-      p_coupon_id: coupon.id,
-    });
-    if (!consumed) return rejected();
 
     finalPriceHtg = discountedPriceHtg(product.price_htg, coupon.percent);
     discountHtg = product.price_htg - finalPriceHtg;
     couponCode = code;
+    couponId = coupon.id;
   }
 
   // Plafond du rail : on bloque AVANT de créer la commande (message clair plutôt
@@ -208,6 +209,7 @@ export async function POST(req: Request) {
       product_id: product.id,
       amount_htg: finalPriceHtg, // prix remisé figé — tous les garde-fous s'y appliquent
       coupon_code: couponCode,
+      coupon_id: couponId, // BL-133 : consommé par confirm_payment, pas ici
       discount_htg: discountHtg,
       status: "pending",
     })
