@@ -38,11 +38,20 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /**
  * Tente de livrer une commande payée. Idempotente : rejouable sans risque
  * (delivered → no-op ; l'idempotence fournisseur couvre les timeouts).
+ *
+ * BL-135 (C-10) : `maxAttemptsThisCall` borne le nombre de tentatives faites
+ * PAR CET APPEL (le budget total reste 3, cumulé via order.attempts en base
+ * entre les appels). Le retour navigateur MonCash appelle avec 1 — sur une
+ * commande fraîchement payée (attempts=0), le backoff est 0s : aucun sleep
+ * synchrone dans ce handler serverless. S'il reste du budget après cet appel,
+ * l'ordre reste `fulfillment_pending` et le réconciliateur (cron) reprend
+ * avec la même clé d'idempotence — jamais d'échec prématuré.
  */
 export async function fulfillTopupOrder(
   admin: SupabaseClient,
   orderId: string,
-  provider: TopupProvider | null = getTopupProvider()
+  provider: TopupProvider | null = getTopupProvider(),
+  maxAttemptsThisCall: number = 3
 ): Promise<{ status: string; error?: string }> {
   const { data, error } = await admin
     .from("zabelie_topup_orders")
@@ -75,11 +84,16 @@ export async function fulfillTopupOrder(
     .single();
 
   let attempt = order.attempts;
+  let attemptsThisCall = 0;
   let lastError = "";
+  let budgetExhausted = false; // 3 tentatives TOTALES épuisées, ou erreur non-retryable
 
-  while (true) {
+  while (attemptsThisCall < maxAttemptsThisCall) {
     const wait = fulfillmentBackoffMs(attempt);
-    if (wait === null) break; // 3 tentatives épuisées
+    if (wait === null) {
+      budgetExhausted = true;
+      break; // 3 tentatives épuisées
+    }
     if (wait > 0) await sleep(wait);
 
     const result = await provider.fulfillTopup({
@@ -91,6 +105,7 @@ export async function fulfillTopupOrder(
     });
 
     attempt += 1;
+    attemptsThisCall += 1;
     await admin
       .from("zabelie_topup_orders")
       .update({
@@ -110,7 +125,16 @@ export async function fulfillTopupOrder(
     }
 
     lastError = result.error;
-    if (!result.retryable) break;
+    if (!result.retryable) {
+      budgetExhausted = true;
+      break;
+    }
+  }
+
+  if (!budgetExhausted) {
+    // BL-135 : budget de CET appel épuisé, mais il reste des tentatives au
+    // total → laisse fulfillment_pending, le réconciliateur reprendra.
+    return { status: "fulfillment_pending", error: lastError || undefined };
   }
 
   // Échec définitif d'une commande PAYÉE → remboursement à préparer
