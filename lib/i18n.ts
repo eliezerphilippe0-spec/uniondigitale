@@ -3,6 +3,16 @@
  * Dictionnaire maison, zéro dépendance (pages légères pour la 3G).
  * ⚠️ Kreyòl à faire relire par un locuteur natif avant le lancement public.
  * Parité des clés garantie par tests/i18n.test.ts.
+ *
+ * RÈGLE (choix délibéré, audit 2026-07) : DICT et t() ne s'utilisent que
+ * côté SERVEUR (pages/layouts via getLang()). Les composants client
+ * reçoivent leurs libellés en props (`labels={{ ... }}`), jamais le
+ * dictionnaire : appeler t() dans un composant "use client" embarquerait
+ * l'intégralité des deux langues dans le bundle de la page — contraire à
+ * l'objectif pages ultra-légères 3G. La verbosité des props est le prix
+ * assumé ; les types (`ConnexionLabels`, etc.) garantissent à la compilation
+ * qu'aucun libellé ne manque. Seuls les types et LANG_COOKIE peuvent
+ * s'importer côté client (lang-toggle) — zéro poids au bundle.
  */
 
 export type Lang = "fr" | "ht";

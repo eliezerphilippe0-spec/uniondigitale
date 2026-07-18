@@ -97,10 +97,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // Produit publié uniquement, prix = source de vérité serveur.
+  // Produit publié uniquement, prix = source de vérité serveur. Le comptage
+  // d'assets est EMBARQUÉ dans la même requête (audit : c'était un second
+  // aller-retour séquentiel sur chaque checkout « fichier » — latence 3G).
   const { data: product, error: prodErr } = await admin
     .from("products")
-    .select("id, title, price_htg, status, seller_id, kind")
+    .select("id, title, price_htg, status, seller_id, kind, product_assets(count)")
     .eq("id", productId)
     .eq("status", "published")
     .single();
@@ -114,11 +116,10 @@ export async function POST(req: Request) {
   // produits publiés avant ce garde peuvent exister sans asset → refus clair
   // plutôt qu'un acheteur MonCash floué (confiance = tout, sur ce marché).
   if (product.kind === "fichier") {
-    const { count } = await admin
-      .from("product_assets")
-      .select("id", { count: "exact", head: true })
-      .eq("product_id", product.id);
-    if (!count) {
+    const assets = product.product_assets as unknown as
+      | { count: number }[]
+      | null;
+    if (!assets?.[0]?.count) {
       return NextResponse.json(
         {
           error: "Ce produit n'a pas encore de fichier à livrer.",
