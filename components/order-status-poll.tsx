@@ -29,15 +29,24 @@ export function OrderStatusPoll({ orderId }: { orderId: string }) {
         if (data.status === "paid" || data.status === "delivered") {
           clearInterval(timer);
           router.push(`/paiement/succes?commande=${orderId}`);
-        } else if (data.status === "cancelled" || data.status === "refunded") {
+        } else if (
+          data.status === "cancelled" ||
+          data.status === "refunded" ||
+          // Correctif audit : `disputed` (montant incohérent, posé par
+          // confirm_payment) était absent — l'acheteur restait bloqué sur
+          // cette page jusqu'à l'arrêt silencieux du polling, sans jamais
+          // savoir que son paiement avait été rejeté.
+          data.status === "disputed"
+        ) {
           clearInterval(timer);
           const prod = data.products as unknown as
             | { slug?: string }
             | { slug?: string }[]
             | null;
           const slug = Array.isArray(prod) ? prod[0]?.slug : prod?.slug;
+          const raison = data.status === "disputed" ? "montant" : "non_confirme";
           router.push(
-            `/paiement/echec?raison=non_confirme${slug ? `&produit=${encodeURIComponent(slug)}` : ""}`
+            `/paiement/echec?raison=${raison}${slug ? `&produit=${encodeURIComponent(slug)}` : ""}`
           );
         }
       } catch {

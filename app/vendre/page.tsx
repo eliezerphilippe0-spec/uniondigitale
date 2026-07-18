@@ -130,12 +130,20 @@ export default async function VendrePage() {
                 className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3 text-sm"
               >
                 <div className="min-w-0">
-                  <Link
-                    href={`/produit/${p.slug}`}
-                    className="block truncate hover:text-cloud"
-                  >
-                    {p.title}
-                  </Link>
+                  {/* Correctif audit : un produit brouillon (BL-103, fichier
+                      sans livrable) n'est pas encore sur /produit/[slug]
+                      (filtré status='published') — le lien y menait quand
+                      même et tombait sur une 404 pour le vendeur. */}
+                  {p.status === "published" ? (
+                    <Link
+                      href={`/produit/${p.slug}`}
+                      className="block truncate hover:text-cloud"
+                    >
+                      {p.title}
+                    </Link>
+                  ) : (
+                    <span className="block truncate">{p.title}</span>
+                  )}
                   <span className="text-xs text-mist">{statusLabel(p.status)}</span>
                 </div>
                 {p.kind === "fichier" ? (

@@ -131,6 +131,18 @@ export async function fulfillTopupOrder(
     }
   }
 
+  // Correctif audit : quand maxAttemptsThisCall == budget total (3, le
+  // défaut cron/admin), la boucle peut sortir via `attemptsThisCall <
+  // maxAttemptsThisCall` devenant faux AVANT de retomber sur le test
+  // `wait === null` qui aurait posé budgetExhausted — sans ce filet, un
+  // épuisement du budget total en 3 échecs « retryable » dans le même appel
+  // laissait l'ordre en fulfillment_pending au lieu d'escalader vers
+  // refund_pending, retardant le checkpoint humain de remboursement d'un
+  // cycle cron entier.
+  if (!budgetExhausted && fulfillmentBackoffMs(attempt) === null) {
+    budgetExhausted = true;
+  }
+
   if (!budgetExhausted) {
     // BL-135 : budget de CET appel épuisé, mais il reste des tentatives au
     // total → laisse fulfillment_pending, le réconciliateur reprendra.

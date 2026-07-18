@@ -19,7 +19,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.7,
   }));
 
-  const products = await getPublishedProducts();
+  // Correctif audit : un incident Supabase transitoire ne doit pas faire
+  // échouer le sitemap entier (500 sur chaque crawl) — les routes statiques
+  // restent utiles même sans les routes produit/créateur ce coup-ci.
+  const products = await getPublishedProducts().catch(() => []);
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${base}/produit/${p.slug}`,
