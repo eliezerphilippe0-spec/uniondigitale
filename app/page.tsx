@@ -72,7 +72,13 @@ async function promoSellerIds(): Promise<Set<string>> {
 
 export default async function HomePage() {
   const [products, lang, promoSellers] = await Promise.all([
-    getPublishedProducts(),
+    // Correctif audit : getPublishedProducts lève désormais en cas d'erreur
+    // Supabase (BL-116, pour empêcher un repli silencieux sur le catalogue
+    // vers des produits de démo inachetables) — mais l'accueil n'a pas cette
+    // page d'erreur, il n'y a AUCUN app/error.tsx dans le projet. Un incident
+    // transitoire faisait planter tout l'accueil. Ici, une liste vide est
+    // sans risque : toutes les sections se masquent déjà si vides.
+    getPublishedProducts().catch(() => []),
     getLang(),
     promoSellerIds(),
   ]);
