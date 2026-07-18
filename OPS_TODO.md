@@ -38,6 +38,19 @@ complet, constats §3). Rien n'est exécuté sans « go » porteur, tâche par t
 Backlog Team Agents intégralement traité (P0 + P1 + P2 + alerte BRH). Seul
 BL-136 (achat invité) reste explicitement en attente d'une décision produit.
 
+- [x] **Audit du chantier 0024→0029 — FAIT (PRs #44-45, 2026-07-18)** :
+      revue croisée (8 angles) de tout le travail de la revue Team Agents.
+      4 bugs confirmés corrigés (#44) : budget de tentatives fulfillment
+      topup (retard du checkpoint remboursement BRH), statut `disputed`
+      absent du polling paiement, crash accueil/sitemap sur erreur Supabase,
+      lien 404 du vendeur vers son propre brouillon. 6 constats qualité
+      traités (#45) : code mort plafonds JS supprimé (source unique = SQL),
+      1 aller-retour DB de moins au checkout, scans fusionnés dans
+      `zabelie_topup_reserve_order`, règle d'atomicité documentée, hook
+      `usePoll` partagé, pattern i18n « libellés en props » documenté.
+      Migration **0030 appliquée en prod** (vérifiée : `bool_or` présent,
+      `security definer`). Comportement inchangé — perf/dette uniquement.
+
 ## Recharge téléphonique (V-11)
 
 - [x] Compte **Reloadly** créé (sandbox).
