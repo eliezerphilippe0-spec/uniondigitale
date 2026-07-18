@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePoll } from "@/lib/use-poll";
 
 /**
  * Statut temps réel d'une recharge — polling léger (JSON minuscule, toutes
@@ -16,28 +17,25 @@ export function ZabelieTopupStatus({
   labels: Record<string, string>;
 }) {
   const [status, setStatus] = useState(initialStatus);
+  const terminal = ["delivered", "refunded"];
 
-  useEffect(() => {
-    const terminal = ["delivered", "refunded"];
-    if (terminal.includes(status)) return;
-    let polls = 0;
-    const timer = setInterval(async () => {
-      polls += 1;
-      if (polls > 120) return clearInterval(timer); // ~10 min max
-      try {
-        const res = await fetch(`/api/zabelie/topup/orders/${orderId}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.status && data.status !== status) setStatus(data.status);
-        if (terminal.includes(data.status)) clearInterval(timer);
-      } catch {
-        /* réseau instable : on retentera au tick suivant */
-      }
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [orderId, status]);
+  // 5 s × 120 ticks ≈ 10 min par segment de statut (resetKey relance le
+  // budget à chaque transition, comme avant l'extraction du hook).
+  usePoll({
+    enabled: !terminal.includes(status),
+    intervalMs: 5000,
+    maxTicks: 120,
+    resetKey: `${orderId}:${status}`,
+    onTick: async () => {
+      const res = await fetch(`/api/zabelie/topup/orders/${orderId}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.status && data.status !== status) setStatus(data.status);
+      return terminal.includes(data.status);
+    },
+  });
 
   const tone =
     status === "delivered"

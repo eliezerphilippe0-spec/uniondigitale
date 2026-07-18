@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { usePoll } from "@/lib/use-poll";
 
 /**
  * BL-132 (FRONT-4) : pilote silencieusement la page « en attente » — dès que
@@ -13,48 +13,46 @@ import { createClient } from "@/lib/supabase/client";
 export function OrderStatusPoll({ orderId }: { orderId: string }) {
   const router = useRouter();
 
-  useEffect(() => {
-    const supabase = createClient();
-    let polls = 0;
-    const timer = setInterval(async () => {
-      polls += 1;
-      if (polls > 24) return clearInterval(timer); // ~4 min à 10 s (data chère, 3G)
-      try {
-        const { data } = await supabase
-          .from("orders")
-          .select("status, products(slug)")
-          .eq("id", orderId)
-          .maybeSingle();
-        if (!data) return;
-        if (data.status === "paid" || data.status === "delivered") {
-          clearInterval(timer);
-          router.push(`/paiement/succes?commande=${orderId}`);
-        } else if (
-          data.status === "cancelled" ||
-          data.status === "refunded" ||
-          // Correctif audit : `disputed` (montant incohérent, posé par
-          // confirm_payment) était absent — l'acheteur restait bloqué sur
-          // cette page jusqu'à l'arrêt silencieux du polling, sans jamais
-          // savoir que son paiement avait été rejeté.
-          data.status === "disputed"
-        ) {
-          clearInterval(timer);
-          const prod = data.products as unknown as
-            | { slug?: string }
-            | { slug?: string }[]
-            | null;
-          const slug = Array.isArray(prod) ? prod[0]?.slug : prod?.slug;
-          const raison = data.status === "disputed" ? "montant" : "non_confirme";
-          router.push(
-            `/paiement/echec?raison=${raison}${slug ? `&produit=${encodeURIComponent(slug)}` : ""}`
-          );
-        }
-      } catch {
-        /* réseau instable : on retentera au tick suivant */
+  // 10 s × 24 ticks ≈ 4 min (data chère, 3G) ; le réconciliateur prend le relais.
+  usePoll({
+    intervalMs: 10000,
+    maxTicks: 24,
+    resetKey: orderId,
+    onTick: async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("orders")
+        .select("status, products(slug)")
+        .eq("id", orderId)
+        .maybeSingle();
+      if (!data) return false;
+      if (data.status === "paid" || data.status === "delivered") {
+        router.push(`/paiement/succes?commande=${orderId}`);
+        return true;
       }
-    }, 10000);
-    return () => clearInterval(timer);
-  }, [orderId, router]);
+      if (
+        data.status === "cancelled" ||
+        data.status === "refunded" ||
+        // Correctif audit : `disputed` (montant incohérent, posé par
+        // confirm_payment) était absent — l'acheteur restait bloqué sur
+        // cette page jusqu'à l'arrêt silencieux du polling, sans jamais
+        // savoir que son paiement avait été rejeté.
+        data.status === "disputed"
+      ) {
+        const prod = data.products as unknown as
+          | { slug?: string }
+          | { slug?: string }[]
+          | null;
+        const slug = Array.isArray(prod) ? prod[0]?.slug : prod?.slug;
+        const raison = data.status === "disputed" ? "montant" : "non_confirme";
+        router.push(
+          `/paiement/echec?raison=${raison}${slug ? `&produit=${encodeURIComponent(slug)}` : ""}`
+        );
+        return true;
+      }
+      return false;
+    },
+  });
 
   return null;
 }

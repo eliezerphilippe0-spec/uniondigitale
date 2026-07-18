@@ -5,11 +5,7 @@ import {
   detectOperator,
   formatHaitiPhone,
 } from "../lib/zabelie-topup/phone";
-import {
-  checkTopupLimits,
-  fulfillmentBackoffMs,
-  DEFAULT_TOPUP_LIMITS,
-} from "../lib/zabelie-topup/limits";
+import { fulfillmentBackoffMs } from "../lib/zabelie-topup/limits";
 import {
   mapReloadlyStatus,
   reloadlyDenominations,
@@ -42,36 +38,9 @@ test("formatHaitiPhone : affichage +509 XX XX XXXX", () => {
   assert.equal(formatHaitiPhone("50937123456"), "+509 37 12 34 56");
 });
 
-test("plafonds topup : par transaction, par jour, velocity (BRH n°7)", () => {
-  const limits = DEFAULT_TOPUP_LIMITS; // 5000/tx, 25000/j, 5 num/h — validés
-  const usage = { spentTodayHtg: 0, distinctBeneficiariesLastHour: 0 };
-
-  assert.deepEqual(checkTopupLimits(5000, usage, limits, false), { ok: true });
-  assert.deepEqual(checkTopupLimits(5001, usage, limits, false), {
-    ok: false,
-    reason: "per_tx",
-    capHtg: 5000,
-  });
-
-  // Cumul du jour : 24 900 + 200 > 25 000 → refus.
-  assert.deepEqual(
-    checkTopupLimits(200, { ...usage, spentTodayHtg: 24900 }, limits, false),
-    { ok: false, reason: "per_day", capHtg: 25000 }
-  );
-  assert.equal(
-    checkTopupLimits(100, { ...usage, spentTodayHtg: 24900 }, limits, false).ok,
-    true // pile au plafond = ok
-  );
-
-  // Velocity : 5 numéros distincts déjà servis dans l'heure + 1 NOUVEAU → flag.
-  const hot = { spentTodayHtg: 0, distinctBeneficiariesLastHour: 5 };
-  assert.deepEqual(checkTopupLimits(100, hot, limits, false), {
-    ok: false,
-    reason: "velocity",
-  });
-  // Même bénéficiaire que tout à l'heure → pas un nouveau numéro → ok.
-  assert.equal(checkTopupLimits(100, hot, limits, true).ok, true);
-});
+// Plafonds BRH (5000/tx, 25000/j, velocity) : la vérité vit en SQL depuis
+// 0029 (zabelie_topup_reserve_order) — couverture dans
+// supabase/tests/zabelie_topup.test.sql (T6a-d), plus de double JS ici.
 
 test("backoff fulfillment : 0s, 2s, 4s puis stop (max 3 tentatives)", () => {
   assert.equal(fulfillmentBackoffMs(0), 0);
