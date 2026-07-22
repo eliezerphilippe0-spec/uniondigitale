@@ -152,3 +152,67 @@ montant USD est converti au taux `USD_HTG_RATE`, **figé au checkout** dans
 
 Les **retraits** et l'intégration **NatCash** dépendent des règles BRH (KYC, plafonds,
 reporting). ⛔ Bloqué — voir `00-CONTEXTE.md §11` et `§14`.
+
+## 9. Ajouter un rail de paiement — checklist obligatoire
+
+> Issue de la revue `REVUE-2026-07-22-rails-paiement.md` (SEC-03/SEC-04/SEC-06).
+> Tout nouveau rail suit ces étapes DANS L'ORDRE. L'étape 0 est éliminatoire :
+> tant qu'elle n'est pas verte, **aucune ligne de code** (règle dure n°2,
+> `CLAUDE.md` — celle qui tient NatCash et BRH en attente).
+
+### Étape 0 — Fiche de constructibilité (éliminatoire)
+
+À remplir et faire valider par le porteur AVANT tout code :
+
+- [ ] Le prestataire **existe** (site officiel, entité identifiée — attention
+      aux homonymes : **Htipay** (htipay.com) ≠ **HaitiPay** (haitipay.com,
+      portail dev `devportal.haitipay.com`) ; consigner ici lequel on vise).
+- [ ] **API publique documentée** (lien vers la doc) + **sandbox** accessible
+      (identifiants de test obtenus).
+- [ ] **Mécanisme de confirmation vérifiable** : webhook **signé** OU API de
+      vérification d'état serveur-à-serveur. Sans l'un des deux, le rail ne
+      peut pas respecter l'invariant 2 → ⛔ (au mieux flux semi-manuel type
+      Zelle, décision porteur).
+- [ ] Plafonds par transaction / par jour documentés (sinon les demander).
+- [ ] Statut réglementaire (licence/agrément BRH le cas échéant) et modalités
+      de règlement (settlement) vers notre compte.
+- [ ] Frais du rail connus (impact sur la commission / le prix affiché).
+
+### Étapes 1→8 — Intégration (une PR par étape logique)
+
+1. **Migration SQL** : `alter type payment_rail add value '<rail>'` (cf.
+   `0009_rails_diaspora.sql:11-12`). Si le rail n'encaisse pas du HTG,
+   prévoir l'équivalent de `expected_usd_cents` (montant figé + vérifié par
+   `confirm_payment`).
+2. **Adapter** `lib/<rail>.ts` : création de session + vérification d'état,
+   secrets lus via `process.env` au moment de l'usage, fonction
+   `is<Rail>Enabled()` (rail masqué si non configuré), minimisation RGPD du
+   payload stocké (cf. `lib/moncash.ts::redactPayment`).
+3. **Checkout** (`app/api/checkout/route.ts`) : ajouter à `RAILS`,
+   `railEnabled()`, et la branche de création. Plafonds : `RAIL_CAPS`, pays
+   implicite : `RAIL_COUNTRY` (`lib/payment-utils.ts`).
+4. **Confirmation** selon le mode établi à l'étape 0 : route de retour S2S
+   (modèle `app/api/moncash/return`), webhook signé fail-closed (modèle
+   `app/api/stripe/webhook`), ou confirmation admin (modèle
+   `app/api/admin/confirm-zelle`). TOUJOURS via `confirm_payment` — jamais de
+   crédit direct.
+5. **Réconciliateur** (`app/api/reconcile/route.ts:38-49`) : si le rail est
+   S2S (session + vérification d'état), le **brancher** au scan des pendings ;
+   sinon, justifier par écrit ici pourquoi pas (cf. Stripe = webhook rejoué,
+   Zelle = admin). Un rail S2S non branché = paiements orphelins silencieux.
+6. **UI** : option au checkout (`app/produit/[slug]`), page d'attente/statut,
+   section admin si confirmation manuelle. Parité FR/KR obligatoire.
+7. **Secrets** : variables dans `.env.example` (valeurs vides + commentaire),
+   liste de référence de `docs/11-SECRETS.md`, puis Vercel.
+8. **Tests** : scénario d'idempotence SQL (modèle scénarios D/E de
+   `payment_idempotency.test.sql` pour un rail non-HTG) + garde
+   `api-auth-coverage` pour toute nouvelle route.
+
+### Rails candidats — état des fiches (2026-07-22)
+
+| Prestataire | Étape 0 | Notes |
+|-------------|---------|-------|
+| Dhecash | ⛔ Introuvable en ligne | Source du porteur attendue |
+| Zappp | ⛔ Introuvable en ligne | Source du porteur attendue |
+| Htipay (htipay.com) | ⚠️ Existe, API non confirmée | Contact direct requis ; ne pas confondre avec HaitiPay |
+| HaitiPay (haitipay.com) | ⚠️ Portail dev public (`devportal.haitipay.com`, « Acceptor API ») | Non demandé par le porteur à ce stade |
